@@ -1,0 +1,94 @@
+// TODO ordenar esto por view que se esta armando un quilombo
+
+@import "ui-variables";
+
+/*
+* Editor
+*/
+
+#quick-query-default-is-null{
+	border-width: 1px;
+	border-style: solid;
+	border-color: @input-border-color;
+	height: @component-line-height;
+	padding: @component-line-height / 5;
+	border-radius: 2px;
+	font-style: italic;
+}
+
+/*
+* Browser
+*/
+
+
+ol#quick-query-connections{
+	padding-bottom: @component-line-height;
+}
+
+.focusable-panel:focus .quick-query-databases .selected:before{
+	background-color: @background-color-selected + #2D2D2D;
+}
+
+atom-panel.right{
+	.quick-query-browser{
+		height: 100%;
+	}
+}
+
+/*
+*	Query Result
+*/
+
+.quick-query-result{
+	overflow-x: auto;
+	overflow-y: hidden;
+
+	.quick-query-result-resize-handler{
+		height: 5px;
+		cursor: ns-resize;
+	}
+
+	table.table{
+			height: 94.5%;
+
+			tbody , thead{
+				display: block;
+			}
+			tbody{
+				height: 100%;
+				overflow-y: auto;
+				overflow-x: hidden;
+				padding-bottom: @component-line-height;
+
+				tr:nth-child(even){
+					td:first-child{
+						font-weight: bold;
+						background-color: @panel-heading-background-color;
+					}
+					background-color: @tool-panel-background-color;
+				}
+				tr:nth-child(odd){
+					td:first-child{
+						font-weight: bold;
+						background-color: @panel-heading-background-color - #131313;
+					}
+					background-color: @tool-panel-background-color - #030303;
+				}
+				tr{
+					width: 100%;
+					max-height: @component-line-height;
+					td{
+						overflow:ellipsis;
+						text-overflow: ellipsis;
+						white-space: nowrap;
+					}
+				}
+		}
+	}
+}
+
+atom-panel.bottom{
+	.quick-query-result {
+		height: @component-line-height * 11;
+	}
+}

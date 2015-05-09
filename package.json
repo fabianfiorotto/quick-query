@@ -1,0 +1,29 @@
+{
+  "name": "quick-query",
+  "main": "./lib/quick-query",
+  "version": "0.0.0",
+  "description": "Run sql queries",
+  "activationCommands": {
+    "atom-workspace": [
+      "quick-query:run",
+      "quick-query:new-editor",
+      "quick-query:toggle-browser",
+      "quick-query:new-connection"
+    ],
+    "#quick-query-connections": [
+      "quick-query:select-1000",
+      "quick-query:create",
+      "quick-query:alter",
+      "quick-query:drop"
+    ]
+  },
+  "repository": "https://github.com/fabianfiorotto/quick-query",
+  "license": "MIT",
+  "engines": {
+    "atom": ">=0.174.0 <2.0.0"
+  },
+  "dependencies": {
+    "atom-space-pen-views": "^2.0.3",
+    "mysql": "^2.6.2 "
+  }
+}

@@ -1,0 +1,63 @@
+# See https://atom.io/docs/latest/hacking-atom-package-word-count#menus for more details
+'context-menu':
+  'atom-text-editor[data-grammar~="sql"]': [
+    {
+      'label': 'Quick Query run'
+      'command': 'quick-query:run'
+    }
+  ],
+  '.quick-query-browser': [
+      {
+        'label': 'Hide Browser'
+        'command': 'quick-query:toggle-browser'
+      }
+      {
+        'label': 'New connection..',
+        'command': 'quick-query:new-connection'
+      }
+
+  ]
+  '.quick-query-browser .qq-connection-item':[
+      {'label': 'Create database', 'command': 'quick-query:create'}
+      {'label': 'Close connection', 'command': 'core:delete'}
+  ]
+  '.quick-query-browser .qq-database-item':[
+      {'label': 'Copy', 'command': 'quick-query:copy'}
+      {'label': 'Create table', 'command': 'quick-query:create'}
+      {'label': 'Drop database', 'command': 'quick-query:drop'}
+  ]
+  '.quick-query-browser .qq-table-item':[
+      {'label': 'Select Rows - limit 1000' , 'command': 'quick-query:select-1000' }
+      {'type': 'separator'}
+      {'label': 'Copy', 'command': 'quick-query:copy'}
+      {'label': 'Alter table' , 'command': 'quick-query:alter' }
+      {'label': 'Create column' , 'command': 'quick-query:create'}
+      {'label': 'Drop table' , 'command': 'quick-query:drop' }
+  ]
+  '.quick-query-browser .qq-column-item':[
+      {'label': 'Copy', 'command': 'quick-query:copy' }
+      {'label': 'Alter column' , 'command': 'quick-query:alter' }
+      {'label': 'Drop column', 'command': 'quick-query:drop'}
+  ]
+'menu': [
+  {
+    'label': 'Packages'
+    'submenu': [
+      'label': 'Quick query'
+      'submenu': [
+        {
+          'label': 'Run'
+          'command': 'quick-query:run'
+        },
+        {
+          'label': 'New Editor'
+          'command': 'quick-query:new-editor'
+        },
+        {
+          'label': 'Toggle Browser'
+          'command': 'quick-query:toggle-browser'
+        },
+      ]
+    ]
+  }
+]
