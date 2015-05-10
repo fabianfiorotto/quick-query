@@ -8,6 +8,12 @@ QuickQueryMysqlConnection = require './quick-query-mysql-connection'
 mysql = require 'mysql'
 
 module.exports = QuickQuery =
+  config:
+    resultsInTab:
+      type: 'boolean'
+      default: false
+      title: 'Show results in a tab'
+
   editorView: null
   queryResult: null
   browser: null
@@ -69,6 +75,12 @@ module.exports = QuickQuery =
       'quick-query:new-connection': => @newConnection()
     @subscriptions.add atom.commands.add 'ol#quick-query-connections', 'core:delete': => @delete()
 
+    atom.config.onDidChange 'quick-query.resultsInTab', ({newValue, oldValue}) =>
+      @bottomPanel.hide()
+      unless newValue
+        @queryResult = new QuickQueryResultView()
+        @bottomPanel = atom.workspace.addBottomPanel(item: @queryResult, visible:false )
+
   deactivate: ->
     @modalPanel.destroy()
     @subscriptions.dispose()
@@ -97,10 +109,10 @@ module.exports = QuickQuery =
             @afterExecute(editor)
         else
           @queryResult.show(rows, fields)
-          if true
-            @bottomPanel.show()
-          else
+          if atom.config.get('quick-query.resultsInTab')
             @showResultInTab()
+          else
+            @bottomPanel.show()
           @queryResult.fixSizes()
 
     else
