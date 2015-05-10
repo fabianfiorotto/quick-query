@@ -76,10 +76,14 @@ class QuickQueryMysqlConnection
     database == "performance_schema" ||
     database == "mysql"
 
-  simpleSelect: (table,database)->
+  simpleSelect: (table,database, columns = '*') ->
+    if columns != '*'
+      columns = columns.map (col) =>
+        @connection.escapeId(col.name)
+      columns = "\n "+columns.join(",\n ") + "\n"
     table = @connection.escapeId(table)
     database = @connection.escapeId(database)
-    "SELECT * FROM #{database}.#{table} LIMIT 1000"
+    "SELECT #{columns} FROM #{database}.#{table} LIMIT 1000"
 
 
   createDatabase: (model,info)->

@@ -218,12 +218,13 @@ class QuickQueryBrowserView extends ScrollView
     $li = @find('li.selected.quick-query-table')
     if $li.length > 0
       model = @getItemModel($li)
-      text = model.connection.simpleSelect(model.table,model.database)
-      atom.workspace.open().then (editor) =>
-        grammars = atom.grammars.getGrammars()
-        grammar = (i for i in grammars when i.name is 'SQL')[0]
-        editor.setGrammar(grammar)
-        editor.insertText(text)
+      model.connection.getColumns model.table,model.database,(columns) =>
+        text = model.connection.simpleSelect(model.table,model.database,columns)
+        atom.workspace.open().then (editor) =>
+          grammars = atom.grammars.getGrammars()
+          grammar = (i for i in grammars when i.name is 'SQL')[0]
+          editor.setGrammar(grammar)
+          editor.insertText(text)
 
   copy: ->
     $li = @find('li.selected:not(.quick-query-connection)')
