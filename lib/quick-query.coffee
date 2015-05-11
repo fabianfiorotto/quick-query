@@ -97,7 +97,10 @@ module.exports = QuickQuery =
     @modalPanel = atom.workspace.addModalPanel(item: @connectView, visible: true)
     @connectView.focusFirst()
   run: ->
-    editor = atom.workspace.getActivePaneItem()
+    editor = atom.workspace.getActiveTextEditor()
+    unless editor
+      @setModalPanel("This tab is not a editor")
+      return
     text = editor.getSelectedText()
     text = editor.getText() if(text == '')
 
