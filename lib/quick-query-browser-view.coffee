@@ -16,6 +16,7 @@ class QuickQueryBrowserView extends ScrollView
     atom.commands.add '#quick-query-connections', 'quick-query:drop': => @drop()
     atom.commands.add '#quick-query-connections', 'quick-query:create': => @create()
     atom.commands.add '#quick-query-connections', 'quick-query:copy': => @copy()
+    atom.commands.add '#quick-query-connections', 'quick-query:set-default': => @setDefault()
 
     super
 
@@ -59,6 +60,13 @@ class QuickQueryBrowserView extends ScrollView
       @connections.splice(i,1)
       @showConnections()
     connection
+
+
+  setDefault: ->
+    $li = @find('li.selected:not(.quick-query-connection)')
+    $li.parent().find('li').removeClass('default')
+    $li.addClass('default')
+    #TODO
 
   addConnection: (connection) ->
     @selectedConnection = connection

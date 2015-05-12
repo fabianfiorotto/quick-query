@@ -22,6 +22,8 @@
       {'label': 'Close connection', 'command': 'core:delete'}
   ]
   '.quick-query-browser .qq-database-item':[
+      {'label': 'Set as default', 'command': 'quick-query:set-default'}
+      {'type': 'separator'}
       {'label': 'Copy', 'command': 'quick-query:copy'}
       {'label': 'Create table', 'command': 'quick-query:create'}
       {'label': 'Drop database', 'command': 'quick-query:drop'}
