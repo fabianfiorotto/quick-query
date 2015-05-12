@@ -117,7 +117,7 @@ module.exports = QuickQuery =
           else
             @bottomPanel.show()
           @queryResult.fixSizes()
-
+          @modalPanel.hide() if @modalPanel
     else
       @setModalPanel("No connection selected")
 
