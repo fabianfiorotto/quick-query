@@ -39,7 +39,8 @@ class QuickQueryMysqlConnection
         message = { type: 'success', content:  rows.affectedRows+" row(s) affected" }
       callback(message,rows,fields)
 
-
+  setDefaultDatabase: (database)->
+    @connection.changeUser database: database
 
   getDatabases: (callback) ->
     text = "SHOW DATABASES"

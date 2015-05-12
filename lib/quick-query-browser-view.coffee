@@ -64,9 +64,11 @@ class QuickQueryBrowserView extends ScrollView
 
   setDefault: ->
     $li = @find('li.selected:not(.quick-query-connection)')
-    $li.parent().find('li').removeClass('default')
-    $li.addClass('default')
-    #TODO
+    unless $li.hasClass('default')
+      $li.parent().find('li').removeClass('default')
+      $li.addClass('default')
+      model = @getItemModel($li)
+      model.connection.setDefaultDatabase model.database
 
   addConnection: (connection) ->
     @selectedConnection = connection
