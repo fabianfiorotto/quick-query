@@ -29,7 +29,7 @@ class QuickQueryBrowserView extends ScrollView
       atom.commands.dispatch(workspaceElement, 'quick-query:run')
     @find('#quick-query-connections').blur (e) =>
       $tree = $(e.currentTarget)
-      $li = $tree.find('li.selected:not(.quick-query-connection)')
+      $li = $tree.find('li.selected')
       $li.removeClass('selected')
     @handleResizeEvents()
   # Returns an object that can be retrieved when package is activated
@@ -63,7 +63,7 @@ class QuickQueryBrowserView extends ScrollView
 
 
   setDefault: ->
-    $li = @find('li.selected:not(.quick-query-connection)')
+    $li = @find('li.selected')
     unless $li.hasClass('default')
       $li.parent().find('li').removeClass('default')
       $li.addClass('default')
@@ -84,12 +84,14 @@ class QuickQueryBrowserView extends ScrollView
         $li = $('<li/>').addClass('entry list-nested-item collapsed')
         $li.addClass('quick-query-connection')
         if connection == @selectedConnection
-          $li.addClass('selected')
+          $li.addClass('default')
         $div = $('<div/>').addClass('header list-item qq-connection-item')
         $div.mousedown (e) =>
           $li = $(e.currentTarget).parent()
           $li.parent().find('li').removeClass('selected')
           $li.addClass('selected')
+          $li.parent().find('li').removeClass('default')
+          $li.addClass('default')
           @expandConnection($li) if e.which != 3
         $icon = $('<span/>').addClass('icon-plug')
         $div.text(connection)
@@ -124,7 +126,7 @@ class QuickQueryBrowserView extends ScrollView
         $div = $('<div/>').addClass('header list-item qq-database-item')
         $div.mousedown (e) =>
           $li = $(e.currentTarget).parent()
-          $li.parent().find('li').removeClass('selected')
+          $li.closest('ol#quick-query-connections').find('li').removeClass('selected')
           $li.addClass('selected')
           @expandDatabase($li) if e.which != 3
         $icon = $('<span/>').addClass('icon-database')
@@ -159,7 +161,7 @@ class QuickQueryBrowserView extends ScrollView
       $div.prepend($icon)
       $div.mousedown (e)=>
         $li = $(e.currentTarget).parent()
-        $li.closest('ol.quick-query-databases').find('li').removeClass('selected')
+        $li.closest('ol#quick-query-connections').find('li').removeClass('selected')
         $li.addClass('selected')
         @expandTable($li) if e.which != 3
       $li.data('table',table)
@@ -199,7 +201,7 @@ class QuickQueryBrowserView extends ScrollView
       $ol.append($li)
 
   selectColumn: ($li) ->
-    $li.closest('ol.quick-query-databases').find('li').removeClass('selected')
+    $li.closest('ol#quick-query-connections').find('li').removeClass('selected')
     $li.addClass('selected')
 
   refreshTree: (model)->
@@ -240,28 +242,26 @@ class QuickQueryBrowserView extends ScrollView
           editor.insertText(text)
 
   copy: ->
-    $li = @find('li.selected:not(.quick-query-connection)')
+    $li = @find('li.selected')
     $header = $li.find('div.header')
     if $header.length > 0
       atom.clipboard.write($header.text())
 
   create: ->
-    $li = @find('li.selected:not(.quick-query-connection)')
-    if $li.length == 0
-      $li = @find('li.selected')
+    $li = @find('li.selected')
     if $li.length > 0
       model = @getItemModel($li)
       @trigger('quickQuery.edit',['create',model])
 
 
   alter: ->
-    $li = @find('li.selected:not(.quick-query-connection)')
+    $li = @find('li.selected')
     if $li.length > 0
       model = @getItemModel($li)
       @trigger('quickQuery.edit',['alter',model])
 
   drop: ->
-    $li = @find('li.selected:not(.quick-query-connection)')
+    $li = @find('li.selected')
     if $li.length > 0
       model = @getItemModel($li)
       @trigger('quickQuery.edit',['drop',model])
