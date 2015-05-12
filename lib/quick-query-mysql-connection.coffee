@@ -42,6 +42,9 @@ class QuickQueryMysqlConnection
   setDefaultDatabase: (database)->
     @connection.changeUser database: database
 
+  getDefaultDatabase: ->
+    @connection.config.database
+
   getDatabases: (callback) ->
     text = "SHOW DATABASES"
     @query text , (err, rows, fields) =>

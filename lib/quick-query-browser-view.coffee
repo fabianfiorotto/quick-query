@@ -68,6 +68,7 @@ class QuickQueryBrowserView extends ScrollView
       $li.parent().find('li').removeClass('default')
       $li.addClass('default')
       model = @getItemModel($li)
+      console.log model.connection.connection.config
       model.connection.setDefaultDatabase model.database
 
   addConnection: (connection) ->
@@ -118,6 +119,8 @@ class QuickQueryBrowserView extends ScrollView
     for database in databases
         $li = $('<li/>').addClass('entry list-nested-item collapsed')
         $li.addClass('quick-query-database')
+        if database == @selectedConnection.getDefaultDatabase()
+          $li.addClass('default')
         $div = $('<div/>').addClass('header list-item qq-database-item')
         $div.mousedown (e) =>
           $li = $(e.currentTarget).parent()
