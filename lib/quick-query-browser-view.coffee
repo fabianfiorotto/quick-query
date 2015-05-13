@@ -61,7 +61,6 @@ class QuickQueryBrowserView extends ScrollView
       @showConnections()
     connection
 
-
   setDefault: ->
     $li = @find('li.selected')
     unless $li.hasClass('default')
@@ -71,11 +70,12 @@ class QuickQueryBrowserView extends ScrollView
       console.log model.connection.connection.config
       model.connection.setDefaultDatabase model.database
 
-  addConnection: (connection) ->
-    @selectedConnection = connection
-    @connections.push(connection)
-    @trigger('quickQuery.connectionSelected',[connection])
-    @showConnections()
+  addConnection: (connectionPromise) ->
+    connectionPromise.then (connection)=>
+      @selectedConnection = connection
+      @connections.push(connection)
+      @trigger('quickQuery.connectionSelected',[connection])
+      @showConnections()
 
   showConnections: ()->
     $ol = @find('ol#quick-query-connections')
