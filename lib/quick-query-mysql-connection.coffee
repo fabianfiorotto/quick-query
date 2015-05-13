@@ -12,7 +12,9 @@ class QuickQueryMysqlConnection
   n_types: 'TINYINT SMALLINT MEDIUMINT INT INTEGER BIGINT FLOAT DOUBLE REAL DECIMAL NUMERIC TIMESTAMP YEAR ENUM SET'.split /\s+/
   s_types: 'CHAR VARCHAR TINYBLOB TINYTEXT MEDIUMBLOB MEDIUMTEXT LONGBLOB LONGTEXT BLOB TEXT DATETIME DATE TIME'.split /\s+/
 
-  constructor: (@info , callback)->
+  constructor: (@info)->
+
+  connect: (callback)->
     @connection = mysql.createConnection(@info)
     @connection.connect(callback)
 
@@ -20,6 +22,7 @@ class QuickQueryMysqlConnection
     c = @connection.config
     host: c.host,
     port: c.port,
+    protocol: @protocol
     user: c.user,
     password: c.password
 

@@ -30,13 +30,10 @@ module.exports = QuickQuery =
     @queryResult = new QuickQueryResultView()
     @browser = new QuickQueryBrowserView(@connections)
 
-    # info = { host: 'localhost', user: 'root', password: 'root' }
-    # @connection = new QuickQueryMysqlConnection(info)
-    # @browser.addConnection(@connection)
-
     if state.connections
-      for connecectionInfo in state.connections
-        connection = new QuickQueryMysqlConnection connecectionInfo , (err) =>
+      for connectionInfo in state.connections
+        connection = new QuickQueryMysqlConnection connectionInfo
+        connection.connect (err) =>
           @browser.addConnection(connection) unless err
 
     @connectView = new QuickQueryConnectView()
@@ -53,7 +50,8 @@ module.exports = QuickQuery =
         @editorView.focusFirst()
 
     @connectView.bind 'quickQuery.connect', (e,connectionInfo) =>
-      connection = new QuickQueryMysqlConnection connectionInfo , (err) =>
+      connection = new QuickQueryMysqlConnection connectionInfo
+      connection.connect (err) =>
         if err
           @setModalPanel content: err, type: 'error'
         else
