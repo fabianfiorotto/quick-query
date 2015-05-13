@@ -32,9 +32,8 @@ module.exports = QuickQuery =
 
     if state.connections
       for connectionInfo in state.connections
-        connection = new QuickQueryMysqlConnection connectionInfo
-        connection.connect (err) =>
-          @browser.addConnection(connection) unless err
+        connectionPromise = @buildConnection(connectionInfo)
+        @browser.addConnection(connectionPromise)
 
     @connectView = new QuickQueryConnectView()
 
@@ -50,13 +49,12 @@ module.exports = QuickQuery =
         @editorView.focusFirst()
 
     @connectView.bind 'quickQuery.connect', (e,connectionInfo) =>
-      connection = new QuickQueryMysqlConnection connectionInfo
-      connection.connect (err) =>
-        if err
-          @setModalPanel content: err, type: 'error'
-        else
-          @browser.addConnection(connection)
-          @modalPanel.hide()
+      connectionPromise = @buildConnection(connectionInfo)
+      @browser.addConnection(connectionPromise)
+      connectionPromise.then(
+        (connection) => @modalPanel.hide()
+        (err) => @setModalPanel content: err, type: 'error'
+      )
 
     @bottomPanel = atom.workspace.addBottomPanel(item: @queryResult, visible:false )
     @rightPanel = atom.workspace.addRightPanel(item: @browser, visible:false )
@@ -133,6 +131,16 @@ module.exports = QuickQuery =
     if message.type == 'error'
       item.classList.add('text-error')
     @modalPanel = atom.workspace.addModalPanel(item: item , visible: true)
+
+  buildConnection: (connectionInfo)->
+    new Promise (resolve, reject)->
+      # if connectionInfo.protocol == 'mysql'
+      connection = new QuickQueryMysqlConnection connectionInfo
+      connection.connect (err) ->
+        if err
+          reject(err)
+        else
+          resolve(connection)
 
   showResultInTab: ->
     pane = atom.workspace.getActivePane()

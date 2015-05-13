@@ -11,13 +11,13 @@ class QuickQueryConnectView extends View
     @find('#quick-query-connect').keydown (e) ->
       $(this).click() if e.keyCode == 13
     @find('#quick-query-connect').click (e) =>
-      connection = {
+      connectionInfo = {
         host: @find("#quick-query-host")[0].getModel().getText(),
         port: @find("#quick-query-port")[0].getModel().getText(),
         user: @find("#quick-query-user")[0].getModel().getText(),
         password: @find("#quick-query-pass")[0].getModel().getText()
       }
-      $(@element).trigger('quickQuery.connect',[connection])
+      $(@element).trigger('quickQuery.connect',[connectionInfo])
     @find("#quick-query-port")[0].getModel().setText('3306')
 
   @content: ->

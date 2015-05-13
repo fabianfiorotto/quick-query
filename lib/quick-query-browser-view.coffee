@@ -60,11 +60,12 @@ class QuickQueryBrowserView extends ScrollView
       @showConnections()
     connection
 
-  addConnection: (connection) ->
-    @selectedConnection = connection
-    @connections.push(connection)
-    @trigger('quickQuery.connectionSelected',[connection])
-    @showConnections()
+  addConnection: (connectionPromise) ->
+    connectionPromise.then (connection)=>
+      @selectedConnection = connection
+      @connections.push(connection)
+      @trigger('quickQuery.connectionSelected',[connection])
+      @showConnections()
 
   showConnections: ()->
     $ol = @find('ol#quick-query-connections')
