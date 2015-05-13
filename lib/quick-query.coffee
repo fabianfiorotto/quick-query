@@ -55,7 +55,7 @@ module.exports = QuickQuery =
     @connectView.bind 'quickQuery.connect', (e,connectionInfo) =>
       connection = new QuickQueryMysqlConnection connectionInfo , (err) =>
         if err
-          @setModalPanel(err)
+          @setModalPanel content: err, type: 'error'
         else
           @browser.addConnection(connection)
           @modalPanel.hide()
@@ -99,7 +99,7 @@ module.exports = QuickQuery =
   run: ->
     editor = atom.workspace.getActiveTextEditor()
     unless editor
-      @setModalPanel("This tab is not a editor")
+      @setModalPanel content:"This tab is not a editor", type:'error'
       return
     text = editor.getSelectedText()
     text = editor.getText() if(text == '')
@@ -107,7 +107,7 @@ module.exports = QuickQuery =
     if @connection
       @connection.query text, (message, rows, fields) =>
         if (message)
-          @setModalPanel(message.content)
+          @setModalPanel(message)
           if message.type == 'success'
             @afterExecute(editor)
         else
@@ -119,7 +119,7 @@ module.exports = QuickQuery =
           @queryResult.fixSizes()
           @modalPanel.hide() if @modalPanel
     else
-      @setModalPanel("No connection selected")
+      @setModalPanel content: "No connection selected"
 
   toggleBrowser: ->
     if @browser.is(':visible')
@@ -129,9 +129,11 @@ module.exports = QuickQuery =
       @rightPanel.show()
 
 
-  setModalPanel: (text)->
+  setModalPanel: (message)->
     item = document.createElement('div')
-    item.textContent = text
+    item.textContent = message.content
+    if message.type == 'error'
+      item.classList.add('text-error')
     @modalPanel = atom.workspace.addModalPanel(item: item , visible: true)
 
   showResultInTab: ->
