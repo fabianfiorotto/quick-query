@@ -4,6 +4,7 @@ module.exports =
 class QuickQueryResultView extends ScrollView
 
   constructor:  ()->
+    atom.commands.add '.quick-query-result', 'quick-query:copy': => @copy()
     super
 
   initialize: ->
@@ -49,9 +50,17 @@ class QuickQueryResultView extends ScrollView
       for field in fields
         $td = $('<td/>')
         $td.text(row[field.name])
+        $td.mousedown (e)->
+          $(this).closest('table').find('td').removeClass('selected')
+          $(this).addClass('selected')
         $tr.append($td)
       $tbody.append($tr)
     $table.append($tbody)
+
+  copy: ->
+    $td = @find('td.selected')
+    if $td.length == 1
+      atom.clipboard.write($td.text())
 
   fixSizes: ->
     if @find('tbody tr').length > 0

@@ -17,6 +17,9 @@
       }
 
   ]
+  '.quick-query-result td.selected':[
+    {'label': 'Copy', 'command': 'quick-query:copy'}
+  ]
   '.quick-query-browser .qq-connection-item':[
       {'label': 'Create database', 'command': 'quick-query:create'}
       {'label': 'Close connection', 'command': 'core:delete'}
