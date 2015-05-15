@@ -95,7 +95,7 @@ module.exports = QuickQuery =
   run: ->
     editor = atom.workspace.getActiveTextEditor()
     unless editor
-      @setModalPanel content:"This tab is not a editor", type:'error'
+      @setModalPanel content:"This tab is not an editor", type:'error'
       return
     text = editor.getSelectedText()
     text = editor.getText() if(text == '')
