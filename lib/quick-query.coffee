@@ -107,7 +107,7 @@ module.exports = QuickQuery =
           if message.type == 'success'
             @afterExecute(editor)
         else
-          @queryResult.show(rows, fields)
+          @queryResult.showRows(rows, fields)
           if atom.config.get('quick-query.resultsInTab')
             @showResultInTab()
           else

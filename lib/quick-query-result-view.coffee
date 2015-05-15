@@ -27,7 +27,7 @@ class QuickQueryResultView extends ScrollView
   destroy: ->
     # @element.remove()
 
-  show: (rows, fields)->
+  showRows: (rows, fields)->
     if atom.config.get('quick-query.resultsInTab')
       @find('.quick-query-result-resize-handler').hide()
     $table = @find('table.table')
