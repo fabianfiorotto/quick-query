@@ -23,6 +23,7 @@ module.exports = QuickQuery =
   subscriptions: null
   connection: null
   connections: null
+  queryEditor: null
 
   activate: (state) ->
     @connections = []
@@ -77,6 +78,10 @@ module.exports = QuickQuery =
         @queryResult = new QuickQueryResultView()
         @bottomPanel = atom.workspace.addBottomPanel(item: @queryResult, visible:false )
 
+    atom.workspace.onDidChangeActivePaneItem (item) =>
+      if !atom.config.get('quick-query.resultsInTab')
+        if item == @queryEditor then @bottomPanel.show() else @bottomPanel.hide()
+
   deactivate: ->
     @modalPanel.destroy()
     @subscriptions.dispose()
@@ -93,12 +98,12 @@ module.exports = QuickQuery =
     @modalPanel = atom.workspace.addModalPanel(item: @connectView, visible: true)
     @connectView.focusFirst()
   run: ->
-    editor = atom.workspace.getActiveTextEditor()
-    unless editor
+    @queryEditor = atom.workspace.getActiveTextEditor()
+    unless @queryEditor
       @setModalPanel content:"This tab is not an editor", type:'error'
       return
-    text = editor.getSelectedText()
-    text = editor.getText() if(text == '')
+    text = @queryEditor.getSelectedText()
+    text = @queryEditor.getText() if(text == '')
 
     if @connection
       @connection.query text, (message, rows, fields) =>
