@@ -1,3 +1,7 @@
+## 0.1.2 - Monday Update
+* Set default database
+* Copy a cell in the clipboard
+
 ## 0.1.1 - Little Update
 * Show Results in a tab
 
