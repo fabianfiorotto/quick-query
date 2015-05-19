@@ -15,7 +15,6 @@ module.exports = QuickQuery =
       title: 'Show results in a tab'
 
   editorView: null
-  queryResult: null
   browser: null
   modalPanel: null
   bottomPanel: null
@@ -117,12 +116,11 @@ module.exports = QuickQuery =
             @afterExecute(editor)
         else
           if atom.config.get('quick-query.resultsInTab')
-            @queryResult ?= new QuickQueryResultView()
-            @showResultInTab()
+            queryResult = @showResultInTab()
           else
-            @queryResult = @showResultView(@queryEditor)
-          @queryResult.showRows(rows, fields)
-          @queryResult.fixSizes()
+            queryResult = @showResultView(@queryEditor)
+          queryResult.showRows(rows, fields)
+          queryResult.fixSizes()
           @modalPanel.hide() if @modalPanel
     else
       @setModalPanel content: "No connection selected"
@@ -154,14 +152,16 @@ module.exports = QuickQuery =
 
   showResultInTab: ->
     pane = atom.workspace.getActivePane()
-    items = pane.getItems()
-    filter = items.filter (item) ->
+    filter = pane.getItems().filter (item) ->
       item instanceof QuickQueryResultView
     if filter.length == 0
-      item = pane.addItem @queryResult
+      queryResult = new QuickQueryResultView()
+      pane.addItem queryResult
     else
-      item = filter[0]
-    pane.activateItem item
+      queryResult = filter[0]
+    pane.activateItem queryResult
+    queryResult
+
 
   afterExecute: (editor)->
     if @editorView && @editorView.editor == editor
