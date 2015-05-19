@@ -23,12 +23,11 @@ module.exports = QuickQuery =
   subscriptions: null
   connection: null
   connections: null
-  queryEditor: null
+  queryEditors: []
 
   activate: (state) ->
     @connections = []
 
-    @queryResult = new QuickQueryResultView()
     @browser = new QuickQueryBrowserView(@connections)
 
     if state.connections
@@ -57,7 +56,6 @@ module.exports = QuickQuery =
         (err) => @setModalPanel content: err, type: 'error'
       )
 
-    @bottomPanel = atom.workspace.addBottomPanel(item: @queryResult, visible:false )
     @rightPanel = atom.workspace.addRightPanel(item: @browser, visible:false )
 
     # Events subscribed to in atom's system can be easily cleaned up with a CompositeDisposable
@@ -73,17 +71,23 @@ module.exports = QuickQuery =
     @subscriptions.add atom.commands.add 'ol#quick-query-connections', 'core:delete': => @delete()
 
     atom.config.onDidChange 'quick-query.resultsInTab', ({newValue, oldValue}) =>
-      @bottomPanel.hide()
-      unless newValue
-        @queryResult = new QuickQueryResultView()
-        @bottomPanel = atom.workspace.addBottomPanel(item: @queryResult, visible:false )
+      if !newValue
+        for i in @queryEditors
+          i.panel.hide()
+          i.panel.destroy()
+        @queryEditors = []
 
     atom.workspace.onDidChangeActivePaneItem (item) =>
       if !atom.config.get('quick-query.resultsInTab')
-        if item == @queryEditor then @bottomPanel.show() else @bottomPanel.hide()
+        for i in @queryEditors
+          if i.editor == item then i.panel.show() else i.panel.hide()
+
+    atom.workspace.paneContainer.onDidDestroyPaneItem (d) =>
+      @queryEditors = @queryEditors.filter (i) =>
+        i.panel.destroy() if i.editor == d.item
+        i.editor != d.item
 
   deactivate: ->
-    @modalPanel.destroy()
     @subscriptions.dispose()
     @quickQueryView.destroy()
 
@@ -112,11 +116,12 @@ module.exports = QuickQuery =
           if message.type == 'success'
             @afterExecute(editor)
         else
-          @queryResult.showRows(rows, fields)
           if atom.config.get('quick-query.resultsInTab')
+            @queryResult ?= new QuickQueryResultView()
             @showResultInTab()
           else
-            @bottomPanel.show()
+            @queryResult = @showResultView(@queryEditor)
+          @queryResult.showRows(rows, fields)
           @queryResult.fixSizes()
           @modalPanel.hide() if @modalPanel
     else
@@ -167,9 +172,22 @@ module.exports = QuickQuery =
       @modalPanel.hide() if @modalPanel
       @editorView = null
 
+  showResultView: (queryEditor)->
+    e = (i for i in @queryEditors when i.editor == queryEditor)
+    if e.length > 0
+      e[0].panel.show()
+      queryResult = e[0].panel.getItem()
+    else
+      queryResult = new QuickQueryResultView()
+      bottomPanel = atom.workspace.addBottomPanel(item: queryResult, visible:true )
+      @queryEditors.push({editor: queryEditor,  panel: bottomPanel})
+    queryResult
+
   cancel: ->
     @modalPanel.hide() if @modalPanel
-    @bottomPanel.hide()
+    for i in @queryEditors
+      if i.editor == atom.workspace.getActiveTextEditor()
+        i.panel.hide()
 
   delete: ->
     connection = @browser.delete()
