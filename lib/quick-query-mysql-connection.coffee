@@ -13,6 +13,7 @@ class QuickQueryMysqlConnection
   s_types: 'CHAR VARCHAR TINYBLOB TINYTEXT MEDIUMBLOB MEDIUMTEXT LONGBLOB LONGTEXT BLOB TEXT DATETIME DATE TIME'.split /\s+/
 
   constructor: (@info)->
+    @info.dateStrings = true
 
   connect: (callback)->
     @connection = mysql.createConnection(@info)
