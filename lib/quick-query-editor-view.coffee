@@ -28,17 +28,15 @@ class QuickQueryEditorView extends View
 
   constructor: (@action,@model) ->
     if @action == 'create'
-      @model_type = switch @model.type
-        when 'connection' then 'database'
-        when 'database' then 'table'
-        when 'table' then 'column'
+      @model_type = @model.child_type
     else
       @model_type = @model.type
     super
 
   initialize: ->
 
-    @selectDataType.setItems(@model.connection.getDataTypes())
+    connection = if @model.type == 'connection' then @model else @model.connection
+    @selectDataType.setItems(connection.getDataTypes())
 
     @nameEditor = @find('#quick-query-editor-name')[0].getModel()
     # @datatypeEditor = @find('#quick-query-datatype')[0].getModel()
@@ -122,7 +120,7 @@ class QuickQueryEditorView extends View
     switch @model_type
       when 'database'
         info = {name: newName }
-        @model.connection.createDatabase(@model,info)
+        @model.createDatabase(@model,info)
       when 'table'
         info = {name: newName }
         @model.connection.createTable(@model,info)

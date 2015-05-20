@@ -82,10 +82,10 @@ class QuickQueryBrowserView extends ScrollView
     $ol.empty()
     for connection in @connections
         $li = $('<li/>').addClass('entry list-nested-item collapsed')
-        $li.addClass('quick-query-connection')
+        $div = $('<div/>').addClass('header list-item')
+        $icon = $('<span/>').addClass('icon')
         if connection == @selectedConnection
           $li.addClass('default')
-        $div = $('<div/>').addClass('header list-item qq-connection-item')
         $div.mousedown (e) =>
           $li = $(e.currentTarget).parent()
           $li.parent().find('li').removeClass('selected')
@@ -93,11 +93,11 @@ class QuickQueryBrowserView extends ScrollView
           $li.parent().find('li').removeClass('default')
           $li.addClass('default')
           @expandConnection($li) if e.which != 3
-        $icon = $('<span/>').addClass('icon-plug')
         $div.text(connection)
         $div.prepend($icon)
         $li.data('item',connection)
         $li.html($div)
+        @setItemClasses(connection,$li)
         $ol.append($li)
 
   expandConnection: ($li)->
@@ -107,102 +107,78 @@ class QuickQueryBrowserView extends ScrollView
       @trigger('quickQuery.connectionSelected',[connection])
     $li.toggleClass('collapsed expanded')
     if $li.hasClass("expanded")
-      connection.getDatabases (err,databases) =>
-        @showDatabases(databases,$li) unless err
+      connection.getDatabases (databases,err) =>
+        #@showDatabases(databases,$li) unless err
+        @showItems(connection,databases,$li) unless err
 
-  showDatabases: (databases,$e) ->
-    $ol = $e.find("ol.quick-query-databases")
+
+  showItems: (parentItem,childrenItems,$e)->
+    ol_class = switch parentItem.child_type
+      when 'database'
+        "quick-query-databases"
+      when 'table'
+        "quick-query-tables"
+      when 'column'
+        "quick-query-columns"
+    $ol = $e.find("ol.#{ol_class}")
     if $ol.length == 0
-      $ol = $('<ol/>').addClass('list-tree entries has-collapsable-children')
-      $ol.addClass("quick-query-databases")
+      $ol = $('<ol/>').addClass('list-tree entries')
+      if parentItem.child_type != 'column'
+        $ol.addClass("has-collapsable-children")
+      $ol.addClass(ol_class)
       $e.append($ol)
     else
       $ol.empty()
-    for database in databases
-        $li = $('<li/>').addClass('entry list-nested-item collapsed')
-        $li.addClass('quick-query-database')
-        if database.name == @selectedConnection.getDefaultDatabase()
-          $li.addClass('default')
-        $div = $('<div/>').addClass('header list-item qq-database-item')
-        $div.mousedown (e) =>
-          $li = $(e.currentTarget).parent()
-          $li.closest('ol#quick-query-connections').find('li').removeClass('selected')
-          $li.addClass('selected')
-          @expandDatabase($li) if e.which != 3
-        $icon = $('<span/>').addClass('icon-database')
-        $div.text(database)
-        $div.prepend($icon)
-        $li.data('item',database)
-        $li.html($div)
-        $ol.append($li)
-
-
-  expandDatabase: ($li) ->
-    $li.toggleClass('collapsed expanded')
-    if $li.hasClass("expanded")
-      model = $li.data('item')
-      model.connection.getTables model , (tables) =>
-        @showTables(tables,$li)
-
-  showTables: (tables,$e) ->
-    $ol = $e.find("ol.quick-query-tables")
-    if $ol.length == 0
-      $ol = $('<ol/>').addClass('list-tree entries has-collapsable-children')
-      $ol.addClass("quick-query-tables")
-      $e.append($ol)
-    else
-      $ol.empty()
-    for table in tables
-      $li = $('<li/>').addClass('entry list-nested-item collapsed')
-      $li.addClass('quick-query-table')
-      $div = $('<div/>').addClass('header list-item qq-table-item')
-      $icon = $('<span/>').addClass('icon-browser')
-      $div.text(table)
-      $div.prepend($icon)
-      $div.mousedown (e)=>
+    for childItem in childrenItems
+      $li = $('<li/>').addClass('entry')
+      $div = $('<div/>').addClass('header list-item')
+      $icon = $('<span/>').addClass('icon')
+      if childItem.type != 'column'
+        $li.addClass('list-nested-item collapsed')
+      if childItem.type == 'database' && childItem.name == @selectedConnection.getDefaultDatabase()
+        $li.addClass('default')
+      $div.mousedown (e) =>
         $li = $(e.currentTarget).parent()
         $li.closest('ol#quick-query-connections').find('li').removeClass('selected')
         $li.addClass('selected')
-        @expandTable($li) if e.which != 3
-      $li.data('item',table)
-      $li.html($div)
-      $ol.append($li)
-
-  expandTable: ($li) ->
-    $li.toggleClass('collapsed expanded')
-    if $li.hasClass('expanded')
-      model = $li.data('item')
-      model.connection.getColumns model, (columns) =>
-         @showColumns(columns,$li)
-
-  showColumns: (columns,$e)->
-    $ol = $e.find("ol.quick-query-columns")
-    if $ol.length == 0
-      $ol = $('<ol/>').addClass('list-tree entries')
-      $ol.addClass("quick-query-columns")
-      $e.append($ol)
-    else
-      $ol.empty()
-    for column in columns
-      $li = $('<li/>').addClass('entry')
-      $li.addClass('quick-query-column')
-      $div = $('<div/>').addClass('header list-item qq-column-item')
-      if column.primary_key
-        $icon = $('<span/>').addClass('icon-key')
-      else
-        $icon = $('<span/>').addClass('icon-tag')
-      $div.text(column.name)
+        @expandItem($li) if e.which != 3
+      $div.text(childItem)
       $div.prepend($icon)
-      $div.mousedown (e) =>
-        $li = $(e.currentTarget).parent()
-        @selectColumn($li)
-      $li.data('item',column)
+      $li.data('item',childItem)
       $li.html($div)
+      @setItemClasses(childItem,$li)
       $ol.append($li)
 
-  selectColumn: ($li) ->
-    $li.closest('ol#quick-query-connections').find('li').removeClass('selected')
-    $li.addClass('selected')
+  setItemClasses: (item,$li)->
+    $div = $li.children('.header')
+    $icon = $div.children('.icon')
+    switch item.type
+      when 'connection'
+        $li.addClass('quick-query-connection')
+        $div.addClass("qq-connection-item")
+        $icon.addClass('icon-plug')
+      when 'database'
+        $li.addClass('quick-query-database')
+        $div.addClass("qq-database-item")
+        $icon.addClass('icon-database')
+      when 'table'
+        $li.addClass('quick-query-table')
+        $div.addClass("qq-table-item")
+        $icon.addClass('icon-browser')
+      when 'column'
+        $li.addClass('quick-query-column')
+        $div.addClass("qq-column-item")
+        if item.primary_key
+          $icon.addClass('icon-key')
+        else
+          $icon.addClass('icon-tag')
+
+  expandItem: ($li) ->
+    $li.toggleClass('collapsed expanded')
+    if $li.hasClass("expanded")
+      model = $li.data('item')
+      model.children (children) =>
+        @showItems(model,children,$li)
 
   refreshTree: (model)->
     switch model.type

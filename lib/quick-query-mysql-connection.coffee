@@ -2,6 +2,7 @@ mysql = require 'mysql'
 
 class QuickQueryMysqlColumn
   type: 'column'
+  child_type: null
   constructor: (@table,row) ->
     @connection = @table.connection
     @name = row['Field']
@@ -14,9 +15,12 @@ class QuickQueryMysqlColumn
     @name
   parent: ->
     @table
+  children: (callback)->
+    callback([])
 
 class QuickQueryMysqlTable
   type: 'table'
+  child_type: 'column'
   constructor: (@database,row,fields) ->
     @connection = @database.connection
     @name = row[fields[0].name]
@@ -25,9 +29,11 @@ class QuickQueryMysqlTable
     @name
   parent: ->
     @database
-
+  children: (callback)->
+    @connection.getColumns(@,callback)
 class QuickQueryMysqlDatabase
   type: 'database'
+  child_type: 'table'
   constructor: (@connection,row) ->
     @name = row["Database"]
     @database = @name # TODO remove
@@ -35,6 +41,8 @@ class QuickQueryMysqlDatabase
     @name
   parent: ->
     @connection
+  children: (callback)->
+    @connection.getTables(@,callback)
 
 module.exports =
 class QuickQueryMysqlConnection
@@ -43,6 +51,7 @@ class QuickQueryMysqlConnection
   connection: null
   protocol: 'mysql'
   type: 'connection'
+  child_type: 'database'
   defaulPort: 3306
   timeout: 5000 #time ot is set in 5s. queries should be fast.
 
@@ -93,7 +102,7 @@ class QuickQueryMysqlConnection
         databases = rows.map (row) =>
           new QuickQueryMysqlDatabase(@,row)
         databases = databases.filter (database) => !@hiddenDatabase(database.name)
-      callback(err,databases)
+      callback(databases,err)
 
   getTables: (database,callback) ->
     database_name = @connection.escapeId(database.name)
