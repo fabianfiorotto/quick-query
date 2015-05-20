@@ -55,7 +55,7 @@ class QuickQueryBrowserView extends ScrollView
     connection = null
     $li = @find('ol:focus li.selected')
     if $li.length == 1
-      connection = $li.data('connection')
+      connection = $li.data('item')
       i = @connections.indexOf(connection)
       @connections.splice(i,1)
       @showConnections()
@@ -66,7 +66,7 @@ class QuickQueryBrowserView extends ScrollView
     unless $li.hasClass('default')
       $li.parent().find('li').removeClass('default')
       $li.addClass('default')
-      model = @getItemModel($li)
+      model = $li.data('item')
       console.log model.connection.connection.config
       model.connection.setDefaultDatabase model.database
 
@@ -96,12 +96,12 @@ class QuickQueryBrowserView extends ScrollView
         $icon = $('<span/>').addClass('icon-plug')
         $div.text(connection)
         $div.prepend($icon)
-        $li.data('connection',connection)
+        $li.data('item',connection)
         $li.html($div)
         $ol.append($li)
 
   expandConnection: ($li)->
-    connection = $li.data('connection')
+    connection = $li.data('item')
     if connection != @selectedConnection
       @selectedConnection = connection
       @trigger('quickQuery.connectionSelected',[connection])
@@ -121,7 +121,7 @@ class QuickQueryBrowserView extends ScrollView
     for database in databases
         $li = $('<li/>').addClass('entry list-nested-item collapsed')
         $li.addClass('quick-query-database')
-        if database == @selectedConnection.getDefaultDatabase()
+        if database.name == @selectedConnection.getDefaultDatabase()
           $li.addClass('default')
         $div = $('<div/>').addClass('header list-item qq-database-item')
         $div.mousedown (e) =>
@@ -132,7 +132,7 @@ class QuickQueryBrowserView extends ScrollView
         $icon = $('<span/>').addClass('icon-database')
         $div.text(database)
         $div.prepend($icon)
-        $li.data('database',database)
+        $li.data('item',database)
         $li.html($div)
         $ol.append($li)
 
@@ -140,8 +140,8 @@ class QuickQueryBrowserView extends ScrollView
   expandDatabase: ($li) ->
     $li.toggleClass('collapsed expanded')
     if $li.hasClass("expanded")
-      model = @getItemModel($li)
-      model.connection.getTables model.database , (tables) =>
+      model = $li.data('item')
+      model.connection.getTables model , (tables) =>
         @showTables(tables,$li)
 
   showTables: (tables,$e) ->
@@ -164,18 +164,18 @@ class QuickQueryBrowserView extends ScrollView
         $li.closest('ol#quick-query-connections').find('li').removeClass('selected')
         $li.addClass('selected')
         @expandTable($li) if e.which != 3
-      $li.data('table',table)
+      $li.data('item',table)
       $li.html($div)
       $ol.append($li)
 
   expandTable: ($li) ->
     $li.toggleClass('collapsed expanded')
     if $li.hasClass('expanded')
-      model = @getItemModel($li)
-      model.connection.getColumns model.table , model.database , (columns, fields) =>
-         @showColums(columns,$li)
+      model = $li.data('item')
+      model.connection.getColumns model, (columns) =>
+         @showColumns(columns,$li)
 
-  showColums: (columns,$e)->
+  showColumns: (columns,$e)->
     $ol = $e.find("ol.quick-query-columns")
     if $ol.length == 0
       $ol = $('<ol/>').addClass('list-tree entries')
@@ -196,7 +196,7 @@ class QuickQueryBrowserView extends ScrollView
       $div.mousedown (e) =>
         $li = $(e.currentTarget).parent()
         @selectColumn($li)
-      $li.data('column',column)
+      $li.data('item',column)
       $li.html($div)
       $ol.append($li)
 
@@ -208,33 +208,33 @@ class QuickQueryBrowserView extends ScrollView
     switch model.type
       when 'database'
         $li = @find('li.quick-query-connection').filter (i,e)->
-          $(e).data('connection') == model.connection
+          $(e).data('item') == model.parent()
         $li.removeClass('collapsed')
         $li.addClass('expanded')
-        model.connection.getDatabases model.database , (err,databases) =>
+        model.connection.getDatabases model.parent() , (err,databases) =>
           @showDatabases(databases,$li) unless err
       when 'table'
         $li = @find('li.quick-query-database').filter (i,e)->
-          $(e).data('database') == model.database
+          $(e).data('item') == model.parent()
         $li.removeClass('collapsed')
         $li.addClass('expanded')
-        model.connection.getTables model.database , (tables) =>
+        model.connection.getTables model.parent() , (tables) =>
           @showTables(tables,$li)
       when 'column'
         $li = @find('li.quick-query-table').filter (i,e)->
-          $(e).data('table') == model.table
+          $(e).data('item') == model.parent()
         $li.removeClass('collapsed')
         $li.addClass('expanded')
-        model.connection.getColumns model.database , (columns) =>
-          @showTables(columns,$li)
+        model.connection.getColumns model.parent() , (columns) =>
+          @showColumns(columns,$li)
 
 
   simpleSelect: ->
     $li = @find('li.selected.quick-query-table')
     if $li.length > 0
-      model = @getItemModel($li)
-      model.connection.getColumns model.table,model.database,(columns) =>
-        text = model.connection.simpleSelect(model.table,model.database,columns)
+      model = $li.data('item')
+      model.connection.getColumns model ,(columns) =>
+        text = model.connection.simpleSelect(model,columns)
         atom.workspace.open().then (editor) =>
           grammars = atom.grammars.getGrammars()
           grammar = (i for i in grammars when i.name is 'SQL')[0]
@@ -250,40 +250,21 @@ class QuickQueryBrowserView extends ScrollView
   create: ->
     $li = @find('li.selected')
     if $li.length > 0
-      model = @getItemModel($li)
+      model = $li.data('item')
       @trigger('quickQuery.edit',['create',model])
 
 
   alter: ->
     $li = @find('li.selected')
     if $li.length > 0
-      model = @getItemModel($li)
+      model = $li.data('item')
       @trigger('quickQuery.edit',['alter',model])
 
   drop: ->
     $li = @find('li.selected')
     if $li.length > 0
-      model = @getItemModel($li)
+      model = $li.data('item')
       @trigger('quickQuery.edit',['drop',model])
-
-
-  getItemModel: ($li)->
-    connection = $li.closest('.quick-query-connection').data('connection')
-    switch
-      when $li.hasClass('quick-query-connection')
-        {type: 'connection', connection:connection}
-      when $li.hasClass('quick-query-database')
-        database = $li.data('database')
-        {type: 'database', database: database , connection:connection}
-      when $li.hasClass('quick-query-table')
-        database = $li.closest('.quick-query-database').data('database')
-        table = $li.data('table')
-        {type: 'table', table: table , database: database , connection:connection }
-      when $li.hasClass('quick-query-column')
-        database = $li.closest('.quick-query-database').data('database')
-        table = $li.closest('.quick-query-table').data('table')
-        column = $li.data('column')
-        {type: 'column', column: column.name , info: column, table: table , database: database , connection:connection }
 
   #resizing methods copied from tree-view
   handleResizeEvents: ->

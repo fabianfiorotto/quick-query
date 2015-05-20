@@ -1,11 +1,48 @@
 mysql = require 'mysql'
 
+class QuickQueryMysqlColumn
+  type: 'column'
+  constructor: (@table,row) ->
+    @connection = @table.connection
+    @name = row['Field']
+    @column = @name # TODO remove
+    @primary_key = row["Key"] == "PRI"
+    @datatype = row['Type']
+    @default = row['Default']
+    @nullable = row['Null'] == 'YES'
+  toString: ->
+    @name
+  parent: ->
+    @table
+
+class QuickQueryMysqlTable
+  type: 'table'
+  constructor: (@database,row,fields) ->
+    @connection = @database.connection
+    @name = row[fields[0].name]
+    @table = @name # TODO remove
+  toString: ->
+    @name
+  parent: ->
+    @database
+
+class QuickQueryMysqlDatabase
+  type: 'database'
+  constructor: (@connection,row) ->
+    @name = row["Database"]
+    @database = @name # TODO remove
+  toString: ->
+    @name
+  parent: ->
+    @connection
+
 module.exports =
 class QuickQueryMysqlConnection
 
   fatal: false
   connection: null
   protocol: 'mysql'
+  type: 'connection'
   defaulPort: 3306
   timeout: 5000 #time ot is set in 5s. queries should be fast.
 
@@ -53,30 +90,28 @@ class QuickQueryMysqlConnection
     text = "SHOW DATABASES"
     @query text , (err, rows, fields) =>
       if !err
-        databases = rows.map (row) -> row["Database"]
-        databases = databases.filter (database) => !@hiddenDatabase(database)
+        databases = rows.map (row) =>
+          new QuickQueryMysqlDatabase(@,row)
+        databases = databases.filter (database) => !@hiddenDatabase(database.name)
       callback(err,databases)
 
   getTables: (database,callback) ->
-    text = "SHOW TABLES IN #{database}"
+    database_name = @connection.escapeId(database.name)
+    text = "SHOW TABLES IN #{database_name}"
     @query text , (err, rows, fields) =>
       if !err
-        tables = rows.map (row) ->
-          row[fields[0].name]
+        tables = rows.map (row) =>
+          new QuickQueryMysqlTable(database,row,fields)
         callback(tables)
 
-  getColumns: (table,database,callback) ->
-    text = "SHOW COLUMNS IN #{table} IN #{database}"
+  getColumns: (table,callback) ->
+    table_name = @connection.escapeId(table.name)
+    database_name = @connection.escapeId(table.database.name)
+    text = "SHOW COLUMNS IN #{table_name} IN #{database_name}"
     @query text , (err, rows, fields) =>
       if !err
         columns = rows.map (row) =>
-          {
-            name: row['Field'],
-            primary_key: row["Key"] == "PRI"
-            datatype: row['Type']
-            default: row['Default']
-            nullable: row['Null'] == 'YES'
-          }
+          new QuickQueryMysqlColumn(table,row)
         callback(columns)
 
   hiddenDatabase: (database) ->
@@ -84,14 +119,14 @@ class QuickQueryMysqlConnection
     database == "performance_schema" ||
     database == "mysql"
 
-  simpleSelect: (table,database, columns = '*') ->
+  simpleSelect: (table, columns = '*') ->
     if columns != '*'
       columns = columns.map (col) =>
         @connection.escapeId(col.name)
       columns = "\n "+columns.join(",\n ") + "\n"
-    table = @connection.escapeId(table)
-    database = @connection.escapeId(database)
-    "SELECT #{columns} FROM #{database}.#{table} LIMIT 1000"
+    table_name = @connection.escapeId(table.name)
+    database_name = @connection.escapeId(table.database.name)
+    "SELECT #{columns} FROM #{database_name}.#{table_name} LIMIT 1000"
 
 
   createDatabase: (model,info)->
@@ -99,15 +134,15 @@ class QuickQueryMysqlConnection
     "CREATE SCHEMA #{database};"
 
   createTable: (model,info)->
-    database = @connection.escapeId(model.database)
+    database = @connection.escapeId(model.name)
     table = @connection.escapeId(info.name)
     "CREATE TABLE #{database}.#{table} ( \n"+
     " `id` INT NOT NULL ,\n"+
     " PRIMARY KEY (`id`) );"
 
   createColumn: (model,info)->
-    database = @connection.escapeId(model.database)
-    table = @connection.escapeId(model.table)
+    database = @connection.escapeId(model.database.name)
+    table = @connection.escapeId(model.name)
     column = @connection.escapeId(info.name)
     nullable = if info.nullable then 'NULL' else 'NOT NULL'
     dafaultValue = @escape(info.default,info.datatype) || 'NULL'
@@ -116,14 +151,14 @@ class QuickQueryMysqlConnection
 
 
   alterTable: (model,delta)->
-    database = @connection.escapeId(model.database)
+    database = @connection.escapeId(model.database.name)
     newName = @connection.escapeId(delta.new_name)
     oldName = @connection.escapeId(delta.old_name)
     query = "ALTER TABLE #{database}.#{oldName} RENAME TO #{database}.#{newName};"
 
   alterColumn: (model,delta)->
-    database = @connection.escapeId(model.database)
-    table = @connection.escapeId(model.table)
+    database = @connection.escapeId(model.table.database.name)
+    table = @connection.escapeId(model.table.name)
     newName = @connection.escapeId(delta.new_name)
     oldName = @connection.escapeId(delta.old_name)
     nullable = if delta.nullable then 'NULL' else 'NOT NULL'
@@ -132,18 +167,18 @@ class QuickQueryMysqlConnection
     " #{delta.datatype} #{nullable} DEFAULT #{dafaultValue};"
 
   dropDatabase: (model)->
-    database = @connection.escapeId(model.database)
+    database = @connection.escapeId(model.name)
     "DROP SCHEMA #{database};"
 
   dropTable: (model)->
-    database = @connection.escapeId(model.database)
-    table = @connection.escapeId(model.table)
+    database = @connection.escapeId(model.database.name)
+    table = @connection.escapeId(model.name)
     "DROP TABLE #{database}.#{table};"
 
   dropColumn: (model)->
-    database = @connection.escapeId(model.database)
-    table = @connection.escapeId(model.table)
-    column = @connection.escapeId(model.column)
+    database = @connection.escapeId(model.table.database.name)
+    table = @connection.escapeId(model.table.name)
+    column = @connection.escapeId(model.name)
     "ALTER TABLE #{database}.#{table} DROP COLUMN #{column};"
 
   getDataTypes: ->

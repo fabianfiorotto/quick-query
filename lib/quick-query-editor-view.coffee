@@ -27,7 +27,6 @@ class QuickQueryEditorView extends View
   model_type: null
 
   constructor: (@action,@model) ->
-    debugger
     if @action == 'create'
       @model_type = switch @model.type
         when 'connection' then 'database'
@@ -66,15 +65,15 @@ class QuickQueryEditorView extends View
       @closest('atom-panel.modal').hide()
 
     if @action != 'create'
-      @nameEditor.insertText(@model[@model.type])
+      @nameEditor.insertText(@model.name)
 
     if @model_type == 'column'
       @find('.quick-query-column-editor').removeClass('hide')
     if @model_type == 'column' && @action == 'alter'
-      @datatypeEditor.setText(@model.info.datatype)
-      @defaultValueEditor.setText(@model.info.default || "")
-      @find('#quick-query-null').prop('checked', !@model.info.default?).change()
-      if @model.info.nullable
+      @datatypeEditor.setText(@model.datatype)
+      @defaultValueEditor.setText(@model.default || "")
+      @find('#quick-query-null').prop('checked', !@model.default?).change()
+      if @model.nullable
         @find('#quick-query-nullable').click()
 
   @content: ->
@@ -145,7 +144,7 @@ class QuickQueryEditorView extends View
     newName= @nameEditor.getText()
     switch @model_type
       when 'table'
-        delta = { old_name: @model.table , new_name: newName }
+        delta = { old_name: @model.name , new_name: newName }
         @model.connection.alterTable(@model,delta)
       when 'column'
         datatype = @datatypeEditor.getText()
@@ -155,7 +154,7 @@ class QuickQueryEditorView extends View
         else
           @defaultValueEditor.getText()
         delta =
-          old_name: @model.column ,
+          old_name: @model.name ,
           new_name: newName ,
           datatype: datatype ,
           nullable: nullable,
