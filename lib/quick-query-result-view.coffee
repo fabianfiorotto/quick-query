@@ -11,7 +11,6 @@ class QuickQueryResultView extends ScrollView
     $(window).resize =>
       @fixSizes()
     @handleResizeEvents()
-
   # Returns an object that can be retrieved when package is activated
   getTitle: ->
     return 'Query Result'
@@ -20,8 +19,10 @@ class QuickQueryResultView extends ScrollView
   @content: ->
     @div class: 'quick-query-result' , =>
       @div class: 'quick-query-result-resize-handler', ''
-      @table class: 'table', ''
-
+      @table class: 'table quick-query-result-numbers', =>
+        @thead => (@tr => @th '#')
+        @tbody outlet: 'numbers', ''
+      @table class: 'table', outlet: 'table' , ''
 
   # Tear down any state and detach
   destroy: ->
@@ -30,23 +31,20 @@ class QuickQueryResultView extends ScrollView
   showRows: (rows, fields)->
     if atom.config.get('quick-query.resultsInTab')
       @find('.quick-query-result-resize-handler').hide()
-    $table = @find('table.table')
     $thead = $('<thead/>')
     $tr = $('<tr/>')
-    $th = $('<th/>')
-    $tr.html($th)
     for field in fields
       $th = $('<th/>')
       $th.text(field.name)
       $tr.append($th)
     $thead.html($tr)
-    $table.html($thead)
+    @table.html($thead)
     $tbody = $('<tbody/>')
     for row,i in rows
       $tr = $('<tr/>')
       $td = $('<td/>')
       $td.text(i+1)
-      $tr.append($td)
+      @numbers.append($('<tr/>').html($td))
       for field in fields
         $td = $('<td/>')
         $td.text(row[field.name])
@@ -55,17 +53,20 @@ class QuickQueryResultView extends ScrollView
           $(this).addClass('selected')
         $tr.append($td)
       $tbody.append($tr)
-    $table.append($tbody)
+    @table.append($tbody)
 
+    @table.find('tbody').scroll (e) =>
+      scroll = $(e.target).scrollTop() - 33 #hardcoded!
+      @numbers.css 'margin-top': (-1*scroll)
   copy: ->
     $td = @find('td.selected')
     if $td.length == 1
       atom.clipboard.write($td.text())
 
   fixSizes: ->
-    if @find('tbody tr').length > 0
-      tds = @find('tbody tr:first').children()
-      @find('thead tr').children().each (i, th) =>
+    if @table.find('tbody tr').length > 0
+      tds = @table.find('tbody tr:first').children()
+      @table.find('thead tr').children().each (i, th) =>
         td = tds[i]
         thw = $(th).outerWidth()
         tdw = $(td).outerWidth()

@@ -53,6 +53,39 @@ atom-panel.right{
 		cursor: ns-resize;
 	}
 
+	margin-left: 30px; //copy from the width of numbers table
+
+	table.table.quick-query-result-numbers{
+		overflow: hidden;
+		margin-left: 0;
+		position: absolute;
+		width: inherit;
+		left: 0;
+		top: 4px;
+
+		thead{
+			tr th{
+				width: 100%;
+				position: absolute;
+				background-color: @tool-panel-background-color;
+			}
+		}
+
+		tbody{
+			// max-height: 220px; //copy from the other table with js.
+			margin-top: 32px; //take from thead
+			overflow: hidden;
+			tr:nth-child(even){
+				font-weight: bold;
+				background-color: @panel-heading-background-color;
+			}
+			tr:nth-child(odd){
+				font-weight: bold;
+				background-color: @panel-heading-background-color - #131313;
+			}
+		}
+	}
+
 	table.table{
 			height: 94.5%;
 			color: @text-color;
@@ -67,17 +100,9 @@ atom-panel.right{
 				padding-bottom: @component-line-height;
 
 				tr:nth-child(even){
-					td:first-child{
-						font-weight: bold;
-						background-color: @panel-heading-background-color;
-					}
 					background-color: @tool-panel-background-color;
 				}
 				tr:nth-child(odd){
-					td:first-child{
-						font-weight: bold;
-						background-color: @panel-heading-background-color - #131313;
-					}
 					background-color: @tool-panel-background-color - #030303;
 				}
 				tr{
