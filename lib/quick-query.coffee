@@ -79,7 +79,11 @@ module.exports = QuickQuery =
     atom.workspace.onDidChangeActivePaneItem (item) =>
       if !atom.config.get('quick-query.resultsInTab')
         for i in @queryEditors
-          if i.editor == item then i.panel.show() else i.panel.hide()
+          resultView = i.panel.getItem()
+          if i.editor == item && !resultView.hiddenResults()
+            i.panel.show()
+          else
+            i.panel.hide()
 
     atom.workspace.paneContainer.onDidDestroyPaneItem (d) =>
       @queryEditors = @queryEditors.filter (i) =>
@@ -187,7 +191,9 @@ module.exports = QuickQuery =
     @modalPanel.hide() if @modalPanel
     for i in @queryEditors
       if i.editor == atom.workspace.getActiveTextEditor()
+        resultView = i.panel.getItem()
         i.panel.hide()
+        resultView.hideResults()
 
   delete: ->
     connection = @browser.delete()
