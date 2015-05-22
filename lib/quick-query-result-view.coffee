@@ -22,7 +22,7 @@ class QuickQueryResultView extends ScrollView
       @table class: 'table quick-query-result-numbers', =>
         @thead => (@tr => @th '#')
         @tbody outlet: 'numbers', ''
-      @table class: 'table', outlet: 'table' , ''
+      @table class: 'quick-query-result-table table', outlet: 'table' , ''
 
   # Tear down any state and detach
   destroy: ->
@@ -55,9 +55,11 @@ class QuickQueryResultView extends ScrollView
       $tbody.append($tr)
     @table.append($tbody)
 
-    @table.find('tbody').scroll (e) =>
+    @scroll (e) =>
       scroll = $(e.target).scrollTop() - 33 #hardcoded!
       @numbers.css 'margin-top': (-1*scroll)
+      scroll = $(e.target).scrollLeft()
+      @table.find('thead').css 'margin-left': (-1*scroll)
   copy: ->
     $td = @find('td.selected')
     if $td.length == 1
