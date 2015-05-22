@@ -18,7 +18,8 @@ class QuickQueryResultView extends ScrollView
 
   @content: ->
     @div class: 'quick-query-result' , =>
-      @div class: 'quick-query-result-resize-handler', ''
+      @div class: 'quick-query-result-resize-handler', '' #TODO fixme :(
+      #@div class: 'quick-query-result-table-wrapper', outlet: 'tableWrapper' , =>
       @table class: 'table quick-query-result-numbers', =>
         @thead => (@tr => @th '#')
         @tbody outlet: 'numbers', ''
@@ -39,6 +40,7 @@ class QuickQueryResultView extends ScrollView
       $tr.append($th)
     $thead.html($tr)
     @table.html($thead)
+    @numbers.empty()
     $tbody = $('<tbody/>')
     for row,i in rows
       $tr = $('<tr/>')
@@ -56,10 +58,10 @@ class QuickQueryResultView extends ScrollView
     @table.append($tbody)
 
     @scroll (e) =>
-      scroll = $(e.target).scrollTop() - 33 #hardcoded!
+      scroll = $(e.target).scrollTop() - $thead.height()
       @numbers.css 'margin-top': (-1*scroll)
       scroll = $(e.target).scrollLeft()
-      @table.find('thead').css 'margin-left': (-1*scroll)
+      $thead.css 'margin-left': (-1*scroll)
   copy: ->
     $td = @find('td.selected')
     if $td.length == 1
@@ -75,6 +77,10 @@ class QuickQueryResultView extends ScrollView
         w = Math.max(tdw,thw)
         $(td).css('min-width',w+"px")
         $(th).css('min-width',w+"px")
+      #TODO add a wrapper
+      @css 'margin-left': @numbers.width(), 'margin-top': @table.find('thead').height() #-1
+      @numbers.find('tbody').css 'margin-top': @numbers.find('thead').height()
+
 
   handleResizeEvents: ->
     @on 'mousedown', '.quick-query-result-resize-handler', (e) => @resizeStarted(e)

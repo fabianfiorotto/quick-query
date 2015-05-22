@@ -53,15 +53,13 @@ atom-panel.right{
 		cursor: ns-resize;
 	}
 
-	margin-left: 30px; //copy from the width of numbers table
-
 	table.table.quick-query-result-numbers{
 		overflow: hidden;
 		margin-left: 0;
 		position: absolute;
 		width: inherit;
 		left: 0;
-		top: 4px;
+		top: 4px; //TODO fix header and remove this
 
 		thead{
 			tr th{
@@ -73,8 +71,6 @@ atom-panel.right{
 		}
 
 		tbody{
-			// max-height: 220px; //copy from the other table with js.
-			margin-top: 32px; //take from thead
 			overflow: hidden;
 			tr:nth-child(even){
 				font-weight: bold;
@@ -86,7 +82,7 @@ atom-panel.right{
 			}
 		}
 	}
-	margin-top: 32px;
+
 	overflow-y: scroll;
 	table.table.quick-query-result-table{
 		thead{
@@ -109,7 +105,6 @@ atom-panel.right{
 				height: 100%;
 				overflow-y: hidden;
 				overflow-x: hidden;
-				padding-bottom: @component-line-height;
 
 				tr:nth-child(even){
 					background-color: @tool-panel-background-color;
