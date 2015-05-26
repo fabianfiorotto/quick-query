@@ -1,4 +1,4 @@
-## 0.2.0 - Monday Update
+## 0.2.0 - Tuesday Update
 * Results are only displayed in their respective tabs
 
 ## 0.1.2 - Monday Update
