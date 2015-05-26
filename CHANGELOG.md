@@ -1,3 +1,6 @@
+## 0.2.0 - Monday Update
+* Results are only displayed in their respective tabs
+
 ## 0.1.2 - Monday Update
 * Set default database
 * Copy a cell in the clipboard
