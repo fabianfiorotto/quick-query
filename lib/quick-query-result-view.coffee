@@ -2,6 +2,7 @@
 
 module.exports =
 class QuickQueryResultView extends ScrollView
+  keepHidden: false
 
   constructor:  ()->
     atom.commands.add '.quick-query-result', 'quick-query:copy': => @copy()
@@ -30,6 +31,7 @@ class QuickQueryResultView extends ScrollView
     # @element.remove()
 
   showRows: (rows, fields)->
+    @keepHidden = false
     if atom.config.get('quick-query.resultsInTab')
       @find('.quick-query-result-resize-handler').hide()
     $thead = $('<thead/>')
@@ -66,6 +68,12 @@ class QuickQueryResultView extends ScrollView
     $td = @find('td.selected')
     if $td.length == 1
       atom.clipboard.write($td.text())
+
+  hiddenResults: ->
+    @keepHidden
+
+  hideResults: ->
+    @keepHidden = true
 
   fixSizes: ->
     if @table.find('tbody tr').length > 0
