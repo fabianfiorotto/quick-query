@@ -117,7 +117,7 @@ module.exports = QuickQuery =
         if (message)
           @setModalPanel(message)
           if message.type == 'success'
-            @afterExecute(editor)
+            @afterExecute(@queryEditor)
         else
           if atom.config.get('quick-query.resultsInTab')
             queryResult = @showResultInTab()
