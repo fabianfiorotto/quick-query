@@ -45,8 +45,7 @@ atom-panel.right{
 */
 
 .quick-query-result{
-	overflow-x: auto;
-	overflow-y: hidden;
+	overflow: hidden;
 
 	.quick-query-result-resize-handler{
 		height: 5px;
@@ -57,9 +56,9 @@ atom-panel.right{
 		overflow: hidden;
 		margin-left: 0;
 		position: absolute;
-		width: inherit;
+		width: auto;
 		left: 0;
-		top: 4px; //TODO fix header and remove this
+		top: 4px;
 
 		thead{
 			tr th{
@@ -72,18 +71,23 @@ atom-panel.right{
 
 		tbody{
 			overflow: hidden;
+			text-align: center;
 			tr:nth-child(even){
 				font-weight: bold;
-				background-color: @panel-heading-background-color;
+				background-color: darken(@tool-panel-background-color, 8%);
 			}
 			tr:nth-child(odd){
 				font-weight: bold;
-				background-color: @panel-heading-background-color - #131313;
+				background-color: darken(@tool-panel-background-color, 16%);
 			}
 		}
 	}
 
-	overflow-y: scroll;
+	.quick-query-result-table-wrapper{
+		width: inherit;
+		overflow: auto;
+	}
+
 	table.table.quick-query-result-table{
 		thead{
 			z-index: 1;
@@ -97,6 +101,7 @@ atom-panel.right{
 	table.table{
 			height: 94.5%;
 			color: @text-color;
+			margin-bottom: 0;
 
 			tbody , thead{
 				display: block;
@@ -110,7 +115,7 @@ atom-panel.right{
 					background-color: @tool-panel-background-color;
 				}
 				tr:nth-child(odd){
-					background-color: @tool-panel-background-color - #030303;
+					background-color: darken(@tool-panel-background-color, 3%);
 				}
 				tr{
 					width: 100%;

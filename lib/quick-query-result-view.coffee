@@ -12,19 +12,19 @@ class QuickQueryResultView extends ScrollView
     $(window).resize =>
       @fixSizes()
     @handleResizeEvents()
-  # Returns an object that can be retrieved when package is activated
+
   getTitle: ->
     return 'Query Result'
   serialize: ->
 
   @content: ->
     @div class: 'quick-query-result' , =>
-      @div class: 'quick-query-result-resize-handler', '' #TODO fixme :(
-      #@div class: 'quick-query-result-table-wrapper', outlet: 'tableWrapper' , =>
-      @table class: 'table quick-query-result-numbers', =>
-        @thead => (@tr => @th '#')
-        @tbody outlet: 'numbers', ''
-      @table class: 'quick-query-result-table table', outlet: 'table' , ''
+      @div class: 'quick-query-result-resize-handler', ''
+      @div class: 'quick-query-result-table-wrapper', outlet: 'tableWrapper' , =>
+        @table class: 'table quick-query-result-numbers', =>
+          @thead => (@tr => @th '#')
+          @tbody outlet: 'numbers', ''
+        @table class: 'quick-query-result-table table', outlet: 'table' , ''
 
   # Tear down any state and detach
   destroy: ->
@@ -58,8 +58,7 @@ class QuickQueryResultView extends ScrollView
         $tr.append($td)
       $tbody.append($tr)
     @table.append($tbody)
-
-    @scroll (e) =>
+    @tableWrapper.unbind('scroll').scroll (e) =>
       scroll = $(e.target).scrollTop() - $thead.height()
       @numbers.css 'margin-top': (-1*scroll)
       scroll = $(e.target).scrollLeft()
@@ -85,9 +84,20 @@ class QuickQueryResultView extends ScrollView
         w = Math.max(tdw,thw)
         $(td).css('min-width',w+"px")
         $(th).css('min-width',w+"px")
-      #TODO add a wrapper
-      @css 'margin-left': @numbers.width(), 'margin-top': @table.find('thead').height() #-1
-      @numbers.find('tbody').css 'margin-top': @numbers.find('thead').height()
+      @fixScrolls()
+
+  fixScrolls: ->
+    headerHeght = @table.find('thead').height()
+    numbersWidth = @numbers.width()
+    @tableWrapper.css 'margin-left': numbersWidth , 'margin-top': (headerHeght - 1)
+    @tableWrapper.height( @height() - headerHeght - 4)
+    # @tableWrapper.width( @width() - numbersWidth )
+    @table.find('thead').css 'margin-left': "-1px" #HACK
+    @closest('atom-panel.bottom').css overflow: 'hidden' #HACK
+    scroll = headerHeght - @tableWrapper.scrollTop()
+    @numbers.css 'margin-top': scroll
+    scroll = -1 * @tableWrapper.scrollLeft()
+    @table.find('thead').css 'margin-left': scroll
 
 
   handleResizeEvents: ->
@@ -102,3 +112,4 @@ class QuickQueryResultView extends ScrollView
     return @resizeStopped() unless which is 1
     height = @outerHeight() + @offset().top - pageY
     @height(height)
+    @fixScrolls()
