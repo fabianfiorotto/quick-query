@@ -1,3 +1,6 @@
+## 0.2.1 - Bugfixes
+* Solve issue 4
+
 ## 0.2.0 - Tuesday Update
 * Results are only displayed in their respective tabs
 
