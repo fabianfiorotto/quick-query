@@ -85,6 +85,8 @@ class QuickQueryResultView extends ScrollView
         $(td).css('min-width',w+"px")
         $(th).css('min-width',w+"px")
       @fixScrolls()
+    else
+      @table.width(@table.find('thead').width())
 
   fixScrolls: ->
     headerHeght = @table.find('thead').height()
