@@ -117,7 +117,7 @@ module.exports = QuickQuery =
         if (message)
           @setModalPanel(message)
           if message.type == 'success'
-            @afterExecute(editor)
+            @afterExecute(@queryEditor)
         else
           if atom.config.get('quick-query.resultsInTab')
             queryResult = @showResultInTab()
@@ -167,10 +167,10 @@ module.exports = QuickQuery =
     queryResult
 
 
-  afterExecute: (editor)->
-    if @editorView && @editorView.editor == editor
-      if !editor.getPath?()
-        editor.setText('')
+  afterExecute: (queryEditor)->
+    if @editorView && @editorView.editor == queryEditor
+      if !queryEditor.getPath?()
+        queryEditor.setText('')
         atom.workspace.destroyActivePaneItem()
       @browser.refreshTree(@editorView.model)
       @modalPanel.hide() if @modalPanel

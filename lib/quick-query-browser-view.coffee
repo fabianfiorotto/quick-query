@@ -68,7 +68,7 @@ class QuickQueryBrowserView extends ScrollView
       $li.addClass('default')
       model = $li.data('item')
       console.log model.connection.connection.config
-      model.connection.setDefaultDatabase model.database
+      model.connection.setDefaultDatabase model.name
 
   addConnection: (connectionPromise) ->
     connectionPromise.then (connection)=>
