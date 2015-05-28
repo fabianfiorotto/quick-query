@@ -181,28 +181,21 @@ class QuickQueryBrowserView extends ScrollView
         @showItems(model,children,$li)
 
   refreshTree: (model)->
-    switch model.type
+    $li = switch model.type
       when 'database'
-        $li = @find('li.quick-query-connection').filter (i,e)->
+        @find('li.quick-query-connection').filter (i,e)->
           $(e).data('item') == model.parent()
-        $li.removeClass('collapsed')
-        $li.addClass('expanded')
-        model.connection.getDatabases model.parent() , (err,databases) =>
-          @showDatabases(databases,$li) unless err
       when 'table'
-        $li = @find('li.quick-query-database').filter (i,e)->
+        @find('li.quick-query-database').filter (i,e)->
           $(e).data('item') == model.parent()
-        $li.removeClass('collapsed')
-        $li.addClass('expanded')
-        model.connection.getTables model.parent() , (tables) =>
-          @showTables(tables,$li)
       when 'column'
-        $li = @find('li.quick-query-table').filter (i,e)->
+        @find('li.quick-query-table').filter (i,e)->
           $(e).data('item') == model.parent()
-        $li.removeClass('collapsed')
-        $li.addClass('expanded')
-        model.connection.getColumns model.parent() , (columns) =>
-          @showColumns(columns,$li)
+    $li.removeClass('collapsed')
+    $li.addClass('expanded')
+    $li.find('ol').empty();
+    model.parent().children (children) =>
+      @showItems(model.parent(),children,$li)
 
 
   simpleSelect: ->
