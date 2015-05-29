@@ -32,8 +32,7 @@ class QuickQueryResultView extends ScrollView
 
   showRows: (rows, fields)->
     @keepHidden = false
-    if atom.config.get('quick-query.resultsInTab')
-      @find('.quick-query-result-resize-handler').hide()
+    @closest('atom-panel.bottom').css overflow: 'hidden' #HACK
     $thead = $('<thead/>')
     $tr = $('<tr/>')
     for field in fields
@@ -58,8 +57,12 @@ class QuickQueryResultView extends ScrollView
         $tr.append($td)
       $tbody.append($tr)
     @table.append($tbody)
+    if atom.config.get('quick-query.resultsInTab')
+      @find('.quick-query-result-resize-handler').hide()
+      @find('.quick-query-result-numbers').css top:0
+      $thead.css 'margin-top':0
     @tableWrapper.unbind('scroll').scroll (e) =>
-      scroll = $(e.target).scrollTop() - $thead.height()
+      scroll = $(e.target).scrollTop() - $thead.outerHeight()
       @numbers.css 'margin-top': (-1*scroll)
       scroll = $(e.target).scrollLeft()
       $thead.css 'margin-left': (-1*scroll)
@@ -89,14 +92,11 @@ class QuickQueryResultView extends ScrollView
       @table.width(@table.find('thead').width())
 
   fixScrolls: ->
-    headerHeght = @table.find('thead').height()
+    headerHeght = @table.find('thead').outerHeight()
     numbersWidth = @numbers.width()
     @tableWrapper.css 'margin-left': numbersWidth , 'margin-top': (headerHeght - 1)
-    @tableWrapper.height( @height() - headerHeght - 4)
-    # @tableWrapper.width( @width() - numbersWidth )
-    @table.find('thead').css 'margin-left': "-1px" #HACK
-    @closest('atom-panel.bottom').css overflow: 'hidden' #HACK
-    scroll = headerHeght - @tableWrapper.scrollTop()
+    @tableWrapper.height( @height() - headerHeght - 2)
+    scroll = headerHeght  - @tableWrapper.scrollTop()
     @numbers.css 'margin-top': scroll
     scroll = -1 * @tableWrapper.scrollLeft()
     @table.find('thead').css 'margin-left': scroll
