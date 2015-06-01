@@ -1,6 +1,6 @@
 # Quick query
 
-Do queries against your local databases quickly. Currently it only suports Mysql.
+Do queries against your local databases quickly. Currently it only supports MySQL.
 
 ##Features
 - Visualize query results
