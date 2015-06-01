@@ -13,7 +13,6 @@ class QuickQueryResultView extends ScrollView
       @fixSizes()
     @handleResizeEvents()
 
-  # Returns an object that can be retrieved when package is activated
   getTitle: ->
     return 'Query Result'
   serialize: ->
@@ -21,8 +20,11 @@ class QuickQueryResultView extends ScrollView
   @content: ->
     @div class: 'quick-query-result' , =>
       @div class: 'quick-query-result-resize-handler', ''
-      @table class: 'table', ''
-
+      @div class: 'quick-query-result-table-wrapper', outlet: 'tableWrapper' , =>
+        @table class: 'table quick-query-result-numbers', =>
+          @thead => (@tr => @th '#')
+          @tbody outlet: 'numbers', ''
+        @table class: 'quick-query-result-table table', outlet: 'table' , ''
 
   # Tear down any state and detach
   destroy: ->
@@ -30,25 +32,22 @@ class QuickQueryResultView extends ScrollView
 
   showRows: (rows, fields)->
     @keepHidden = false
-    if atom.config.get('quick-query.resultsInTab')
-      @find('.quick-query-result-resize-handler').hide()
-    $table = @find('table.table')
+    @closest('atom-panel.bottom').css overflow: 'hidden' #HACK
     $thead = $('<thead/>')
     $tr = $('<tr/>')
-    $th = $('<th/>')
-    $tr.html($th)
     for field in fields
       $th = $('<th/>')
       $th.text(field.name)
       $tr.append($th)
     $thead.html($tr)
-    $table.html($thead)
+    @table.html($thead)
+    @numbers.empty()
     $tbody = $('<tbody/>')
     for row,i in rows
       $tr = $('<tr/>')
       $td = $('<td/>')
       $td.text(i+1)
-      $tr.append($td)
+      @numbers.append($('<tr/>').html($td))
       for field in fields
         $td = $('<td/>')
         $td.text(row[field.name])
@@ -57,8 +56,16 @@ class QuickQueryResultView extends ScrollView
           $(this).addClass('selected')
         $tr.append($td)
       $tbody.append($tr)
-    $table.append($tbody)
-
+    @table.append($tbody)
+    if atom.config.get('quick-query.resultsInTab')
+      @find('.quick-query-result-resize-handler').hide()
+      @find('.quick-query-result-numbers').css top:0
+      $thead.css 'margin-top':0
+    @tableWrapper.unbind('scroll').scroll (e) =>
+      scroll = $(e.target).scrollTop() - $thead.outerHeight()
+      @numbers.css 'margin-top': (-1*scroll)
+      scroll = $(e.target).scrollLeft()
+      $thead.css 'margin-left': (-1*scroll)
   copy: ->
     $td = @find('td.selected')
     if $td.length == 1
@@ -71,15 +78,29 @@ class QuickQueryResultView extends ScrollView
     @keepHidden = true
 
   fixSizes: ->
-    if @find('tbody tr').length > 0
-      tds = @find('tbody tr:first').children()
-      @find('thead tr').children().each (i, th) =>
+    if @table.find('tbody tr').length > 0
+      tds = @table.find('tbody tr:first').children()
+      @table.find('thead tr').children().each (i, th) =>
         td = tds[i]
         thw = $(th).outerWidth()
         tdw = $(td).outerWidth()
         w = Math.max(tdw,thw)
         $(td).css('min-width',w+"px")
         $(th).css('min-width',w+"px")
+      @fixScrolls()
+    else
+      @table.width(@table.find('thead').width())
+
+  fixScrolls: ->
+    headerHeght = @table.find('thead').outerHeight()
+    numbersWidth = @numbers.width()
+    @tableWrapper.css 'margin-left': numbersWidth , 'margin-top': (headerHeght - 1)
+    @tableWrapper.height( @height() - headerHeght - 2)
+    scroll = headerHeght  - @tableWrapper.scrollTop()
+    @numbers.css 'margin-top': scroll
+    scroll = -1 * @tableWrapper.scrollLeft()
+    @table.find('thead').css 'margin-left': scroll
+
 
   handleResizeEvents: ->
     @on 'mousedown', '.quick-query-result-resize-handler', (e) => @resizeStarted(e)
@@ -93,3 +114,4 @@ class QuickQueryResultView extends ScrollView
     return @resizeStopped() unless which is 1
     height = @outerHeight() + @offset().top - pageY
     @height(height)
+    @fixScrolls()
