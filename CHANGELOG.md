@@ -1,3 +1,6 @@
+## 0.2.2 - Monday Update
+* Fix vertical scrollbar position
+
 ## 0.2.1 - Bugfixes
 * Solve issue 4
 
