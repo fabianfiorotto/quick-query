@@ -19,6 +19,7 @@
   ]
   '.quick-query-result td.selected':[
     {'label': 'Copy', 'command': 'quick-query:copy'}
+    {'label': 'Save as CSV', 'command': 'quick-query:save-csv'}
   ]
   '.quick-query-browser .qq-connection-item':[
       {'label': 'Create database', 'command': 'quick-query:create'}
