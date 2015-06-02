@@ -9,12 +9,6 @@
       "quick-query:new-editor",
       "quick-query:toggle-browser",
       "quick-query:new-connection"
-    ],
-    "#quick-query-connections": [
-      "quick-query:select-1000",
-      "quick-query:create",
-      "quick-query:alter",
-      "quick-query:drop"
     ]
   },
   "repository": "https://github.com/fabianfiorotto/quick-query",
