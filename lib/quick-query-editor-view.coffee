@@ -124,6 +124,9 @@ class QuickQueryEditorView extends View
       when 'table'
         info = {name: newName }
         @model.connection.createTable(@model,info)
+      when 'schema'
+        info = {name: newName }
+        @model.connection.createSchema(@model,info)
       when 'column'
         datatype = @datatypeEditor.getText()
         nullable = @find('#quick-query-nullable').hasClass('selected')
@@ -163,6 +166,8 @@ class QuickQueryEditorView extends View
     switch @model_type
       when 'database'
         @model.connection.dropDatabase(@model)
+      when 'schema'
+        @model.connection.dropSchema(@model)
       when 'table'
         @model.connection.dropTable(@model)
       when 'column'

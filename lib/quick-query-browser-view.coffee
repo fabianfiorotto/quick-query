@@ -67,7 +67,6 @@ class QuickQueryBrowserView extends ScrollView
       $li.parent().find('li').removeClass('default')
       $li.addClass('default')
       model = $li.data('item')
-      console.log model.connection.connection.config
       model.connection.setDefaultDatabase model.name
 
   addConnection: (connectionPromise) ->
@@ -84,6 +83,7 @@ class QuickQueryBrowserView extends ScrollView
         $li = $('<li/>').addClass('entry list-nested-item collapsed')
         $div = $('<div/>').addClass('header list-item')
         $icon = $('<span/>').addClass('icon')
+        $li.attr('data-protocol',connection.protocol)
         if connection == @selectedConnection
           $li.addClass('default')
         $div.mousedown (e) =>
@@ -116,6 +116,8 @@ class QuickQueryBrowserView extends ScrollView
     ol_class = switch parentItem.child_type
       when 'database'
         "quick-query-databases"
+      when 'schema'
+        "quick-query-schemas"
       when 'table'
         "quick-query-tables"
       when 'column'
@@ -161,6 +163,10 @@ class QuickQueryBrowserView extends ScrollView
         $li.addClass('quick-query-database')
         $div.addClass("qq-database-item")
         $icon.addClass('icon-database')
+      when 'schema'
+        $li.addClass('quick-query-schema')
+        $div.addClass("qq-schema-item")
+        $icon.addClass('icon-book')
       when 'table'
         $li.addClass('quick-query-table')
         $div.addClass("qq-table-item")
