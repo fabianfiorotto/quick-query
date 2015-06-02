@@ -7,9 +7,11 @@ class QuickQueryBrowserView extends ScrollView
   connection: null
   connections: null
 
-  constructor:  (connections)->
-    @connections = connections
-    @selectedConnection = connections[0]
+  constructor:  (@connections)->
+    @selectedConnection = @connections[0]
+    for connection in @connections
+      connection.onDidChangeDefaultDatabase (database) =>
+        @defaultDatabaseChanged(connection,database)
 
     atom.commands.add '#quick-query-connections',
       'quick-query:select-1000': => @simpleSelect()
@@ -65,10 +67,7 @@ class QuickQueryBrowserView extends ScrollView
   setDefault: ->
     $li = @find('li.selected')
     unless $li.hasClass('default')
-      $li.parent().find('li').removeClass('default')
-      $li.addClass('default')
       model = $li.data('item')
-      console.log model.connection.connection.config
       model.connection.setDefaultDatabase model.name
 
   addConnection: (connectionPromise) ->
@@ -77,6 +76,14 @@ class QuickQueryBrowserView extends ScrollView
       @connections.push(connection)
       @trigger('quickQuery.connectionSelected',[connection])
       @showConnections()
+      connection.onDidChangeDefaultDatabase (database) =>
+        @defaultDatabaseChanged(connection,database)
+
+  defaultDatabaseChanged: (connection,database)->
+    @find('ol#quick-query-connections').children().each (i,e)->
+      if $(e).data('item') == connection
+        $(e).find(".quick-query-database").removeClass('default')
+        $(e).find(".quick-query-database[data-name=\"#{database}\"]").addClass('default')
 
   showConnections: ()->
     $ol = @find('ol#quick-query-connections')
@@ -145,6 +152,7 @@ class QuickQueryBrowserView extends ScrollView
         @expandItem($li) if e.which != 3
       $div.text(childItem)
       $div.prepend($icon)
+      $li.attr('data-name',childItem.name)
       $li.data('item',childItem)
       $li.html($div)
       @setItemClasses(childItem,$li)
@@ -235,6 +243,11 @@ class QuickQueryBrowserView extends ScrollView
     if $li.length > 0
       model = $li.data('item')
       @trigger('quickQuery.edit',['drop',model])
+
+  #events
+  onConnectionSelected: (callback)->
+    @bind 'quickQuery.connectionSelected', (e,connection) =>
+      callback(connection)
 
   #resizing methods copied from tree-view
   handleResizeEvents: ->

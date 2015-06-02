@@ -36,7 +36,7 @@ module.exports = QuickQuery =
 
     @connectView = new QuickQueryConnectView()
 
-    @browser.bind 'quickQuery.connectionSelected', (e,connection) =>
+    @browser.onConnectionSelected (connection) =>
       @connection = connection
 
     @browser.bind 'quickQuery.edit', (e,action,model) =>
