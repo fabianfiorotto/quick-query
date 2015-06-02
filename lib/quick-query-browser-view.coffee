@@ -11,12 +11,13 @@ class QuickQueryBrowserView extends ScrollView
     @connections = connections
     @selectedConnection = connections[0]
 
-    atom.commands.add '#quick-query-connections', 'quick-query:select-1000': => @simpleSelect()
-    atom.commands.add '#quick-query-connections', 'quick-query:alter': => @alter()
-    atom.commands.add '#quick-query-connections', 'quick-query:drop': => @drop()
-    atom.commands.add '#quick-query-connections', 'quick-query:create': => @create()
-    atom.commands.add '#quick-query-connections', 'quick-query:copy': => @copy()
-    atom.commands.add '#quick-query-connections', 'quick-query:set-default': => @setDefault()
+    atom.commands.add '#quick-query-connections',
+      'quick-query:select-1000': => @simpleSelect()
+      'quick-query:alter': => @alter()
+      'quick-query:drop': => @drop()
+      'quick-query:create': => @create()
+      'quick-query:copy': => @copy()
+      'quick-query:set-default': => @setDefault()
 
     super
 
