@@ -66,6 +66,9 @@ class QuickQueryMysqlConnection
 
   connect: (callback)->
     @connection = mysql.createConnection(@info)
+    @connection.on 'error', (err) =>
+      if err && err.code == 'PROTOCOL_CONNECTION_LOST'
+        @fatal = true
     @connection.connect(callback)
 
   serialize: ->
@@ -82,6 +85,9 @@ class QuickQueryMysqlConnection
   query: (text,callback) ->
     if @fatal
       @connection = mysql.createConnection(@info)
+      @connection.on 'error', (err) =>
+        if err && err.code == 'PROTOCOL_CONNECTION_LOST'
+          @fatal = true
       @fatal = false
     @connection.query {sql: text , timeout: @timeout }, (err, rows, fields)=>
       message = null

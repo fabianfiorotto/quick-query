@@ -95,6 +95,10 @@ class QuickQueryPostgresConnection
     @defaultConnection = new pg.Client(@info);
     @defaultConnection.connect (err)=>
       @connections[@info.database] = @defaultConnection
+      @defaultConnection.on 'error', (err) =>
+        console.log(err) #fatal error
+        @connections[@info.database] = null
+        @fatal = true
       callback(err)
 
   serialize: ->
@@ -115,6 +119,11 @@ class QuickQueryPostgresConnection
         if err
           console.log(err)
         else
+          newConnection.on 'error', (err) =>
+            console.log(err) #fatal error
+            @connections[database] = null
+            if newConnection == @defaultConnection
+              @fatal = true
           @connections[database] = newConnection
           callback(newConnection) if callback
 
@@ -155,7 +164,13 @@ class QuickQueryPostgresConnection
         callback(null,rows,result.fields)
 
   query: (text,callback) ->
-    @queryDatabaseConnection(text,@defaultConnection,callback)
+    if @fatal
+      @getDatabaseConnection @defaultConnection.database, (connection) =>
+        @defaultConnection = connection
+        @fatal = false
+        @queryDatabaseConnection(text,@defaultConnection,callback)
+    else
+      @queryDatabaseConnection(text,@defaultConnection,callback)
 
   getDatabases: (callback) ->
     text = "SELECT datname FROM pg_database "+
