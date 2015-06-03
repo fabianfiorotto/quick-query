@@ -28,8 +28,18 @@
       {'label': 'Set as default', 'command': 'quick-query:set-default'}
       {'type': 'separator'}
       {'label': 'Copy', 'command': 'quick-query:copy'}
-      {'label': 'Create table', 'command': 'quick-query:create'}
       {'label': 'Drop database', 'command': 'quick-query:drop'}
+  ]
+  '.quick-query-browser .quick-query-connection[data-protocol=mysql] .qq-database-item':[
+      {'label': 'Create table', 'command': 'quick-query:create'}
+  ]
+  '.quick-query-browser .quick-query-connection[data-protocol=postgres] .qq-database-item':[
+      {'label': 'Create schema', 'command': 'quick-query:create'}
+  ]
+  '.quick-query-browser .qq-schema-item':[
+      {'label': 'Create table', 'command': 'quick-query:create'}
+      {'label': 'Alter schema', 'command': 'quick-query:alter'}
+      {'label': 'Drop schema', 'command': 'quick-query:drop'}
   ]
   '.quick-query-browser .qq-table-item':[
       {'label': 'Select Rows - limit 1000' , 'command': 'quick-query:select-1000' }

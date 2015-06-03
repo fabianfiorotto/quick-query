@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "atom-space-pen-views": "^2.0.3",
-    "mysql": "^2.6.2 "
+    "mysql": "^2.6.2 ",
+    "pg": "^4.3.0"
   }
 }
