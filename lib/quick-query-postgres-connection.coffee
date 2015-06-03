@@ -1,5 +1,7 @@
 pg = require 'pg'
 
+{Emitter} = require 'atom'
+
 # don't parse dates and times.
 pg.types.setTypeParser  1082 , (x) -> x
 pg.types.setTypeParser  1183 , (x) -> x
@@ -84,6 +86,7 @@ class QuickQueryPostgresConnection
   s_types: ['character','character varying','date','inet','cidr','time','macaddr','text']
 
   constructor: (@info)->
+    @emitter = new Emitter()
     @info.database = 'postgres'
     # @info.database = 'IBDT'
     @connections = {}
@@ -119,6 +122,7 @@ class QuickQueryPostgresConnection
   setDefaultDatabase: (database)->
     @getDatabaseConnection database, (connection) =>
       @defaultConnection = connection
+      @emitter.emit 'did-change-default-database', connection.database
 
   getDefaultDatabase: ->
     @defaultConnection.database
@@ -229,7 +233,7 @@ class QuickQueryPostgresConnection
 
   createSchema: (model,info)->
     schema = @defaultConnection.escapeIdentifier(info.name)
-    "-- DON'T FORGET TO SET #{model.name} AS YOUR DEFAULT DATABASE\n"+
+    @setDefaultDatabase(model.name)
     "CREATE SCHEMA #{schema};"
 
   createTable: (model,info)->
@@ -281,7 +285,7 @@ class QuickQueryPostgresConnection
 
   dropSchema: (model)->
     schema = @defaultConnection.escapeIdentifier(model.name)
-    "-- DON'T FORGET TO SET #{model.database.name} AS YOUR DEFAULT DATABASE\n"+
+    @setDefaultDatabase(model.database.name)
     "DROP SCHEMA #{schema};"
 
   dropTable: (model)->
@@ -296,6 +300,9 @@ class QuickQueryPostgresConnection
     table = @defaultConnection.escapeIdentifier(model.table.name)
     column = @defaultConnection.escapeIdentifier(model.name)
     "ALTER TABLE #{database}.#{schema}.#{table} DROP COLUMN #{column};"
+
+  onDidChangeDefaultDatabase: (callback)->
+    @emitter.on 'did-change-default-database', callback
 
   getDataTypes: ->
     @n_types.concat(@s_types)
