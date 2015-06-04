@@ -101,6 +101,9 @@ class QuickQueryResultView extends ScrollView
     scroll = -1 * @tableWrapper.scrollLeft()
     @table.find('thead').css 'margin-left': scroll
 
+  fixNumbers: ->  #ugly HACK
+    @table.height(@table.height()+1)
+    @table.height(@table.height()-1)
 
   handleResizeEvents: ->
     @on 'mousedown', '.quick-query-result-resize-handler', (e) => @resizeStarted(e)

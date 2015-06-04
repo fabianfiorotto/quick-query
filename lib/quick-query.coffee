@@ -82,6 +82,7 @@ module.exports = QuickQuery =
           resultView = i.panel.getItem()
           if i.editor == item && !resultView.hiddenResults()
             i.panel.show()
+            resultView.fixNumbers()
           else
             i.panel.hide()
 
