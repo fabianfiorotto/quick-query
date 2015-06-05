@@ -1,5 +1,7 @@
 mysql = require 'mysql'
 
+{Emitter} = require 'atom'
+
 class QuickQueryMysqlColumn
   type: 'column'
   child_type: null
@@ -60,9 +62,13 @@ class QuickQueryMysqlConnection
 
   constructor: (@info)->
     @info.dateStrings = true
+    @emitter = new Emitter()
 
   connect: (callback)->
     @connection = mysql.createConnection(@info)
+    @connection.on 'error', (err) =>
+      if err && err.code == 'PROTOCOL_CONNECTION_LOST'
+        @fatal = true
     @connection.connect(callback)
 
   serialize: ->
@@ -79,6 +85,9 @@ class QuickQueryMysqlConnection
   query: (text,callback) ->
     if @fatal
       @connection = mysql.createConnection(@info)
+      @connection.on 'error', (err) =>
+        if err && err.code == 'PROTOCOL_CONNECTION_LOST'
+          @fatal = true
       @fatal = false
     @connection.query {sql: text , timeout: @timeout }, (err, rows, fields)=>
       message = null
@@ -90,7 +99,8 @@ class QuickQueryMysqlConnection
       callback(message,rows,fields)
 
   setDefaultDatabase: (database)->
-    @connection.changeUser database: database
+    @connection.changeUser database: database, =>
+      @emitter.emit 'did-change-default-database', @connection.config.database
 
   getDefaultDatabase: ->
     @connection.config.database
@@ -189,6 +199,9 @@ class QuickQueryMysqlConnection
     table = @connection.escapeId(model.table.name)
     column = @connection.escapeId(model.name)
     "ALTER TABLE #{database}.#{table} DROP COLUMN #{column};"
+
+  onDidChangeDefaultDatabase: (callback)->
+    @emitter.on 'did-change-default-database', callback
 
   getDataTypes: ->
     @n_types.concat(@s_types)

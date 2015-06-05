@@ -3,9 +3,8 @@ QuickQueryResultView = require './quick-query-result-view'
 QuickQueryBrowserView = require './quick-query-browser-view'
 QuickQueryEditorView = require './quick-query-editor-view'
 QuickQueryMysqlConnection = require './quick-query-mysql-connection'
+QuickQueryPostgresConnection = require './quick-query-postgres-connection'
 {CompositeDisposable} = require 'atom'
-
-mysql = require 'mysql'
 
 module.exports = QuickQuery =
   config:
@@ -36,7 +35,7 @@ module.exports = QuickQuery =
 
     @connectView = new QuickQueryConnectView()
 
-    @browser.bind 'quickQuery.connectionSelected', (e,connection) =>
+    @browser.onConnectionSelected (connection) =>
       @connection = connection
 
     @browser.bind 'quickQuery.edit', (e,action,model) =>
@@ -147,8 +146,10 @@ module.exports = QuickQuery =
 
   buildConnection: (connectionInfo)->
     new Promise (resolve, reject)->
-      # if connectionInfo.protocol == 'mysql'
-      connection = new QuickQueryMysqlConnection connectionInfo
+      if connectionInfo.protocol == 'mysql'
+        connection = new QuickQueryMysqlConnection connectionInfo
+      else
+        connection = new QuickQueryPostgresConnection connectionInfo
       connection.connect (err) ->
         if err
           reject(err)

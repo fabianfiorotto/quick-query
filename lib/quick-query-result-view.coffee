@@ -1,11 +1,16 @@
-{ScrollView, $} = require 'atom-space-pen-views'
+{View, $} = require 'atom-space-pen-views'
+json2csv = require('json2csv')
 
 module.exports =
-class QuickQueryResultView extends ScrollView
+class QuickQueryResultView extends View
   keepHidden: false
+  rows: null,
+  fields: null
 
   constructor:  ()->
-    atom.commands.add '.quick-query-result', 'quick-query:copy': => @copy()
+    atom.commands.add '.quick-query-result',
+     'quick-query:copy': => @copy()
+     'quick-query:save-csv': => @saveCSV()
     super
 
   initialize: ->
@@ -30,12 +35,12 @@ class QuickQueryResultView extends ScrollView
   destroy: ->
     # @element.remove()
 
-  showRows: (rows, fields)->
+  showRows: (@rows, @fields)->
     @keepHidden = false
     @closest('atom-panel.bottom').css overflow: 'hidden' #HACK
     $thead = $('<thead/>')
     $tr = $('<tr/>')
-    for field in fields
+    for field in @fields
       $th = $('<th/>')
       $th.text(field.name)
       $tr.append($th)
@@ -43,7 +48,7 @@ class QuickQueryResultView extends ScrollView
     @table.html($thead)
     @numbers.empty()
     $tbody = $('<tbody/>')
-    for row,i in rows
+    for row,i in @rows
       $tr = $('<tr/>')
       $td = $('<td/>')
       $td.text(i+1)
@@ -70,6 +75,23 @@ class QuickQueryResultView extends ScrollView
     $td = @find('td.selected')
     if $td.length == 1
       atom.clipboard.write($td.text())
+
+  saveCSV: ->
+    if @rows? && @fields?
+      filepath = atom.showSaveDialogSync()
+      if filepath?
+        fields = JSON.parse(JSON.stringify(@fields))
+        fields = @fields.map (field) -> field.name
+        rows = @rows.map (row) ->
+          simpleRow = JSON.parse(JSON.stringify(row))
+          simpleRow[field] ?= '' for field in fields
+          simpleRow
+        json2csv  data: rows , fields: fields , (err, csv)->
+          if (err)
+            console.log(err)
+          else
+            fs.writeFile filepath, csv, (err)->
+              if (err) then console.log(err) else console.log('file saved')
 
   hiddenResults: ->
     @keepHidden
