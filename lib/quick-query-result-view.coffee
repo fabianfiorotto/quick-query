@@ -73,11 +73,11 @@ class QuickQueryResultView extends View
       $thead.css 'margin-left': (-1*scroll)
   copy: ->
     $td = @find('td.selected')
-    if $td.length == 1
+    if $td.length == 1 && @is(':visible')
       atom.clipboard.write($td.text())
 
   saveCSV: ->
-    if @rows? && @fields?
+    if @rows? && @fields? && @is(':visible')
       filepath = atom.showSaveDialogSync()
       if filepath?
         fields = JSON.parse(JSON.stringify(@fields))
