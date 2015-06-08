@@ -1,3 +1,7 @@
+## 0.3.0 - Monday Update
+* Postgres support
+* Save as CSV
+
 ## 0.2.2 - Monday Update
 * Fix vertical scrollbar position
 

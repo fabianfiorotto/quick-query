@@ -1,6 +1,6 @@
 # Quick query
 
-Do queries against your local databases quickly. Currently it only supports MySQL.
+Do queries against your local databases quickly. Currently it only supports MySQL and PostgreSQL.
 
 ##Features
 - Visualize query results
@@ -11,5 +11,4 @@ Do queries against your local databases quickly. Currently it only supports MySQ
 
 ##Todo List
 - Edit data
-- Postgres support
 - Fuzzi finders
