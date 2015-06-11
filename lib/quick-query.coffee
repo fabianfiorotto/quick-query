@@ -32,6 +32,12 @@ module.exports = QuickQuery =
       for connectionInfo in state.connections
         connectionPromise = @buildConnection(connectionInfo)
         @browser.addConnection(connectionPromise)
+        connectionPromise.then(
+          (connection) =>
+              connection.sentenceReady (text) =>
+                @addSentence(text)
+          (err) => console.log(err)
+        )
 
     @connectView = new QuickQueryConnectView()
 
@@ -50,7 +56,10 @@ module.exports = QuickQuery =
       connectionPromise = @buildConnection(connectionInfo)
       @browser.addConnection(connectionPromise)
       connectionPromise.then(
-        (connection) => @modalPanel.hide()
+        (connection) =>
+            @modalPanel.hide()
+            connection.sentenceReady (text) =>
+              @addSentence(text)
         (err) => @setModalPanel content: err, type: 'error'
       )
 
@@ -90,6 +99,13 @@ module.exports = QuickQuery =
         i.panel.destroy() if i.editor == d.item
         i.editor != d.item
 
+  addSentence: (text) ->
+    queryEditor = atom.workspace.getActiveTextEditor()
+    if queryEditor
+      queryEditor.moveToBottom()
+      queryEditor.insertNewline()
+      queryEditor.insertText(text)
+
   deactivate: ->
     @subscriptions.dispose()
     @quickQueryView.destroy()
@@ -123,7 +139,7 @@ module.exports = QuickQuery =
             queryResult = @showResultInTab()
           else
             queryResult = @showResultView(@queryEditor)
-          queryResult.showRows(rows, fields)
+          queryResult.showRows(rows, fields, @connection)
           queryResult.fixSizes()
           @modalPanel.hide() if @modalPanel
     else

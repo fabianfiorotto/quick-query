@@ -11,6 +11,9 @@ class QuickQueryResultView extends View
     atom.commands.add '.quick-query-result',
      'quick-query:copy': => @copy()
      'quick-query:save-csv': => @saveCSV()
+     'quick-query:insert': => @insertRecord()
+     'quick-query:delete': => @deleteRecord()
+     'quick-query:apply': => @apply()
     super
 
   initialize: ->
@@ -35,7 +38,7 @@ class QuickQueryResultView extends View
   destroy: ->
     # @element.remove()
 
-  showRows: (@rows, @fields)->
+  showRows: (@rows, @fields,@connection)->
     @keepHidden = false
     @closest('atom-panel.bottom').css overflow: 'hidden' #HACK
     $thead = $('<thead/>')
@@ -59,6 +62,7 @@ class QuickQueryResultView extends View
         $td.mousedown (e)->
           $(this).closest('table').find('td').removeClass('selected')
           $(this).addClass('selected')
+        $td.dblclick (e)=> @editRecord($(e.currentTarget))
         $tr.append($td)
       $tbody.append($tr)
     @table.append($tbody)
@@ -93,6 +97,64 @@ class QuickQueryResultView extends View
             fs.writeFile filepath, csv, (err)->
               if (err) then console.log(err) else console.log('file saved')
 
+  editRecord: ($td)->
+    if $td.children().length == 0
+      editor = $("<atom-text-editor/>").attr('mini','mini').addClass('editor')
+      editor[0].getModel().setText($td.text())
+      $td.html(editor)
+      editor.blur ->
+        $td = $(this).parent()
+        $tr = $td.closest('tr')
+        #$tr.hasClass('status-removed') return
+        $td.text(this.getModel().getText())
+        if $tr.hasClass('added')
+          $td.removeClass('default')
+          $td.addClass('status-added')
+        else
+          $tr.addClass('modified')
+          $td.addClass('status-modified')
+
+  insertRecord: ->
+    $td = $("<td/>").text(@numbers.children().length)
+    $tr = $("<tr/>").html($td)
+    @numbers.append($tr)
+    $tr = $("<tr/>")
+    $tr.addClass('added')
+    @table.find("th").each =>
+      $td = $("<td/>")
+      $td.addClass('default')
+      $td.dblclick (e) => @editRecord($(e.currentTarget))
+      $tr.append($td)
+    @table.find('tbody').append($tr)
+    @tableWrapper.scrollTop -> this.scrollHeight
+
+  deleteRecord: ->
+    $td = @find('td.selected')
+    if $td.length == 1 && @is(':visible')
+      $tr = $td.parent()
+      $tr.removeClass('modified')
+      $tr.find('td').removeClass('status-modified')
+      $tr.addClass('status-removed removed')
+
+  apply: ->
+    @table.find('tbody tr').each (i,tr)=>
+      values = {}
+      if $(tr).hasClass('modified')
+        row = @rows[i]
+        $(tr).find('td').each (j,td) =>
+          if $(td).hasClass('status-modified')
+            values[@fields[j].name] = $(td).text()
+        fields = @fields.filter (field) -> values.hasOwnProperty(field.name)
+        @connection.updateRecord(row,fields,values)
+      else if $(tr).hasClass('added')
+        $(tr).find('td').each (j,td) =>
+          unless $(td).hasClass('default')
+            values[@fields[j].name] = $(td).text()
+        fields = @fields.filter (field) -> values.hasOwnProperty(field.name)
+        @connection.insertRecord(fields,values)
+      else if $(tr).hasClass('status-removed')
+        row = @rows[i]
+        @connection.deleteRecord(row,@fields)
   hiddenResults: ->
     @keepHidden
 

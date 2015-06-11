@@ -316,6 +316,18 @@ class QuickQueryPostgresConnection
     column = @defaultConnection.escapeIdentifier(model.name)
     "ALTER TABLE #{database}.#{schema}.#{table} DROP COLUMN #{column};"
 
+  updateRecord: (row,fields,values)->
+    #TODO
+
+  insertRecord: (fields,values)->
+    #TODO
+
+  deleteRecord: (row,fields)->
+    #TODO
+
+  sentenceReady: (callback)->
+    @emitter.on 'sentence-ready', callback
+
   onDidChangeDefaultDatabase: (callback)->
     @emitter.on 'did-change-default-database', callback
 
