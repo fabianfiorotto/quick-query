@@ -108,7 +108,7 @@ class QuickQueryResultView extends View
         $(this).blur() if e.keyCode == 13
       editor.blur ->
         $td = $(this).parent()
-        $td.removeClass('editing')
+        $td.removeClass('editing selected')
         $tr = $td.closest('tr')
         #$tr.hasClass('status-removed') return
         $td.removeClass('null')
@@ -128,6 +128,9 @@ class QuickQueryResultView extends View
     $tr.addClass('added')
     @table.find("th").each =>
       $td = $("<td/>")
+      $td.mousedown (e)->
+        $(this).closest('table').find('td').removeClass('selected')
+        $(this).addClass('selected')
       $td.addClass('default')
       $td.dblclick (e) => @editRecord($(e.currentTarget))
       $tr.append($td)
@@ -155,6 +158,7 @@ class QuickQueryResultView extends View
       else
         $tr.addClass('modified')
         $td.addClass('status-modified')
+      $td.removeClass('selected')
 
   apply: ->
     @table.find('tbody tr').each (i,tr)=>
