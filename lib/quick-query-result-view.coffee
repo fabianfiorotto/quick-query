@@ -104,15 +104,17 @@ class QuickQueryResultView extends View
       editor = $("<atom-text-editor/>").attr('mini','mini').addClass('editor')
       editor[0].getModel().setText($td.text()) if !$td.hasClass('null')
       $td.html(editor)
+      editor.width(editor.width()) #HACK for One theme
       editor.keydown (e) ->
         $(this).blur() if e.keyCode == 13
-      editor.blur ->
-        $td = $(this).parent()
+      editor.blur (e) =>
+        $td = $(e.currentTarget).parent()
         $td.removeClass('editing selected')
         $tr = $td.closest('tr')
         #$tr.hasClass('status-removed') return
         $td.removeClass('null')
-        $td.text(this.getModel().getText())
+        $td.text(e.currentTarget.getModel().getText())
+        @fixSizes()
         if $tr.hasClass('added')
           $td.removeClass('default')
           $td.addClass('status-added')
