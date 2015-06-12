@@ -26,6 +26,7 @@ class QuickQueryPostgresColumn
       m =  @default.match(/'(.*?)'::/)
       if m && m[1] then @default = m[1]
     @nullable = row['is_nullable'] == 'YES'
+    @id = parseInt(row['ordinal_position'])
   toString: ->
     @name
   parent: ->
@@ -159,6 +160,7 @@ class QuickQueryPostgresConnection
         for r in result.rows
           row = {}
           for field,i in result.fields
+            field.db = connection.database
             row[field.name] = r[i]
           rows.push row
         callback(null,rows,result.fields)
@@ -317,13 +319,94 @@ class QuickQueryPostgresConnection
     "ALTER TABLE #{database}.#{schema}.#{table} DROP COLUMN #{column};"
 
   updateRecord: (row,fields,values)->
-    #TODO
+    tables = @_tableGroup(fields)
+    for oid,t of tables
+      @getTableByOID t.database,t.oid, (table) =>
+        table.children (columns) =>
+          keys = (key for key in columns when key.primary_key)
+          allkeys = true
+          allkeys &= row[key.name]? for key in keys
+          if allkeys && keys.length > 0
+            @_matchColumns(t.fields,columns)
+            assings = t.fields.filter( (field)-> field.column? ).map (field) =>
+              "#{@defaultConnection.escapeIdentifier(field.column.name)} = #{@escape(values[field.name],field.column.datatype)}"
+            database = @defaultConnection.escapeIdentifier(table.schema.database.name)
+            schema = @defaultConnection.escapeIdentifier(table.schema.name)
+            table = @defaultConnection.escapeIdentifier(table.name)
+            where = keys.map (key)=> "#{@defaultConnection.escapeIdentifier(key.name)} = #{@escape(row[key.name],key.datatype)}"
+            update = "UPDATE #{database}.#{schema}.#{table}"+
+            " SET #{assings.join(',')}"+
+            " WHERE "+where.join(' AND ')+";"
+            @emitter.emit 'sentence-ready', update
+
 
   insertRecord: (fields,values)->
-    #TODO
+    tables = @_tableGroup(fields)
+    for oid,t of tables
+      @getTableByOID t.database,t.oid, (table) =>
+        table.children (columns) =>
+          @_matchColumns(t.fields,columns)
+          aryfields = t.fields.filter( (field)-> field.column? ).map (field) =>
+            @defaultConnection.escapeIdentifier(field.column.name)
+          strfields = aryfields.join(',')
+          aryvalues = t.fields.filter( (field)-> field.column? ).map (field) =>
+            @escape(values[field.column.name],field.column.datatype)
+          strvalues = aryvalues.join(',')
+          database = @defaultConnection.escapeIdentifier(table.schema.database.name)
+          schema = @defaultConnection.escapeIdentifier(table.schema.name)
+          table = @defaultConnection.escapeIdentifier(table.name)
+          insert = "INSERT INTO #{database}.#{schema}.#{table}"+
+          " (#{strfields}) VALUES (#{strvalues});"
+          @emitter.emit 'sentence-ready', insert
 
   deleteRecord: (row,fields)->
-    #TODO
+    tables = @_tableGroup(fields)
+    for oid,t of tables
+      @getTableByOID t.database,t.oid, (table) =>
+        table.children (columns) =>
+          keys = (key for key in columns when key.primary_key)
+          allkeys = true
+          allkeys &= row[key.name]? for key in keys
+          if allkeys && keys.length > 0
+            database = @defaultConnection.escapeIdentifier(table.schema.database.name)
+            schema = @defaultConnection.escapeIdentifier(table.schema.name)
+            table = @defaultConnection.escapeIdentifier(table.name)
+            where = keys.map (key)=> "#{@defaultConnection.escapeIdentifier(key.name)} = #{@escape(row[key.name],key.datatype)}"
+            del = "DELETE FROM #{database}.#{schema}.#{table}"+
+            " WHERE "+where.join(' AND ')+";"
+            @emitter.emit 'sentence-ready', del
+
+  getTableByOID: (database,oid,callback)->
+    @getDatabaseConnection database, (connection) =>
+      text = "SELECT s.nspname AS schema_name,"+
+      " t.relname AS table_name"+
+      " FROM pg_class t"+
+      " INNER JOIN pg_namespace s ON t.relnamespace = s.oid"+
+      " WHERE t.oid = #{oid}"
+      @queryDatabaseConnection text, connection , (err, rows, fields) =>
+        db = {name: database, connection: @ }
+        if !err && rows.length == 1
+          row = rows[0]
+          schema = new QuickQueryPostgresSchema(db,row,fields)
+          table = new QuickQueryPostgresTable(schema,row)
+          callback(table)
+
+  _matchColumns: (fields,columns)->
+    for field in fields
+      for column in columns
+        field.column = column if column.id == field.columnID
+
+  _tableGroup: (fields)->
+    tables = {}
+    for field in fields
+      if field.tableID?
+        oid = field.tableID.toString()
+        tables[oid] ?=
+          oid: field.tableID
+          database: field.db
+          fields: []
+        tables[oid].fields.push(field)
+    tables
 
   sentenceReady: (callback)->
     @emitter.on 'sentence-ready', callback
@@ -339,6 +422,6 @@ class QuickQueryPostgresConnection
 
   escape: (value,type)->
     for t1 in @s_types
-      if type.search(new RegExp(t1, "i")) == -1
+      if type.search(new RegExp(t1, "i")) != -1
         return @defaultConnection.escapeLiteral(value)
-    str
+    value.toString()

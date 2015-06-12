@@ -208,7 +208,7 @@ class QuickQueryMysqlConnection
         keys = (key for key in columns when key.primary_key)
         allkeys = true
         allkeys &= row[key.name]? for key in keys
-        if allkeys
+        if allkeys && keys.length > 0
           assings = fields.map (field) =>
             column = (column for column in columns when column.name == field.orgName)[0]
             "#{@connection.escapeId(field.orgName)} = #{@escape(values[field.name],column.datatype)}"
@@ -244,7 +244,7 @@ class QuickQueryMysqlConnection
         keys = (key for key in columns when key.primary_key)
         allkeys = true
         allkeys &= row[key.name]? for key in keys
-        if allkeys
+        if allkeys && keys.length > 0
           database = @connection.escapeId(table.database.name)
           table = @connection.escapeId(table.name)
           where = keys.map (key)=> "#{@connection.escapeId(key.name)} = #{@escape(row[key.name],key.datatype)}"
@@ -277,6 +277,6 @@ class QuickQueryMysqlConnection
 
   escape: (value,type)->
     for t1 in @s_types
-      if type.search(new RegExp(t1, "i")) == -1
+      if type.search(new RegExp(t1, "i")) != -1
         return @connection.escape(value)
-    str
+    value.toString()
