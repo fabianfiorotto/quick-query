@@ -116,7 +116,7 @@ class QuickQueryResultView extends View
     headerHeght = @table.find('thead').outerHeight()
     numbersWidth = @numbers.width()
     @tableWrapper.css 'margin-left': numbersWidth , 'margin-top': (headerHeght - 1)
-    @tableWrapper.height( @height() - headerHeght - 3)
+    @tableWrapper.height( @height() - headerHeght - 1)
     scroll = headerHeght  - @tableWrapper.scrollTop()
     @numbers.css 'margin-top': scroll
     scroll = -1 * @tableWrapper.scrollLeft()
