@@ -106,6 +106,7 @@ class QuickQueryPostgresConnection
     host: c.host,
     port: c.port,
     user: c.user,
+    ssl: c.ssl
     protocol: @protocol
     password: c.password
 
