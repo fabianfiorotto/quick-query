@@ -139,9 +139,14 @@ module.exports = QuickQuery =
 
   setModalPanel: (message)->
     item = document.createElement('div')
+    item.classList.add('quick-query-modal-message')
     item.textContent = message.content
     if message.type == 'error'
       item.classList.add('text-error')
+    close = document.createElement('span')
+    close.classList.add('icon-x')
+    close.onclick = (=> @modalPanel.hide())
+    item.appendChild(close)
     @modalPanel = atom.workspace.addModalPanel(item: item , visible: true)
 
   buildConnection: (connectionInfo)->
