@@ -11,10 +11,10 @@ class QuickQueryResultView extends View
     atom.commands.add '.quick-query-result',
      'quick-query:copy': => @copy()
      'quick-query:save-csv': => @saveCSV()
-     'quick-query:insert': => @insertRecord()
+     'quick-query:insert': => @insertRecord() if @is(':visible')
      'quick-query:null': => @setNull()
      'quick-query:delete': => @deleteRecord()
-     'quick-query:apply': => @apply()
+     'quick-query:apply': => @apply() if @is(':visible')
     super
 
   initialize: ->
