@@ -421,6 +421,8 @@ class QuickQueryPostgresConnection
     @protocol+"://"+@defaultConnection.user+"@"+@defaultConnection.host
 
   escape: (value,type)->
+    if value == null
+      return 'NULL'
     for t1 in @s_types
       if type.search(new RegExp(t1, "i")) != -1
         return @defaultConnection.escapeLiteral(value)

@@ -277,6 +277,6 @@ class QuickQueryMysqlConnection
 
   escape: (value,type)->
     for t1 in @s_types
-      if type.search(new RegExp(t1, "i")) != -1
+      if value == null || type.search(new RegExp(t1, "i")) != -1
         return @connection.escape(value)
     value.toString()

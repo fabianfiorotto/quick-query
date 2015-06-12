@@ -20,9 +20,11 @@
   '.quick-query-result td.selected':[
     {'label': 'Copy', 'command': 'quick-query:copy'}
     {'type': 'separator'}
+    {'label': 'Set NULL', 'command': 'quick-query:null'}
     {'label': 'New record', 'command': 'quick-query:insert'}
     {'label': 'Delete record', 'command': 'quick-query:delete'}
     {'label': 'Apply changes', 'command': 'quick-query:apply'}
+    {'type': 'separator'}
     {'label': 'Save as CSV', 'command': 'quick-query:save-csv'}
   ]
   '.quick-query-browser .qq-connection-item':[

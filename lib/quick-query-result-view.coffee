@@ -12,6 +12,7 @@ class QuickQueryResultView extends View
      'quick-query:copy': => @copy()
      'quick-query:save-csv': => @saveCSV()
      'quick-query:insert': => @insertRecord()
+     'quick-query:null': => @setNull()
      'quick-query:delete': => @deleteRecord()
      'quick-query:apply': => @apply()
     super
@@ -99,13 +100,18 @@ class QuickQueryResultView extends View
 
   editRecord: ($td)->
     if $td.children().length == 0
+      $td.addClass('editing')
       editor = $("<atom-text-editor/>").attr('mini','mini').addClass('editor')
-      editor[0].getModel().setText($td.text())
+      editor[0].getModel().setText($td.text()) if !$td.hasClass('null')
       $td.html(editor)
+      editor.keydown (e) ->
+        $(this).blur() if e.keyCode == 13
       editor.blur ->
         $td = $(this).parent()
+        $td.removeClass('editing')
         $tr = $td.closest('tr')
         #$tr.hasClass('status-removed') return
+        $td.removeClass('null')
         $td.text(this.getModel().getText())
         if $tr.hasClass('added')
           $td.removeClass('default')
@@ -133,8 +139,22 @@ class QuickQueryResultView extends View
     if $td.length == 1 && @is(':visible')
       $tr = $td.parent()
       $tr.removeClass('modified')
-      $tr.find('td').removeClass('status-modified')
+      $tr.find('td').removeClass('status-modified selected')
       $tr.addClass('status-removed removed')
+
+  setNull: ->
+    $td = @find('td.selected')
+    if $td.length == 1 && @is(':visible')
+      $tr = $td.closest('tr')
+      #$tr.hasClass('status-removed') return
+      $td.text('NULL')
+      $td.addClass('null') #TODO remove when edit
+      if $tr.hasClass('added')
+        $td.removeClass('default')
+        $td.addClass('status-added')
+      else
+        $tr.addClass('modified')
+        $td.addClass('status-modified')
 
   apply: ->
     @table.find('tbody tr').each (i,tr)=>
@@ -143,13 +163,13 @@ class QuickQueryResultView extends View
         row = @rows[i]
         $(tr).find('td').each (j,td) =>
           if $(td).hasClass('status-modified')
-            values[@fields[j].name] = $(td).text()
+            values[@fields[j].name] = if $(td).hasClass('null') then null else $(td).text()
         fields = @fields.filter (field) -> values.hasOwnProperty(field.name)
         @connection.updateRecord(row,fields,values)
       else if $(tr).hasClass('added')
         $(tr).find('td').each (j,td) =>
           unless $(td).hasClass('default')
-            values[@fields[j].name] = $(td).text()
+            values[@fields[j].name] = if $(td).hasClass('null') then null else $(td).text()
         fields = @fields.filter (field) -> values.hasOwnProperty(field.name)
         @connection.insertRecord(fields,values)
       else if $(tr).hasClass('status-removed')
