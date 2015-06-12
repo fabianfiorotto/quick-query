@@ -37,7 +37,6 @@ class QuickQueryResultView extends View
 
   showRows: (@rows, @fields)->
     @keepHidden = false
-    @closest('atom-panel.bottom').css overflow: 'hidden' #HACK
     $thead = $('<thead/>')
     $tr = $('<tr/>')
     for field in @fields
@@ -117,7 +116,7 @@ class QuickQueryResultView extends View
     headerHeght = @table.find('thead').outerHeight()
     numbersWidth = @numbers.width()
     @tableWrapper.css 'margin-left': numbersWidth , 'margin-top': (headerHeght - 1)
-    @tableWrapper.height( @height() - headerHeght - 2)
+    @tableWrapper.height( @height() - headerHeght - 3)
     scroll = headerHeght  - @tableWrapper.scrollTop()
     @numbers.css 'margin-top': scroll
     scroll = -1 * @tableWrapper.scrollLeft()
