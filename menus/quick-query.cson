@@ -17,7 +17,12 @@
       }
 
   ]
-
+  '.quick-query-result tr.removed td.selected': [
+    {'label': 'Undo', 'command': 'quick-query:undo'}
+  ]
+  '.quick-query-result td.selected.status-modified': [
+    {'label': 'Undo', 'command': 'quick-query:undo'}
+  ]
   '.quick-query-result td.selected':[
     {'label': 'Copy', 'command': 'quick-query:copy'}
     {'type': 'separator'}

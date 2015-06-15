@@ -13,6 +13,7 @@ class QuickQueryResultView extends View
      'quick-query:save-csv': => @saveCSV()
      'quick-query:insert': => @insertRecord() if @is(':visible')
      'quick-query:null': => @setNull()
+     'quick-query:undo': => @undo()
      'quick-query:delete': => @deleteRecord()
      'quick-query:apply': => @apply() if @is(':visible')
     super
@@ -58,6 +59,7 @@ class QuickQueryResultView extends View
       @numbers.append($('<tr/>').html($td))
       for field in fields
         $td = $('<td/>')
+        $td.attr('data-original-value',row[field.name])
         $td.text(row[field.name])
         $td.mousedown (e)->
           $(this).closest('table').find('td').removeClass('selected')
@@ -118,8 +120,13 @@ class QuickQueryResultView extends View
           $td.removeClass('default')
           $td.addClass('status-added')
         else
-          $tr.addClass('modified')
-          $td.addClass('status-modified')
+          if e.target.getModel().getText() != $td.attr('data-original-value')
+            $tr.addClass('modified')
+            $td.addClass('status-modified')
+          else
+            $td.removeClass('status-modified')
+            if $tr.find('td.status-modified').length == 0
+              $tr.removeClass('modified')
       editor.focus()
 
   insertRecord: ->
@@ -146,6 +153,18 @@ class QuickQueryResultView extends View
       $tr.removeClass('modified')
       $tr.find('td').removeClass('status-modified selected')
       $tr.addClass('status-removed removed')
+
+  undo: ->
+    $td = @find('td.selected')
+    if $td.length == 1 && @is(':visible')
+      $tr = $td.closest('tr')
+      if $tr.hasClass('removed')
+        $tr.removeClass('status-removed removed')
+      else
+        $td.text($td.attr('data-original-value'))
+        $td.removeClass('status-modified')
+        if $tr.find('td.status-modified').length == 0
+          $tr.removeClass('modified')
 
   setNull: ->
     $td = @find('td.selected')
