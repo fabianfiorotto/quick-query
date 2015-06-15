@@ -162,7 +162,7 @@ class QuickQueryResultView extends View
         $tr.removeClass('status-removed removed')
       else
         $td.text($td.attr('data-original-value'))
-        $td.removeClass('status-modified')
+        $td.removeClass('status-modified null')
         if $tr.find('td.status-modified').length == 0
           $tr.removeClass('modified')
 
