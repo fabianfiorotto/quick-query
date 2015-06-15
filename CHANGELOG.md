@@ -1,3 +1,6 @@
+## 0.3.1 - Monday Update
+* Close button in modal message
+
 ## 0.3.0 - Monday Update
 * Postgres support
 * Save as CSV
