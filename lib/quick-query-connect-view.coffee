@@ -17,7 +17,7 @@ class QuickQueryConnectView extends View
       .keydown (e) ->
         if e.keyCode == 13
           $(e.target).css height: 'auto'
-          e.target.size = 2
+          e.target.size = 3
         else if  e.keyCode == 37 || e.keyCode == 38
           $(e.target).find('option:selected').prev().prop('selected',true)
         else if  e.keyCode == 39 || e.keyCode == 40
@@ -40,6 +40,9 @@ class QuickQueryConnectView extends View
         password: @find("#quick-query-pass")[0].getModel().getText()
         protocol: @find("#quick-query-protocol").val()
       }
+      if connectionInfo.protocol == 'ssl-postgres'
+        connectionInfo.ssl = true
+        connectionInfo.protocol = 'postgres'
       $(@element).trigger('quickQuery.connect',[connectionInfo])
 
   @content: ->
@@ -49,6 +52,7 @@ class QuickQueryConnectView extends View
         @select class: "form-control" , id: "quick-query-protocol", =>
           @option value: "mysql", "MySql"
           @option value: "postgres", "PostgreSQL"
+          @option value: "ssl-postgres", "PostgreSQL (ssl)"
       @div class: "col-sm-9" , =>
         @label 'host'
         @currentBuilder.tag 'atom-text-editor', id: "quick-query-host", class: 'editor', mini: 'mini', type: 'string'

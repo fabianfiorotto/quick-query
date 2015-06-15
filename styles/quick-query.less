@@ -1,6 +1,19 @@
-// TODO ordenar esto por view que se esta armando un quilombo
-
 @import "ui-variables";
+
+
+/*
+* Modal
+*/
+
+.quick-query-modal-message{
+	padding-right: 10px;
+	span.icon-x{
+		position: absolute;
+		top: 4px;
+		right: 0;
+		color: @overlay-border-color;
+	}
+}
 
 /*
 * Editor
@@ -46,6 +59,7 @@ atom-panel.right{
 
 .quick-query-result{
 	overflow: hidden;
+	position: relative;
 
 	.quick-query-result-resize-handler{
 		height: 5px;
@@ -124,7 +138,7 @@ atom-panel.right{
 				}
 				tr{
 					width: 100%;
-					max-height: @component-line-height;
+					height: @component-line-height + @component-padding - 2px;
 					td.editing{
 						padding: 2px 0 0 0;
 					}
