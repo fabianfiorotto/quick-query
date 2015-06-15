@@ -105,6 +105,12 @@ module.exports = QuickQuery =
       queryEditor.moveToBottom()
       queryEditor.insertNewline()
       queryEditor.insertText(text)
+    else
+      atom.workspace.open().then (editor) =>
+        grammars = atom.grammars.getGrammars()
+        grammar = (i for i in grammars when i.name is 'SQL')[0]
+        editor.setGrammar(grammar)
+        editor.insertText(text)
 
   deactivate: ->
     @subscriptions.dispose()
