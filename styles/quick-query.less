@@ -134,7 +134,15 @@ atom-panel.right{
 					background-color: darken(@tool-panel-background-color, 3%);
 				}
 				tr.added{
-					height: @component-line-height;
+					height: @component-line-height + @component-padding - 2px;
+					td{
+						color: @text-color-added;
+					}
+				}
+				tr.removed{
+					td{
+						color: @text-color-removed;
+					}
 				}
 				tr{
 					width: 100%;
