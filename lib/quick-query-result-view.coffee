@@ -120,6 +120,7 @@ class QuickQueryResultView extends View
         else
           $tr.addClass('modified')
           $td.addClass('status-modified')
+      editor.focus()
 
   insertRecord: ->
     $td = $("<td/>").text(@numbers.children().length)
