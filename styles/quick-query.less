@@ -150,7 +150,11 @@ atom-panel.right{
 					td.editing{
 						padding: 2px 0 0 0;
 					}
+					td.null.status-modified{
+						color: @text-color-modified;
+					}
 					td.null{
+						color: mix( @text-color , @tool-panel-background-color, 20%);
 						font-style:italic;
 					}
 					td{

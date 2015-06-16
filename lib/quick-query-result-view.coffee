@@ -59,8 +59,12 @@ class QuickQueryResultView extends View
       @numbers.append($('<tr/>').html($td))
       for field in fields
         $td = $('<td/>')
-        $td.attr('data-original-value',row[field.name])
-        $td.text(row[field.name])
+        if row[field.name]?
+          $td.attr('data-original-value',row[field.name])
+          $td.text(row[field.name])
+        else
+          $td.data('original-value-null',true)
+          $td.addClass('null').text('NULL')
         $td.mousedown (e)->
           $(this).closest('table').find('td').removeClass('selected')
           $(this).addClass('selected')
@@ -161,8 +165,12 @@ class QuickQueryResultView extends View
       if $tr.hasClass('removed')
         $tr.removeClass('status-removed removed')
       else
-        $td.text($td.attr('data-original-value'))
-        $td.removeClass('status-modified null')
+        if $td.data('original-value-null')
+          $td.addClass('null').text('NULL')
+        else
+          value = $td.attr('data-original-value')
+          $td.removeClass('null').text(value)
+        $td.removeClass('status-modified')
         if $tr.find('td.status-modified').length == 0
           $tr.removeClass('modified')
 
@@ -172,7 +180,7 @@ class QuickQueryResultView extends View
       $tr = $td.closest('tr')
       #$tr.hasClass('status-removed') return
       $td.text('NULL')
-      $td.addClass('null') #TODO remove when edit
+      $td.addClass('null')
       if $tr.hasClass('added')
         $td.removeClass('default')
         $td.addClass('status-added')
