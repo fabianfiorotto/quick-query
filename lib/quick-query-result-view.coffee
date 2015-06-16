@@ -107,11 +107,21 @@ class QuickQueryResultView extends View
     if $td.children().length == 0
       $td.addClass('editing')
       editor = $("<atom-text-editor/>").attr('mini','mini').addClass('editor')
-      editor[0].getModel().setText($td.text()) if !$td.hasClass('null')
+      textEditor = editor[0].getModel()
+      textEditor.setText($td.text()) if !$td.hasClass('null')
       $td.html(editor)
       editor.width(editor.width()) #HACK for One theme
       editor.keydown (e) ->
         $(this).blur() if e.keyCode == 13
+      textEditor.onDidChangeCursorPosition (e) =>
+        if editor.width() > @tableWrapper.width() #center cursor on screen
+          charWidth =  textEditor.getDefaultCharWidth()
+          column = e.newScreenPosition.column
+          trleft = -1 * editor.closest('tr').offset().left
+          tdleft =  editor.closest('td').offset().left
+          width = @tableWrapper.width() / 2
+          left = trleft + tdleft - width
+          @tableWrapper.scrollLeft(left + column * charWidth)
       editor.blur (e) =>
         $td = $(e.currentTarget).parent()
         $td.removeClass('editing selected')
