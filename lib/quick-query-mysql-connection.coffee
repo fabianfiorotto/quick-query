@@ -105,6 +105,12 @@ class QuickQueryMysqlConnection
   getDefaultDatabase: ->
     @connection.config.database
 
+  parent: -> @
+
+  children: (callback)->
+    @getDatabases (databases,err)->
+      unless err? then callback(databases) else console.log err
+
   getDatabases: (callback) ->
     text = "SHOW DATABASES"
     @query text , (err, rows, fields) =>
