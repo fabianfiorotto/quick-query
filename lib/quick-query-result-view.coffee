@@ -186,7 +186,7 @@ class QuickQueryResultView extends View
 
   setNull: ->
     $td = @find('td.selected')
-    if $td.length == 1 && @is(':visible')
+    if $td.length == 1 && @is(':visible') && !$td.hasClass('null')
       $tr = $td.closest('tr')
       #$tr.hasClass('status-removed') return
       $td.text('NULL')
