@@ -121,7 +121,8 @@ class QuickQueryResultView extends View
           tdleft =  editor.closest('td').offset().left
           width = @tableWrapper.width() / 2
           left = trleft + tdleft - width
-          @tableWrapper.scrollLeft(left + column * charWidth)
+          if Math.abs(@tableWrapper.scrollLeft() - (left + column * charWidth)) > width
+            @tableWrapper.scrollLeft(left + column * charWidth)
       editor.blur (e) =>
         $td = $(e.currentTarget).parent()
         $td.removeClass('editing selected')
