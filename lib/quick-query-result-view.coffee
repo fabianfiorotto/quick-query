@@ -175,6 +175,8 @@ class QuickQueryResultView extends View
       $tr = $td.closest('tr')
       if $tr.hasClass('removed')
         $tr.removeClass('status-removed removed')
+      else if $tr.hasClass('added')
+        $td.removeClass('null').addClass('default').text('')
       else
         if $td.data('original-value-null')
           $td.addClass('null').text('NULL')

@@ -17,6 +17,9 @@
       }
 
   ]
+  '.quick-query-result tr.added td.selected:not(.default)': [
+    {'label': 'Undo', 'command': 'quick-query:undo'}
+  ]
   '.quick-query-result tr.removed td.selected': [
     {'label': 'Undo', 'command': 'quick-query:undo'}
   ]
