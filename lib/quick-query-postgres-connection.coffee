@@ -175,6 +175,12 @@ class QuickQueryPostgresConnection
     else
       @queryDatabaseConnection(text,@defaultConnection,callback)
 
+  parent: -> @
+
+  children: (callback)->
+    @getDatabases (databases,err)->
+      unless err? then callback(databases) else console.log err
+
   getDatabases: (callback) ->
     text = "SELECT datname FROM pg_database "+
     "WHERE datistemplate = false"

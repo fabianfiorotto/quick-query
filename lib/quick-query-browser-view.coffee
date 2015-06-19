@@ -198,6 +198,9 @@ class QuickQueryBrowserView extends ScrollView
 
   refreshTree: (model)->
     $li = switch model.type
+      when 'connection'
+        @find('li.quick-query-connection').filter (i,e)->
+          $(e).data('item') == model
       when 'database'
         @find('li.quick-query-connection').filter (i,e)->
           $(e).data('item') == model.parent()
