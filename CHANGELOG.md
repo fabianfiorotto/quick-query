@@ -1,3 +1,6 @@
+## 0.4.0 - Monday Update
+* Data editor
+
 ## 0.3.1 - Monday Update
 * Close button in modal message
 
