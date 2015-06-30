@@ -5,14 +5,10 @@ class QuickQueryBrowserView extends ScrollView
 
   editor: null
   connection: null
-  connections: null
+  connections: []
+  selectedConnection: null
 
-  constructor:  (@connections)->
-    @selectedConnection = @connections[0]
-    for connection in @connections
-      connection.onDidChangeDefaultDatabase (database) =>
-        @defaultDatabaseChanged(connection,database)
-
+  constructor: ->
     atom.commands.add '#quick-query-connections',
       'quick-query:select-1000': => @simpleSelect()
       'quick-query:alter': => @alter()

@@ -26,7 +26,7 @@ module.exports = QuickQuery =
   activate: (state) ->
     @connections = []
 
-    @browser = new QuickQueryBrowserView(@connections)
+    @browser = new QuickQueryBrowserView()
 
     if state.connections
       for connectionInfo in state.connections
@@ -34,6 +34,7 @@ module.exports = QuickQuery =
         @browser.addConnection(connectionPromise)
         connectionPromise.then(
           (connection) =>
+              @connections.push(connection)
               connection.sentenceReady (text) =>
                 @addSentence(text)
           (err) => console.log(err)
@@ -57,6 +58,7 @@ module.exports = QuickQuery =
       @browser.addConnection(connectionPromise)
       connectionPromise.then(
         (connection) =>
+            @connections.push(connection)
             @modalPanel.hide()
             connection.sentenceReady (text) =>
               @addSentence(text)
