@@ -16,6 +16,7 @@ class QuickQueryBrowserView extends ScrollView
       'quick-query:create': => @create()
       'quick-query:copy': => @copy()
       'quick-query:set-default': => @setDefault()
+      'core:delete': => @delete()
 
     super
 
@@ -52,13 +53,13 @@ class QuickQueryBrowserView extends ScrollView
 
   delete: ->
     connection = null
-    $li = @find('ol:focus li.selected')
+    $li = @find('ol:focus li.quick-query-connection.selected')
     if $li.length == 1
       connection = $li.data('item')
       i = @connections.indexOf(connection)
       @connections.splice(i,1)
       @showConnections()
-    connection
+      @trigger('quickQuery.connectionDeleted',[connection])
 
   setDefault: ->
     $li = @find('li.selected')
@@ -253,6 +254,10 @@ class QuickQueryBrowserView extends ScrollView
   #events
   onConnectionSelected: (callback)->
     @bind 'quickQuery.connectionSelected', (e,connection) =>
+      callback(connection)
+
+  onConnectionDeleted: (callback)->
+    @bind 'quickQuery.connectionDeleted', (e,connection) =>
       callback(connection)
 
   #resizing methods copied from tree-view

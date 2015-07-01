@@ -45,6 +45,11 @@ module.exports = QuickQuery =
     @browser.onConnectionSelected (connection) =>
       @connection = connection
 
+    @browser.onConnectionDeleted (connection) =>
+      i = @connections.indexOf(connection)
+      @connections.splice(i,1)
+      @connection = null
+
     @browser.bind 'quickQuery.edit', (e,action,model) =>
       @editorView = new QuickQueryEditorView(action,model)
       if action == 'drop'
@@ -77,7 +82,6 @@ module.exports = QuickQuery =
       'quick-query:toggle-browser': => @toggleBrowser()
       'core:cancel': => @cancel()
       'quick-query:new-connection': => @newConnection()
-    @subscriptions.add atom.commands.add 'ol#quick-query-connections', 'core:delete': => @delete()
 
     atom.config.onDidChange 'quick-query.resultsInTab', ({newValue, oldValue}) =>
       if !newValue
@@ -225,10 +229,3 @@ module.exports = QuickQuery =
         resultView = i.panel.getItem()
         i.panel.hide()
         resultView.hideResults()
-
-  delete: ->
-    connection = @browser.delete()
-    if connection
-      i = @connections.indexOf(connection)
-      @connections.splice(i,1)
-      @connection = null
