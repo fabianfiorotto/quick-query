@@ -139,7 +139,10 @@ class QuickQueryPostgresConnection
     @defaultConnection.database
 
   dispose: ->
-    for connection in @connections
+    @close()
+
+  close: ->
+    for database,connection of @connections
       connection.end()
 
   queryDatabaseConnection: (text,connection,callback, recursive = false) ->

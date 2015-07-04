@@ -48,6 +48,7 @@ module.exports = QuickQuery =
     @browser.onConnectionDeleted (connection) =>
       i = @connections.indexOf(connection)
       @connections.splice(i,1)
+      connection.close()
       @connection = null
 
     @browser.bind 'quickQuery.edit', (e,action,model) =>

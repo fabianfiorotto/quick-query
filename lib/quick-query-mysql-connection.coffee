@@ -80,6 +80,9 @@ class QuickQueryMysqlConnection
     password: c.password
 
   dispose: ->
+    @close()
+
+  close: ->
     @connection.end()
 
   query: (text,callback) ->
