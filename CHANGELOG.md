@@ -1,3 +1,7 @@
+## 0.4.1 - Bugfixes
+* Fix restore session
+* Fix close connection
+
 ## 0.4.0 - Monday Update
 * Data editor
 
