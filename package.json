@@ -1,7 +1,7 @@
 {
   "name": "quick-query",
   "main": "./lib/quick-query",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Run sql queries",
   "activationCommands": {
     "atom-workspace": [
