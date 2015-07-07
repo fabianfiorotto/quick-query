@@ -1,4 +1,5 @@
 @import "ui-variables";
+@import "git";
 
 
 /*
@@ -136,12 +137,12 @@ atom-panel.right{
 				tr.added{
 					height: @component-line-height + @component-padding - 2px;
 					td,td.null{
-						color: @text-color-added;
+						.status-added();
 					}
 				}
 				tr.removed{
 					td{
-						color: @text-color-removed;
+						.status-removed();
 					}
 				}
 				tr{
@@ -151,7 +152,7 @@ atom-panel.right{
 						padding: 2px 0 0 0;
 					}
 					td.null.status-modified{
-						color: @text-color-modified;
+						.status-modified();
 					}
 					td.null{
 						color: mix( @text-color , @tool-panel-background-color, 20%);
