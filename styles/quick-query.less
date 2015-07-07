@@ -1,4 +1,5 @@
 @import "ui-variables";
+@import "ui-mixins";
 @import "git";
 
 
@@ -177,6 +178,9 @@ atom-panel.bottom{
 // Connect
 .dialog.quick-query-connect{
 	select{
+		color: @text-color;
+		background-color: @input-background-color;
+		border-color: @pane-item-border-color;
 		padding: 3px 12px;
 	}
 }
