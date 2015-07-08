@@ -228,7 +228,7 @@ class QuickQueryBrowserView extends ScrollView
 
   copy: ->
     $li = @find('li.selected')
-    $header = $li.find('div.header')
+    $header = $li.children('div.header')
     if $header.length > 0
       atom.clipboard.write($header.text())
 

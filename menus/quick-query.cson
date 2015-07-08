@@ -55,6 +55,7 @@
       {'label': 'Create schema', 'command': 'quick-query:create'}
   ]
   '.quick-query-browser .qq-schema-item':[
+      {'label': 'Copy', 'command': 'quick-query:copy'}
       {'label': 'Create table', 'command': 'quick-query:create'}
       {'label': 'Alter schema', 'command': 'quick-query:alter'}
       {'label': 'Drop schema', 'command': 'quick-query:drop'}
