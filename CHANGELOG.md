@@ -1,3 +1,6 @@
+## 0.4.2 - Bugfixes
+* Fix issue 9 - Failed to load package in isotope-ui
+
 ## 0.4.1 - Bugfixes
 * Fix restore session
 * Fix close connection
