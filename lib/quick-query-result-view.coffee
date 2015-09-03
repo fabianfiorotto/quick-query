@@ -41,6 +41,7 @@ class QuickQueryResultView extends View
     # @element.remove()
 
   showRows: (@rows, @fields,@connection)->
+    @table.css('height','') #added in fixNumbers()
     @keepHidden = false
     $thead = $('<thead/>')
     $tr = $('<tr/>')
