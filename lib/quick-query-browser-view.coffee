@@ -106,7 +106,7 @@ class QuickQueryBrowserView extends ScrollView
         @setItemClasses(connection,$li)
         $ol.append($li)
 
-  expandConnection: ($li)->
+  expandConnection: ($li,callback)->
     connection = $li.data('item')
     if connection != @selectedConnection
       @selectedConnection = connection
@@ -114,9 +114,9 @@ class QuickQueryBrowserView extends ScrollView
     $li.toggleClass('collapsed expanded')
     if $li.hasClass("expanded")
       connection.getDatabases (databases,err) =>
-        #@showDatabases(databases,$li) unless err
-        @showItems(connection,databases,$li) unless err
-
+        unless err
+          @showItems(connection,databases,$li)
+          callback() if callback
 
   showItems: (parentItem,childrenItems,$e)->
     ol_class = switch parentItem.child_type
@@ -186,12 +186,13 @@ class QuickQueryBrowserView extends ScrollView
         else
           $icon.addClass('icon-tag')
 
-  expandItem: ($li) ->
+  expandItem: ($li,callback) ->
     $li.toggleClass('collapsed expanded')
     if $li.hasClass("expanded")
       model = $li.data('item')
       model.children (children) =>
         @showItems(model,children,$li)
+        callback(children) if callback
 
   refreshTree: (model)->
     $li = switch model.type
@@ -213,6 +214,34 @@ class QuickQueryBrowserView extends ScrollView
     model.parent().children (children) =>
       @showItems(model.parent(),children,$li)
 
+  expand: (model,callback)->
+    if model.type == 'connection'
+      $ol = @find('ol#quick-query-connections')
+      $ol.children().each (i,li) =>
+        if $(li).data('item') == model
+          $(li).removeClass('expanded').addClass('collapsed') #HACK?
+          @expandConnection $(li) , =>
+            callback($(li)) if callback
+    else
+      parent = model.parent()
+      @expand parent, ($li) =>
+        $ol = $li.children("ol")
+        $ol.children().each (i,li) =>
+          item = $(li).data('item')
+          if item && item.name == model.name && item.type == model.type
+            @expandItem $(li) , =>
+              callback($(li)) if callback
+
+  reveal: (model,callback) ->
+    @expand model, ($li) =>
+      $li.addClass('selected')
+      top = $li.position().top
+      bottom = top + $li.outerHeight()
+      if bottom > @scroller.scrollBottom()
+        @scroller.scrollBottom(bottom)
+      if top < @scroller.scrollTop()
+        @scroller.scrollTop(top)
+      callback() if callback
 
   simpleSelect: ->
     $li = @find('li.selected.quick-query-table')

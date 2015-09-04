@@ -91,6 +91,10 @@
           'label': 'Toggle Browser'
           'command': 'quick-query:toggle-browser'
         },
+        {
+          'label': 'Find table to select rows'
+          'command': 'quick-query:find-table-to-select'
+        }
       ]
     ]
   }

@@ -2,8 +2,10 @@ QuickQueryConnectView = require './quick-query-connect-view'
 QuickQueryResultView = require './quick-query-result-view'
 QuickQueryBrowserView = require './quick-query-browser-view'
 QuickQueryEditorView = require './quick-query-editor-view'
+QuickQueryTableFinderView = require './quick-query-table-finder-view'
 QuickQueryMysqlConnection = require './quick-query-mysql-connection'
 QuickQueryPostgresConnection = require './quick-query-postgres-connection'
+
 {CompositeDisposable} = require 'atom'
 
 module.exports = QuickQuery =
@@ -22,9 +24,12 @@ module.exports = QuickQuery =
   connection: null
   connections: null
   queryEditors: []
+  tableFinder: null
 
   activate: (state) ->
     @connections = []
+
+    @tableFinder = new QuickQueryTableFinderView()
 
     @browser = new QuickQueryBrowserView()
 
@@ -59,6 +64,12 @@ module.exports = QuickQuery =
         @modalPanel = atom.workspace.addModalPanel(item: @editorView , visible: true)
         @editorView.focusFirst()
 
+    @tableFinder.onCanceled => @modalPanel.hide()
+    @tableFinder.onFound (table) =>
+      @modalPanel.hide()
+      @browser.reveal table, =>
+        @browser.simpleSelect()
+
     @connectView.bind 'quickQuery.connect', (e,connectionInfo) =>
       connectionPromise = @buildConnection(connectionInfo)
       @browser.addConnection(connectionPromise)
@@ -83,6 +94,7 @@ module.exports = QuickQuery =
       'quick-query:toggle-browser': => @toggleBrowser()
       'core:cancel': => @cancel()
       'quick-query:new-connection': => @newConnection()
+      'quick-query:find-table-to-select': => @findTable()
 
     atom.config.onDidChange 'quick-query.resultsInTab', ({newValue, oldValue}) =>
       if !newValue
@@ -165,6 +177,13 @@ module.exports = QuickQuery =
       @browser.showConnections()
       @rightPanel.show()
 
+  findTable: ()->
+    if @connection
+      @tableFinder.searchTable(@connection)
+      @modalPanel = atom.workspace.addModalPanel(item: @tableFinder , visible: true)
+      @tableFinder.focusFilterEditor()
+    else
+      @setModalPanel content: "No connection selected"
 
   setModalPanel: (message)->
     item = document.createElement('div')
