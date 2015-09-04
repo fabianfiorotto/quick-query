@@ -2,6 +2,7 @@
 'atom-workspace':
   'f5': 'quick-query:run'
   'alt-t': 'quick-query:new-editor'
+  'ctrl-alt-t': 'quick-query:find-table-to-select'
   'alt-\\': 'quick-query:toggle-browser'
 
  'ol#quick-query-connections':
