@@ -1,3 +1,6 @@
+## 0.5.0 - Bugfixes
+* Find table to select
+
 ## 0.4.2 - Bugfixes
 * Fix issue 9 - Failed to load package in isotope-ui
 

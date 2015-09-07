@@ -8,9 +8,11 @@ Do queries against your local databases quickly. Currently it only supports MySQ
 - Data Editor
 - Multiple connections
 - Quick templates for alter/create/drop
-
+- Find table to select
 
 ##Todo List
 - Add spinners
 - Make MySql timeout configurable
-- Fuzzi finders
+
+##Screenshot
+![](https://raw.githubusercontent.com/fabianfioroto/quick-query/master/resources/screenshot.gif)
