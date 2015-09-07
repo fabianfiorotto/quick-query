@@ -15,4 +15,4 @@ Do queries against your local databases quickly. Currently it only supports MySQ
 - Make MySql timeout configurable
 
 ##Screenshot
-![](https://raw.githubusercontent.com/fabianfioroto/quick-query/master/resources/screenshot.png)
+![](https://raw.githubusercontent.com/fabianfiorotto/quick-query/master/resources/screenshot.png)
