@@ -121,10 +121,6 @@ class QuickQueryMysqlConnection
       else if !fields
         message = { type: 'success', content:  rows.affectedRows+" row(s) affected" }
 
-      console.log(err)
-      console.log(rows)
-      console.log(fields)
-
       callback(message,rows,fields)
 
   setDefaultDatabase: (database)->
