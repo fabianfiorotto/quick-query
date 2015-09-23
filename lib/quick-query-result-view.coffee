@@ -10,6 +10,7 @@ class QuickQueryResultView extends View
   constructor:  ()->
     atom.commands.add '.quick-query-result',
      'quick-query:copy': => @copy()
+     'quick-query:copyall': => @copyall()
      'quick-query:save-csv': => @saveCSV()
      'quick-query:insert': => @insertRecord() if @is(':visible')
      'quick-query:null': => @setNull()
@@ -86,6 +87,19 @@ class QuickQueryResultView extends View
     $td = @find('td.selected')
     if $td.length == 1 && @is(':visible')
       atom.clipboard.write($td.text())
+
+  copyall: ->
+    fields = JSON.parse(JSON.stringify(@fields))
+    fields = @fields.map (field) -> field.name
+    rows = @rows.map (row) ->
+      simpleRow = JSON.parse(JSON.stringify(row))
+      simpleRow[field] ?= '' for field in fields
+      simpleRow
+    json2csv  data: rows , fields: fields , (err, csv)->
+      if (err)
+        console.log(err)
+      else
+        atom.clipboard.write(csv)   
 
   saveCSV: ->
     if @rows? && @fields? && @is(':visible')

@@ -36,6 +36,7 @@
     {'label': 'New record', 'command': 'quick-query:insert'}
     {'label': 'Get changes\' SQL', 'command': 'quick-query:apply'}
     {'type': 'separator'}
+    {'label': 'Copy All as CSV', 'command': 'quick-query:copyall'}
     {'label': 'Save as CSV', 'command': 'quick-query:save-csv'}
   ]
   '.quick-query-browser .qq-connection-item':[
