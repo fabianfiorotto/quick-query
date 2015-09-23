@@ -99,7 +99,7 @@ class QuickQueryResultView extends View
       if (err)
         console.log(err)
       else
-        atom.clipboard.write(csv)   
+        atom.clipboard.write(csv)
 
   saveCSV: ->
     if @rows? && @fields? && @is(':visible')

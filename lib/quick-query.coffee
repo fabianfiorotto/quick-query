@@ -159,16 +159,33 @@ module.exports = QuickQuery =
           @setModalPanel(message)
           if message.type == 'success'
             @afterExecute(@queryEditor)
-        else
-          if atom.config.get('quick-query.resultsInTab')
-            queryResult = @showResultInTab()
-          else
-            queryResult = @showResultView(@queryEditor)
-          queryResult.showRows(rows, fields, @connection)
-          queryResult.fixSizes()
-          @modalPanel.hide() if @modalPanel
+        # else
+        if Array.isArray(rows)
+          @generateResults(rows, fields, @connection)
+          # if atom.config.get('quick-query.resultsInTab')
+          #   queryResult = @showResultInTab()
+          # else
+          #   queryResult = @showResultView(@queryEditor)
+          # queryResult.showRows(rows, fields, @connection)
+          # queryResult.fixSizes()
+          # @modalPanel.hide() if @modalPanel
     else
       @setModalPanel content: "No connection selected"
+
+  generateResults: (rows, fields, connection) ->
+    if Array.isArray(rows[0])
+      for rowset, i in rows
+        @generateOnePageOfResults(rows[i], fields[i], connection)
+    else
+      @generateOnePageOfResults(rows, fields, connection)
+
+  generateOnePageOfResults: (rows, fields, connection) ->
+    if atom.config.get('quick-query.resultsInTab')
+      queryResult = @showResultInTab()
+    else
+      queryResult = @showResultView(@queryEditor)
+    queryResult.showRows(rows, fields, @connection)
+    queryResult.fixSizes()
 
   toggleBrowser: ->
     if @browser.is(':visible')
@@ -211,13 +228,13 @@ module.exports = QuickQuery =
 
   showResultInTab: ->
     pane = atom.workspace.getActivePane()
-    filter = pane.getItems().filter (item) ->
-      item instanceof QuickQueryResultView
-    if filter.length == 0
-      queryResult = new QuickQueryResultView()
-      pane.addItem queryResult
-    else
-      queryResult = filter[0]
+    # filter = pane.getItems().filter (item) ->
+    #   item instanceof QuickQueryResultView
+    # if filter.length == 0
+    queryResult = new QuickQueryResultView()
+    pane.addItem queryResult
+    # else
+    #   queryResult = filter[0]
     pane.activateItem queryResult
     queryResult
 

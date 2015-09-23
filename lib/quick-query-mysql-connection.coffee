@@ -55,13 +55,15 @@ class QuickQueryMysqlConnection
   type: 'connection'
   child_type: 'database'
   defaulPort: 3306
-  timeout: 5000 #time ot is set in 5s. queries should be fast.
+  timeout: 5000000 #time ot is set in 5s. queries should be fast.
 
   n_types: 'TINYINT SMALLINT MEDIUMINT INT INTEGER BIGINT FLOAT DOUBLE REAL DECIMAL NUMERIC TIMESTAMP YEAR ENUM SET'.split /\s+/
   s_types: 'CHAR VARCHAR TINYBLOB TINYTEXT MEDIUMBLOB MEDIUMTEXT LONGBLOB LONGTEXT BLOB TEXT DATETIME DATE TIME'.split /\s+/
 
   constructor: (@info)->
     @info.dateStrings = true
+    @info.insecureAuth = true
+    @info.multipleStatements = true
     @emitter = new Emitter()
 
   connect: (callback)->
@@ -94,11 +96,35 @@ class QuickQueryMysqlConnection
       @fatal = false
     @connection.query {sql: text , timeout: @timeout }, (err, rows, fields)=>
       message = null
+
+      multipleResultsReturned=false
+      for rowset in rows
+        if Array.isArray(rowset)
+          multipleResultsReturned=true
+
       if (err)
         message = { type: 'error' , content: err }
         @fatal = err.fatal
+      else if multipleResultsReturned
+        messageText=''
+        newRows=[]
+        newFields=[]
+        for fieldset, i in fields
+          if !fieldset
+            messageText+=rows[i].affectedRows+" row(s) affected.\n"
+          else
+            newRows.push(rows[i])
+            newFields.push(fieldset)
+        message = { type: 'success', content:  messageText }
+        rows=newRows
+        fields=newFields
       else if !fields
         message = { type: 'success', content:  rows.affectedRows+" row(s) affected" }
+
+      console.log(err)
+      console.log(rows)
+      console.log(fields)
+
       callback(message,rows,fields)
 
   setDefaultDatabase: (database)->
