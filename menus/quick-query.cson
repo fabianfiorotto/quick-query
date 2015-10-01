@@ -28,6 +28,7 @@
   ]
   '.quick-query-result td.selected':[
     {'label': 'Copy', 'command': 'quick-query:copy'}
+    {'label': 'Copy All', 'command': 'quick-query:copy-all'}
     {'type': 'separator'}
     {'label': 'Set NULL', 'command': 'quick-query:null'}
     {'label': 'Delete record', 'command': 'quick-query:delete'}
@@ -36,7 +37,6 @@
     {'label': 'New record', 'command': 'quick-query:insert'}
     {'label': 'Get changes\' SQL', 'command': 'quick-query:apply'}
     {'type': 'separator'}
-    {'label': 'Copy All as CSV', 'command': 'quick-query:copyall'}
     {'label': 'Save as CSV', 'command': 'quick-query:save-csv'}
   ]
   '.quick-query-browser .qq-connection-item':[

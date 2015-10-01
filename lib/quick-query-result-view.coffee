@@ -10,7 +10,7 @@ class QuickQueryResultView extends View
   constructor:  ()->
     atom.commands.add '.quick-query-result',
      'quick-query:copy': => @copy()
-     'quick-query:copyall': => @copyAll()
+     'quick-query:copy-all': => @copyAll()
      'quick-query:save-csv': => @saveCSV()
      'quick-query:insert': => @insertRecord() if @is(':visible')
      'quick-query:null': => @setNull()
