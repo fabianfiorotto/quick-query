@@ -89,17 +89,18 @@ class QuickQueryResultView extends View
       atom.clipboard.write($td.text())
 
   copyAll: ->
-    fields = JSON.parse(JSON.stringify(@fields))
-    fields = @fields.map (field) -> field.name
-    rows = @rows.map (row) ->
-      simpleRow = JSON.parse(JSON.stringify(row))
-      simpleRow[field] ?= '' for field in fields
-      simpleRow
-    json2csv del: "\t", data: rows , fields: fields , (err, csv)->
-      if (err)
-        console.log(err)
-      else
-        atom.clipboard.write(csv)
+    if @rows? && @fields? && @is(':visible')
+      fields = JSON.parse(JSON.stringify(@fields))
+      fields = @fields.map (field) -> field.name
+      rows = @rows.map (row) ->
+        simpleRow = JSON.parse(JSON.stringify(row))
+        simpleRow[field] ?= '' for field in fields
+        simpleRow
+      json2csv del: "\t", data: rows , fields: fields , (err, csv)->
+        if (err)
+          console.log(err)
+        else
+          atom.clipboard.write(csv)
 
   saveCSV: ->
     if @rows? && @fields? && @is(':visible')
