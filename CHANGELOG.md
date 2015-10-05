@@ -1,5 +1,5 @@
 ## 0.5.1 - Monday Update
-* Find table to select
+* Copy All
 
 ## 0.5.0 - Monday Update
 * Find table to select
