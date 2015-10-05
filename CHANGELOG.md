@@ -1,4 +1,7 @@
-## 0.5.0 - Bugfixes
+## 0.5.1 - Monday Update
+* Find table to select
+
+## 0.5.0 - Monday Update
 * Find table to select
 
 ## 0.4.2 - Bugfixes
