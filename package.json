@@ -3,6 +3,12 @@
   "main": "./lib/quick-query",
   "version": "0.5.1",
   "description": "Run sql queries",
+  "keywords": [
+    "sql",
+    "query",
+    "mysql",
+    "postgres"
+  ],
   "activationCommands": {
     "atom-workspace": [
       "quick-query:run",
