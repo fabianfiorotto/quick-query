@@ -11,6 +11,11 @@ class QuickQueryConnectView extends View
     portEditor = @find("#quick-query-port")[0].getModel()
     portEditor.setText('3306')
 
+    @find("#quick-query-host").attr('tabindex',2)
+    @find("#quick-query-port").attr('tabindex',3)
+    @find("#quick-query-user").attr('tabindex',4)
+    @find("#quick-query-pass").attr('tabindex',5)
+
     @find('#quick-query-connect').keydown (e) ->
       $(this).click() if e.keyCode == 13
     @find('#quick-query-protocol')
@@ -49,7 +54,7 @@ class QuickQueryConnectView extends View
     @div class: 'dialog quick-query-connect', =>
       @div class: "col-sm-12" , =>
         @label 'protocol'
-        @select class: "form-control" , id: "quick-query-protocol", =>
+        @select class: "form-control" , id: "quick-query-protocol", tabindex: "1",  =>
           @option value: "mysql", "MySql"
           @option value: "postgres", "PostgreSQL"
           @option value: "ssl-postgres", "PostgreSQL (ssl)"
@@ -66,7 +71,7 @@ class QuickQueryConnectView extends View
         @label 'password'
         @currentBuilder.tag 'atom-text-editor', id: "quick-query-pass", class: 'editor', mini: 'mini'
       @div class: "col-sm-12" , =>
-        @button id:"quick-query-connect", class: "btn btn-default icon icon-plug" , "Connect"
+        @button id:"quick-query-connect", class: "btn btn-default icon icon-plug" , tabindex: "6" , "Connect"
 
   destroy: ->
     @element.remove()
