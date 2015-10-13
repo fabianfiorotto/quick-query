@@ -1,3 +1,6 @@
+## 0.5.2 - Tuesday Update
+* Fix connect view tabIndex
+
 ## 0.5.1 - Monday Update
 * Copy All
 
