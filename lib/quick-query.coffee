@@ -241,6 +241,10 @@ module.exports = QuickQuery =
       @queryEditors.push({editor: queryEditor,  panel: bottomPanel})
     queryResult
 
+
+  provideConnectView: ->
+    @connectView
+
   cancel: ->
     @modalPanel.hide() if @modalPanel
     for i in @queryEditors

@@ -17,10 +17,18 @@
       "quick-query:new-connection"
     ]
   },
+  "providedServices": {
+    "quick-query-protocols": {
+      "description": "Add new protocols to quick-query",
+      "versions": {
+        "0.5.0": "provideConnectView"
+      }
+    }
+  },
   "repository": "https://github.com/fabianfiorotto/quick-query",
   "license": "MIT",
   "engines": {
-    "atom": ">=0.189.0 <2.0.0"
+    "atom": ">=1.0.0 <2.0.0"
   },
   "dependencies": {
     "atom-space-pen-views": "^2.0.3",
