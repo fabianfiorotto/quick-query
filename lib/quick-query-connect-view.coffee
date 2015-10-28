@@ -55,6 +55,14 @@ class QuickQueryConnectView extends View
         connectionInfo.protocol = 'postgres'
       $(@element).trigger('quickQuery.connect',[@buildConnection(connectionInfo)])
 
+  addProtocol: (key,protocol)->
+    @protocols[key] = protocol
+    option = $('<option/>')
+      .text(protocol.name)
+      .val(key)
+      .data('protocol',protocol)
+    @find('#quick-query-protocol').append(option)
+
   buildConnection: (connectionInfo)->
     new Promise (resolve, reject)=>
       protocolClass = @protocols[connectionInfo.protocol].handler
