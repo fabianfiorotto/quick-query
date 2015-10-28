@@ -4,7 +4,7 @@ element: null
 
 module.exports =
 class QuickQueryConnectView extends View
-  constructor: () ->
+  constructor: (@protocols) ->
     super
 
   initialize: ->
@@ -31,11 +31,16 @@ class QuickQueryConnectView extends View
         $(e.target).css height: ''
         e.target.size = 0
       .on 'change blur', (e) ->
-        if $(e.target).val() == 'mysql'
-          portEditor.setText('3306')
-        else
-          portEditor.setText('5432')
+        if $(e.target).find('option:selected').length > 0
+          protocol = $(e.target).find('option:selected').data('protocol')
+          portEditor.setText(protocol.handler.defaultPort.toString())
 
+    for key,protocol of @protocols
+      option = $('<option/>')
+        .text(protocol.name)
+        .val(key)
+        .data('protocol',protocol)
+      @find('#quick-query-protocol').append(option)
 
     @find('#quick-query-connect').click (e) =>
       connectionInfo = {
@@ -48,16 +53,23 @@ class QuickQueryConnectView extends View
       if connectionInfo.protocol == 'ssl-postgres'
         connectionInfo.ssl = true
         connectionInfo.protocol = 'postgres'
-      $(@element).trigger('quickQuery.connect',[connectionInfo])
+      $(@element).trigger('quickQuery.connect',[@buildConnection(connectionInfo)])
+
+  buildConnection: (connectionInfo)->
+    new Promise (resolve, reject)=>
+      protocolClass = @protocols[connectionInfo.protocol].handler
+      connection = new protocolClass(connectionInfo)
+      connection.connect (err) ->
+        if err
+          reject(err)
+        else
+          resolve(connection)
 
   @content: ->
     @div class: 'dialog quick-query-connect', =>
       @div class: "col-sm-12" , =>
         @label 'protocol'
-        @select class: "form-control" , id: "quick-query-protocol", tabindex: "1",  =>
-          @option value: "mysql", "MySql"
-          @option value: "postgres", "PostgreSQL"
-          @option value: "ssl-postgres", "PostgreSQL (ssl)"
+        @select class: "form-control" , id: "quick-query-protocol", tabindex: "1"
       @div class: "col-sm-9" , =>
         @label 'host'
         @currentBuilder.tag 'atom-text-editor', id: "quick-query-host", class: 'editor', mini: 'mini', type: 'string'

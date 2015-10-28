@@ -54,11 +54,12 @@ class QuickQueryMysqlConnection
   protocol: 'mysql'
   type: 'connection'
   child_type: 'database'
-  defaulPort: 3306
   timeout: 5000 #time ot is set in 5s. queries should be fast.
 
   n_types: 'TINYINT SMALLINT MEDIUMINT INT INTEGER BIGINT FLOAT DOUBLE REAL DECIMAL NUMERIC TIMESTAMP YEAR ENUM SET'.split /\s+/
   s_types: 'CHAR VARCHAR TINYBLOB TINYTEXT MEDIUMBLOB MEDIUMTEXT LONGBLOB LONGTEXT BLOB TEXT DATETIME DATE TIME'.split /\s+/
+
+  @defaultPort: 3306
 
   constructor: (@info)->
     @info.dateStrings = true

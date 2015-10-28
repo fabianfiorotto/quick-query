@@ -27,15 +27,30 @@ module.exports = QuickQuery =
   tableFinder: null
 
   activate: (state) ->
+    protocols =
+      mysql:
+        name: "MySql"
+        handler:QuickQueryMysqlConnection
+      postgres:
+        name: "PostgreSQL"
+        handler: QuickQueryPostgresConnection
+      "ssl-postgres":
+        name: "PostgreSQL (ssl)"
+        handler: QuickQueryPostgresConnection
+        default:
+          ssl: true
+
     @connections = []
 
     @tableFinder = new QuickQueryTableFinderView()
 
     @browser = new QuickQueryBrowserView()
 
+    @connectView = new QuickQueryConnectView(protocols)
+
     if state.connections
       for connectionInfo in state.connections
-        connectionPromise = @buildConnection(connectionInfo)
+        connectionPromise = @connectView.buildConnection(connectionInfo)
         @browser.addConnection(connectionPromise)
         connectionPromise.then(
           (connection) =>
@@ -44,8 +59,6 @@ module.exports = QuickQuery =
                 @addSentence(text)
           (err) => console.log(err)
         )
-
-    @connectView = new QuickQueryConnectView()
 
     @browser.onConnectionSelected (connection) =>
       @connection = connection
@@ -70,8 +83,7 @@ module.exports = QuickQuery =
       @browser.reveal table, =>
         @browser.simpleSelect()
 
-    @connectView.bind 'quickQuery.connect', (e,connectionInfo) =>
-      connectionPromise = @buildConnection(connectionInfo)
+    @connectView.bind 'quickQuery.connect', (e,connectionPromise) =>
       @browser.addConnection(connectionPromise)
       connectionPromise.then(
         (connection) =>
@@ -197,18 +209,6 @@ module.exports = QuickQuery =
     item.appendChild(close)
     @modalPanel = atom.workspace.addModalPanel(item: item , visible: true)
 
-  buildConnection: (connectionInfo)->
-    new Promise (resolve, reject)->
-      if connectionInfo.protocol == 'mysql'
-        connection = new QuickQueryMysqlConnection connectionInfo
-      else
-        connection = new QuickQueryPostgresConnection connectionInfo
-      connection.connect (err) ->
-        if err
-          reject(err)
-        else
-          resolve(connection)
-
   showResultInTab: ->
     pane = atom.workspace.getActivePane()
     filter = pane.getItems().filter (item) ->
@@ -220,7 +220,6 @@ module.exports = QuickQuery =
       queryResult = filter[0]
     pane.activateItem queryResult
     queryResult
-
 
   afterExecute: (queryEditor)->
     if @editorView && @editorView.editor == queryEditor

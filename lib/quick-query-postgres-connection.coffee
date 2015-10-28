@@ -81,10 +81,11 @@ class QuickQueryPostgresConnection
   protocol: 'postgres'
   type: 'connection'
   child_type: 'database'
-  defaulPort: 5432
   timeout: 5000 #time ot is set in 5s. queries should be fast.
   n_types: 'bigint bigserial bit boolean box bytea circle integer interval json line lseg money numeric path point polygon real smallint smallserial timestamp tsquery tsvector uuid xml'.split(/\s+/).concat(['bit varying'])
   s_types: ['character','character varying','date','inet','cidr','time','macaddr','text']
+
+  @defaultPort: 5432
 
   constructor: (@info)->
     @emitter = new Emitter()
