@@ -5,6 +5,7 @@ element: null
 module.exports =
 class QuickQueryConnectView extends View
   constructor: (@protocols) ->
+    @connectionsStates = []
     super
 
   initialize: ->
@@ -62,16 +63,24 @@ class QuickQueryConnectView extends View
       .val(key)
       .data('protocol',protocol)
     @find('#quick-query-protocol').append(option)
+    for state in @connectionsStates
+      state.callback(state.info) if state.info.protocol == key
 
   buildConnection: (connectionInfo)->
     new Promise (resolve, reject)=>
-      protocolClass = @protocols[connectionInfo.protocol].handler
-      connection = new protocolClass(connectionInfo)
-      connection.connect (err) ->
-        if err
-          reject(err)
-        else
-          resolve(connection)
+      protocolClass = @protocols[connectionInfo.protocol]?.handler
+      if protocolClass
+        connection = new protocolClass(connectionInfo)
+        connection.connect (err) ->
+          if err then reject(err) else resolve(connection)
+      else #whait until the package is loaded
+        @connectionsStates.push
+          info: connectionInfo
+          callback: (connectionInfo) =>
+            protocolClass = @protocols[connectionInfo.protocol].handler
+            connection = new protocolClass(connectionInfo)
+            connection.connect (err) ->
+              if err then reject(err) else resolve(connection)
 
   @content: ->
     @div class: 'dialog quick-query-connect', =>
