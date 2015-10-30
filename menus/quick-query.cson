@@ -29,13 +29,17 @@
   '.quick-query-result td.selected':[
     {'label': 'Copy', 'command': 'quick-query:copy'}
     {'label': 'Copy All', 'command': 'quick-query:copy-all'}
+  ]
+  '.quick-query-result[data-allow-edition] td.selected':[
     {'type': 'separator'}
     {'label': 'Set NULL', 'command': 'quick-query:null'}
     {'label': 'Delete record', 'command': 'quick-query:delete'}
   ]
-  '.quick-query-result':[
+  '.quick-query-result[data-allow-edition]':[
     {'label': 'New record', 'command': 'quick-query:insert'}
     {'label': 'Get changes\' SQL', 'command': 'quick-query:apply'}
+  ]
+  '.quick-query-result':[
     {'type': 'separator'}
     {'label': 'Save as CSV', 'command': 'quick-query:save-csv'}
   ]

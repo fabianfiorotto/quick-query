@@ -85,6 +85,7 @@ class QuickQueryPostgresConnection
   n_types: 'bigint bigserial bit boolean box bytea circle integer interval json line lseg money numeric path point polygon real smallint smallserial timestamp tsquery tsvector uuid xml'.split(/\s+/).concat(['bit varying'])
   s_types: ['character','character varying','date','inet','cidr','time','macaddr','text']
 
+  allowEdition: true
   @defaultPort: 5432
 
   constructor: (@info)->

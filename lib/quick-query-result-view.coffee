@@ -43,6 +43,8 @@ class QuickQueryResultView extends View
 
   showRows: (@rows, @fields,@connection)->
     @table.css('height','') #added in fixNumbers()
+    @attr 'data-allow-edition' , =>
+      if @connection.allowEdition then 'yes' else null
     @keepHidden = false
     $thead = $('<thead/>')
     $tr = $('<tr/>')
@@ -70,7 +72,8 @@ class QuickQueryResultView extends View
         $td.mousedown (e)->
           $(this).closest('table').find('td').removeClass('selected')
           $(this).addClass('selected')
-        $td.dblclick (e)=> @editRecord($(e.currentTarget))
+        if @connection.allowEdition
+          $td.dblclick (e)=> @editRecord($(e.currentTarget))
         $tr.append($td)
       $tbody.append($tr)
     @table.append($tbody)
