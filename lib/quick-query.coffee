@@ -38,6 +38,7 @@ module.exports = QuickQuery =
         name: "PostgreSQL (ssl)"
         handler: QuickQueryPostgresConnection
         default:
+          protocol: 'postgres'
           ssl: true
 
     @connections = []

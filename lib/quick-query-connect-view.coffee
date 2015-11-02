@@ -51,9 +51,9 @@ class QuickQueryConnectView extends View
         password: @find("#quick-query-pass")[0].getModel().getText()
         protocol: @find("#quick-query-protocol").val()
       }
-      if connectionInfo.protocol == 'ssl-postgres'
-        connectionInfo.ssl = true
-        connectionInfo.protocol = 'postgres'
+      if @protocols[connectionInfo.protocol]?.default?
+        defaults = @protocols[connectionInfo.protocol].default
+        connectionInfo[attr] = value for attr,value of defaults
       $(@element).trigger('quickQuery.connect',[@buildConnection(connectionInfo)])
 
   addProtocol: (key,protocol)->
