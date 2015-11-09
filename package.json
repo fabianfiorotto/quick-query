@@ -21,7 +21,7 @@
     "quick-query-protocols": {
       "description": "Add new protocols to quick-query",
       "versions": {
-        "0.5.0": "provideConnectView"
+        "0.6.0": "provideConnectView"
       }
     }
   },
