@@ -1,3 +1,6 @@
+## 0.6.0 - November Update
+* Exposing connectView as a service
+
 ## 0.5.2 - Tuesday Update
 * Fix connect view tabIndex
 
