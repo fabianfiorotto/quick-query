@@ -78,9 +78,9 @@ module.exports = QuickQuery =
         @modalPanel = atom.workspace.addModalPanel(item: @editorView , visible: true)
         @editorView.focusFirst()
 
-    @tableFinder.onCanceled => @modalPanel.hide()
+    @tableFinder.onCanceled => @modalPanel.destroy()
     @tableFinder.onFound (table) =>
-      @modalPanel.hide()
+      @modalPanel.destroy()
       @browser.reveal table, =>
         @browser.simpleSelect()
 
@@ -89,7 +89,7 @@ module.exports = QuickQuery =
       connectionPromise.then(
         (connection) =>
             @connections.push(connection)
-            @modalPanel.hide()
+            @modalPanel.destroy()
             connection.sentenceReady (text) =>
               @addSentence(text)
         (err) => @setModalPanel content: err, type: 'error'
@@ -180,7 +180,7 @@ module.exports = QuickQuery =
           else
             queryResult = @showResultView(@queryEditor)
           queryResult.showRows rows, fields, @connection , =>
-            @modalPanel.hide() if @modalPanel
+            @modalPanel.destroy() if @modalPanel
           queryResult.fixSizes()
 
     else
@@ -202,6 +202,7 @@ module.exports = QuickQuery =
       @setModalPanel content: "No connection selected"
 
   setModalPanel: (message)->
+    @modalPanel.destroy() if @modalPanel
     item = document.createElement('div')
     item.classList.add('quick-query-modal-message')
     item.textContent = message.content
@@ -215,7 +216,7 @@ module.exports = QuickQuery =
       item.classList.add('text-error')
     close = document.createElement('span')
     close.classList.add('icon-x')
-    close.onclick = (=> @modalPanel.hide())
+    close.onclick = (=> @modalPanel.destroy())
     item.appendChild(close)
     @modalPanel = atom.workspace.addModalPanel(item: item , visible: true)
 
@@ -237,7 +238,7 @@ module.exports = QuickQuery =
         queryEditor.setText('')
         atom.workspace.destroyActivePaneItem()
       @browser.refreshTree(@editorView.model)
-      @modalPanel.hide() if @modalPanel
+      @modalPanel.destroy() if @modalPanel
       @editorView = null
 
   showResultView: (queryEditor)->
@@ -256,7 +257,7 @@ module.exports = QuickQuery =
     @connectView
 
   cancel: ->
-    @modalPanel.hide() if @modalPanel
+    @modalPanel.destroy() if @modalPanel
     for i in @queryEditors
       if i.editor == atom.workspace.getActiveTextEditor()
         resultView = i.panel.getItem()
