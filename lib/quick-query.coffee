@@ -167,19 +167,22 @@ module.exports = QuickQuery =
     text = @queryEditor.getText() if(text == '')
 
     if @connection
+      @setModalPanel content:"Running query...", spinner: true
       @connection.query text, (message, rows, fields) =>
         if (message)
           @setModalPanel(message)
           if message.type == 'success'
             @afterExecute(@queryEditor)
         else
+          @setModalPanel content:"Loading results...", spinner: true
           if atom.config.get('quick-query.resultsInTab')
             queryResult = @showResultInTab()
           else
             queryResult = @showResultView(@queryEditor)
-          queryResult.showRows(rows, fields, @connection)
+          queryResult.showRows rows, fields, @connection , =>
+            @modalPanel.hide() if @modalPanel
           queryResult.fixSizes()
-          @modalPanel.hide() if @modalPanel
+
     else
       @setModalPanel content: "No connection selected"
 
@@ -202,6 +205,12 @@ module.exports = QuickQuery =
     item = document.createElement('div')
     item.classList.add('quick-query-modal-message')
     item.textContent = message.content
+    if message.spinner? && message.spinner
+      spinner = document.createElement('span')
+      spinner.classList.add('loading')
+      spinner.classList.add('loading-spinner-tiny')
+      spinner.classList.add('inline-block')
+      item.insertBefore(spinner,item.childNodes[0])
     if message.type == 'error'
       item.classList.add('text-error')
     close = document.createElement('span')

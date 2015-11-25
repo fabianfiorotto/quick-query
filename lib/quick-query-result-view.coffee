@@ -41,7 +41,7 @@ class QuickQueryResultView extends View
   destroy: ->
     # @element.remove()
 
-  showRows: (@rows, @fields,@connection)->
+  showRows: (@rows, @fields,@connection,done)->
     @table.css('height','') #added in fixNumbers()
     @attr 'data-allow-edition' , =>
       if @connection.allowEdition then 'yes' else null
@@ -56,7 +56,8 @@ class QuickQueryResultView extends View
     @table.html($thead)
     @numbers.empty()
     $tbody = $('<tbody/>')
-    for row,i in @rows
+    # for row,i in @rows
+    @forEachChunk @rows , done , (row,i) =>
       $tr = $('<tr/>')
       $td = $('<td/>')
       $td.text(i+1)
@@ -86,6 +87,22 @@ class QuickQueryResultView extends View
       @numbers.css 'margin-top': (-1*scroll)
       scroll = $(e.target).scrollLeft()
       $thead.css 'margin-left': (-1*scroll)
+
+  forEachChunk: (array,done,fn)->
+    chuncksize = 100
+    index = 0
+    doChunk = ()=>
+      cnt = chuncksize;
+      while cnt > 0 && index < array.length
+        fn.call(@,array[index], index, array)
+        ++index
+        cnt--
+      if index < array.length
+        setTimeout(doChunk, 1)
+      else
+       done?()
+    doChunk()
+
   copy: ->
     $td = @find('td.selected')
     if $td.length == 1 && @is(':visible')
