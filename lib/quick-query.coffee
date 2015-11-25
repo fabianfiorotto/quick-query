@@ -181,6 +181,7 @@ module.exports = QuickQuery =
             queryResult = @showResultView(@queryEditor)
           queryResult.showRows rows, fields, @connection , =>
             @modalPanel.destroy() if @modalPanel
+            queryResult.fixSizes() if rows.length > 100
           queryResult.fixSizes()
 
     else
