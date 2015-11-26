@@ -75,6 +75,7 @@ module.exports = QuickQuery =
       if action == 'drop'
         @editorView.openTextEditor()
       else
+        @modalPanel.destroy() if @modalPanel?
         @modalPanel = atom.workspace.addModalPanel(item: @editorView , visible: true)
         @editorView.focusFirst()
 
@@ -156,6 +157,7 @@ module.exports = QuickQuery =
       grammar = (i for i in grammars when i.name is 'SQL')[0]
       editor.setGrammar(grammar)
   newConnection: ->
+    @modalPanel.destroy() if @modalPanel?
     @modalPanel = atom.workspace.addModalPanel(item: @connectView, visible: true)
     @connectView.focusFirst()
   run: ->
@@ -197,13 +199,13 @@ module.exports = QuickQuery =
   findTable: ()->
     if @connection
       @tableFinder.searchTable(@connection)
+      @modalPanel.destroy() if @modalPanel?
       @modalPanel = atom.workspace.addModalPanel(item: @tableFinder , visible: true)
       @tableFinder.focusFilterEditor()
     else
       @setModalPanel content: "No connection selected"
 
   setModalPanel: (message)->
-    @modalPanel.destroy() if @modalPanel
     item = document.createElement('div')
     item.classList.add('quick-query-modal-message')
     item.textContent = message.content
@@ -219,6 +221,7 @@ module.exports = QuickQuery =
     close.classList.add('icon-x')
     close.onclick = (=> @modalPanel.destroy())
     item.appendChild(close)
+    @modalPanel.destroy() if @modalPanel?
     @modalPanel = atom.workspace.addModalPanel(item: item , visible: true)
 
   showResultInTab: ->
