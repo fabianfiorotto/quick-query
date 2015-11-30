@@ -1,3 +1,6 @@
+## 0.6.1 - December Update
+* Query spinner
+
 ## 0.6.0 - November Update
 * Exposing connectView as a service
 

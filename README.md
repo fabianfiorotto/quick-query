@@ -1,8 +1,8 @@
 # Quick query
 
-Do queries against your local databases quickly. Currently it only supports MySQL and PostgreSQL.
+Do queries against your local databases quickly. By default it only supports MySQL and PostgreSQL.
 
-##Features
+## Features
 - Visualize query results
 - Database browser
 - Data Editor
@@ -10,9 +10,12 @@ Do queries against your local databases quickly. Currently it only supports MySQ
 - Quick templates for alter/create/drop
 - Find table to select
 
-##Todo List
-- Add spinners
+## Other DBMSs
+ - [SQL Server](https://atom.io/packages/quick-query-mssql)
+
+## Todo List
+- Add spinners to the browser
 - Make MySql timeout configurable
 
-##Screenshot
+## Screenshot
 ![](https://raw.githubusercontent.com/fabianfiorotto/quick-query/master/resources/screenshot.png)
