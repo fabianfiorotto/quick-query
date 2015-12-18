@@ -8,15 +8,6 @@ class QuickQueryResultView extends View
   fields: null
 
   constructor:  ()->
-    atom.commands.add '.quick-query-result',
-     'quick-query:copy': => @copy()
-     'quick-query:copy-all': => @copyAll()
-     'quick-query:save-csv': => @saveCSV()
-     'quick-query:insert': => @insertRecord() if @is(':visible')
-     'quick-query:null': => @setNull()
-     'quick-query:undo': => @undo()
-     'quick-query:delete': => @deleteRecord()
-     'quick-query:apply': => @apply() if @is(':visible')
     super
 
   initialize: ->
@@ -105,11 +96,11 @@ class QuickQueryResultView extends View
 
   copy: ->
     $td = @find('td.selected')
-    if $td.length == 1 && @is(':visible')
+    if $td.length == 1
       atom.clipboard.write($td.text())
 
   copyAll: ->
-    if @rows? && @fields? && @is(':visible')
+    if @rows? && @fields?
       fields = JSON.parse(JSON.stringify(@fields))
       fields = @fields.map (field) -> field.name
       rows = @rows.map (row) ->
@@ -123,7 +114,7 @@ class QuickQueryResultView extends View
           atom.clipboard.write(csv)
 
   saveCSV: ->
-    if @rows? && @fields? && @is(':visible')
+    if @rows? && @fields?
       filepath = atom.showSaveDialogSync()
       if filepath?
         fields = JSON.parse(JSON.stringify(@fields))
@@ -199,7 +190,7 @@ class QuickQueryResultView extends View
 
   deleteRecord: ->
     $td = @find('td.selected')
-    if $td.length == 1 && @is(':visible')
+    if $td.length == 1
       $tr = $td.parent()
       $tr.removeClass('modified')
       $tr.find('td').removeClass('status-modified selected')
@@ -207,7 +198,7 @@ class QuickQueryResultView extends View
 
   undo: ->
     $td = @find('td.selected')
-    if $td.length == 1 && @is(':visible')
+    if $td.length == 1
       $tr = $td.closest('tr')
       if $tr.hasClass('removed')
         $tr.removeClass('status-removed removed')
@@ -225,7 +216,7 @@ class QuickQueryResultView extends View
 
   setNull: ->
     $td = @find('td.selected')
-    if $td.length == 1 && @is(':visible') && !$td.hasClass('null')
+    if $td.length == 1 && !$td.hasClass('null')
       $tr = $td.closest('tr')
       #$tr.hasClass('status-removed') return
       $td.text('NULL')

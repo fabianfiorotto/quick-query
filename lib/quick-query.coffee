@@ -110,6 +110,16 @@ module.exports = QuickQuery =
       'quick-query:new-connection': => @newConnection()
       'quick-query:find-table-to-select': => @findTable()
 
+    atom.commands.add '.quick-query-result',
+     'quick-query:copy': => @activeResultView().copy()
+     'quick-query:copy-all': => @activeResultView().copyAll()
+     'quick-query:save-csv': => @activeResultView().saveCSV()
+     'quick-query:insert': => @activeResultView().insertRecord()
+     'quick-query:null': => @activeResultView().setNull()
+     'quick-query:undo': => @activeResultView().undo()
+     'quick-query:delete': => @activeResultView().deleteRecord()
+     'quick-query:apply': => @activeResultView().apply()
+
     atom.config.onDidChange 'quick-query.resultsInTab', ({newValue, oldValue}) =>
       if !newValue
         for i in @queryEditors
@@ -256,6 +266,13 @@ module.exports = QuickQuery =
       @queryEditors.push({editor: queryEditor,  panel: bottomPanel})
     queryResult
 
+  activeResultView: ->
+    if atom.config.get('quick-query.resultsInTab')
+      atom.workspace.getActivePaneItem()
+    else
+      editor = atom.workspace.getActiveTextEditor()
+      for i in @queryEditors
+        return i.panel.getItem() if i.editor == editor
 
   provideConnectView: ->
     @connectView
