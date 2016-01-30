@@ -274,8 +274,9 @@ module.exports = QuickQuery =
       for i in @queryEditors
         return i.panel.getItem() if i.editor == editor
 
-  provideConnectView: ->
-    @connectView
+  provideBrowserView: -> @browser
+
+  provideConnectView: -> @connectView
 
   cancel: ->
     @modalPanel.destroy() if @modalPanel

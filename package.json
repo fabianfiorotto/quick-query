@@ -23,6 +23,12 @@
       "versions": {
         "0.6.0": "provideConnectView"
       }
+    },
+    "quick-query-browser": {
+      "description": "Access to connections",
+      "versions": {
+        "0.7.0": "provideBrowserView"
+      }
     }
   },
   "repository": "https://github.com/fabianfiorotto/quick-query",
