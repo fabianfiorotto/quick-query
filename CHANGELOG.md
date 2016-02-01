@@ -1,3 +1,9 @@
+## 0.7.0 - Janury Update
+* Exposing browser as a service
+
+## 0.6.2 - Janury Update
+* Fix issue #14
+
 ## 0.6.1 - December Update
 * Query spinner
 
