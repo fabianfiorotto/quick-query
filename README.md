@@ -12,6 +12,7 @@ Do queries against your local databases quickly. By default it only supports MyS
 
 ## Other DBMSs
  - [SQL Server](https://atom.io/packages/quick-query-mssql)
+ - [Sqlite](https://atom.io/packages/quick-query-sqlite)
 
 ## Todo List
 - Add spinners to the browser
