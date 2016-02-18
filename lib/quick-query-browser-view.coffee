@@ -137,6 +137,8 @@ class QuickQueryBrowserView extends ScrollView
       $e.append($ol)
     else
       $ol.empty()
+    if parentItem.child_type != 'column'
+      childrenItems = childrenItems.sort(@compareItemName)
     for childItem in childrenItems
       $li = $('<li/>').addClass('entry')
       $div = $('<div/>').addClass('header list-item')
@@ -242,6 +244,14 @@ class QuickQueryBrowserView extends ScrollView
       if top < @scroller.scrollTop()
         @scroller.scrollTop(top)
       callback() if callback
+
+  compareItemName: (item1,item2)->
+    if (item1.name < item2.name)
+      return -1
+    else if (item1.name > item2.name)
+      return 1
+    else
+      return 0
 
   simpleSelect: ->
     $li = @find('li.selected.quick-query-table')
