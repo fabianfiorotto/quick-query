@@ -78,6 +78,7 @@ class QuickQueryMysqlConnection
     host: c.host,
     port: c.port,
     protocol: @protocol
+    database: c.database,
     user: c.user,
     password: c.password
 

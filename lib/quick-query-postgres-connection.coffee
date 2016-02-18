@@ -90,8 +90,7 @@ class QuickQueryPostgresConnection
 
   constructor: (@info)->
     @emitter = new Emitter()
-    @info.database = 'postgres'
-    # @info.database = 'IBDT'
+    @info.database ?= 'postgres'
     @connections = {}
 
   connect: (callback)->
@@ -108,9 +107,10 @@ class QuickQueryPostgresConnection
     c = @defaultConnection
     host: c.host,
     port: c.port,
-    user: c.user,
     ssl: c.ssl
     protocol: @protocol
+    database: c.database
+    user: c.user,
     password: c.password
 
   getDatabaseConnection: (database,callback) ->
