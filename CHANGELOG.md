@@ -1,7 +1,12 @@
-## 0.7.0 - Janury Update
+## 0.7.1 - February Update
+* Sort databases and tables
+* Update node-mysql to version 2.10.2
+* Store default database in session
+
+## 0.7.0 - January Update
 * Exposing browser as a service
 
-## 0.6.2 - Janury Update
+## 0.6.2 - January Update
 * Fix issue #14
 
 ## 0.6.1 - December Update
