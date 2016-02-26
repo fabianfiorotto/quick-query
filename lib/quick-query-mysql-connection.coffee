@@ -98,7 +98,7 @@ class QuickQueryMysqlConnection
     @connection.query {sql: text , timeout: @timeout }, (err, rows, fields)=>
       message = null
       if (err)
-        message = { type: 'error' , content: err }
+        message = { type: 'error' , content: err.toString() }
         @fatal = err.fatal
       else if !fields
         message = { type: 'success', content:  rows.affectedRows+" row(s) affected" }
