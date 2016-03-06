@@ -235,7 +235,8 @@ class QuickQueryPostgresConnection
       "AND tc.constraint_type = 'PRIMARY KEY' "+
       "WHERE c.table_name = '#{table.name}' "+
       "AND c.table_schema = '#{table.schema.name}' "+
-      "AND c.table_catalog = '#{table.schema.database.name}'"
+      "AND c.table_catalog = '#{table.schema.database.name}'"+
+      "AND ( kc.constraint_name IS NULL OR tc.constraint_name = kc.constraint_name)"
       @queryDatabaseConnection text, connection , (err, rows, fields) =>
         if !err
           columns = rows.map (row) =>
