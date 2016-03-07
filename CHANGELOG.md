@@ -1,3 +1,7 @@
+## 0.7.2 - March Update
+* Copy errors to clipboard
+* Fix a bug with foreign keys in postgres
+
 ## 0.7.1 - February Update
 * Sort databases and tables
 * Update node-mysql to version 2.10.2
