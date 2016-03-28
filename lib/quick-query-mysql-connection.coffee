@@ -64,6 +64,7 @@ class QuickQueryMysqlConnection
 
   constructor: (@info)->
     @info.dateStrings = true
+    @info.multipleStatements = true
     @emitter = new Emitter()
 
   connect: (callback)->
@@ -96,13 +97,21 @@ class QuickQueryMysqlConnection
           @fatal = true
       @fatal = false
     @connection.query {sql: text , timeout: @timeout }, (err, rows, fields)=>
-      message = null
       if (err)
-        message = { type: 'error' , content: err.toString() }
         @fatal = err.fatal
+        callback  type: 'error' , content: err.toString()
       else if !fields
-        message = { type: 'success', content:  rows.affectedRows+" row(s) affected" }
-      callback(message,rows,fields)
+        callback type: 'success', content:  rows.affectedRows+" row(s) affected"
+      else if fields.length == 0 || (!Array.isArray(fields[0]) && fields[0]?)
+        callback(null,rows,fields)
+      else #-- Multiple Statements
+        affectedRows = rows.map (row)->
+          if row.affectedRows? then row.affectedRows else 0
+        affectedRows = affectedRows.reduce (r1,r2)-> r1+r2
+        if fields[0]? && affectedRows == 0
+          callback(null,rows[0],fields[0])
+        else
+          callback type: 'success', content:  affectedRows+" row(s) affected"
 
   setDefaultDatabase: (database)->
     @connection.changeUser database: database, =>
