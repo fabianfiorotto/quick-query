@@ -50,15 +50,17 @@ class QuickQueryResultView extends View
     $tbody = $('<tbody/>')
     # for row,i in @rows
     @forEachChunk @rows , done , (row,i) =>
+      array_row = Array.isArray(row)
       $tr = $('<tr/>')
       $td = $('<td/>')
       $td.text(i+1)
       @numbers.append($('<tr/>').html($td))
-      for field in fields
+      for field,j in fields
         $td = $('<td/>')
-        if row[field.name]?
-          $td.attr('data-original-value',row[field.name])
-          $td.text(row[field.name])
+        row_value = if array_row then row[j] else row[field.name]
+        if row_value?
+          $td.attr('data-original-value',row_value)
+          $td.text(row_value)
         else
           $td.data('original-value-null',true)
           $td.addClass('null').text('NULL')
@@ -102,13 +104,16 @@ class QuickQueryResultView extends View
 
   copyAll: ->
     if @rows? && @fields?
-      fields = JSON.parse(JSON.stringify(@fields))
-      fields = @fields.map (field) -> field.name
+      if Array.isArray(@rows[0])
+        fields = @fields.map (field,i) ->
+          label: field.name
+          value: (row)-> row[i]
+      else
+        fields = @fields.map (field) -> field.name
       rows = @rows.map (row) ->
         simpleRow = JSON.parse(JSON.stringify(row))
-        simpleRow[field] ?= '' for field in fields
         simpleRow
-      json2csv del: "\t", data: rows , fields: fields , (err, csv)->
+      json2csv del: "\t", data: rows , fields: fields , defaultValue: '' , (err, csv)->
         if (err)
           console.log(err)
         else
@@ -118,13 +123,17 @@ class QuickQueryResultView extends View
     if @rows? && @fields?
       filepath = atom.showSaveDialogSync()
       if filepath?
-        fields = JSON.parse(JSON.stringify(@fields))
-        fields = @fields.map (field) -> field.name
+        if Array.isArray(@rows[0])
+          fields = @fields.map (field,i) ->
+            label: field.name
+            value: (row)-> row[i]
+        else
+          fields = @fields.map (field) -> field.name
         rows = @rows.map (row) ->
           simpleRow = JSON.parse(JSON.stringify(row))
-          simpleRow[field] ?= '' for field in fields
+          simpleRow[field] ?= '' for field in fields #HERE
           simpleRow
-        json2csv  data: rows , fields: fields , (err, csv)->
+        json2csv  data: rows , fields: fields , defaultValue: '' , (err, csv)->
           if (err)
             console.log(err)
           else
