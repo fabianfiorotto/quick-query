@@ -232,6 +232,7 @@ module.exports = QuickQuery =
       copy.classList.add('icon-clippy')
       copy.setAttribute('title',"Copy to clipboard")
       copy.setAttribute('data-error',message.content)
+      item.onmouseover = (-> @classList.add('animated') )
       copy.onclick = (->atom.clipboard.write(@getAttribute('data-error')))
       item.appendChild(copy)
     close = document.createElement('span')

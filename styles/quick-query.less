@@ -18,12 +18,21 @@
 	span.icon-clippy{
 		margin-left: 5px;
 		cursor: pointer;
-		visibility: hidden;
 	}
 }
 
 atom-panel.modal:hover .quick-query-modal-message span.icon-clippy{
-	visibility: visible;
+	animation: in 0.8s linear 0s;
+	@keyframes in{ from{opacity: 0; }to{opacity: 1;}}
+}
+
+atom-panel.modal:not(:hover) .quick-query-modal-message span.icon-clippy{
+	opacity: 0;
+}
+
+atom-panel.modal:not(:hover) .quick-query-modal-message.animated span.icon-clippy{
+	animation: out 0.8s linear 0s;
+	@keyframes out{ from{opacity: 1; }to{opacity: 0;}}
 }
 
 /*
