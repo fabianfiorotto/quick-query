@@ -162,14 +162,9 @@ class QuickQueryPostgresConnection
         else
           callback  type: 'success', content: "#{result.rowCount} row(s) affected"
       else
-        rows = []
-        for r in result.rows
-          row = {}
-          for field,i in result.fields
-            field.db = connection.database
-            row[field.name] = r[i]
-          rows.push row
-        callback(null,rows,result.fields)
+        for field,i in result.fields
+          field.db = connection.database
+        callback(null,result.rows,result.fields)
 
   query: (text,callback) ->
     if @fatal
@@ -179,6 +174,12 @@ class QuickQueryPostgresConnection
         @queryDatabaseConnection(text,@defaultConnection,callback)
     else
       @queryDatabaseConnection(text,@defaultConnection,callback)
+
+  objRows: (rows,fields)->
+    rows.map (r,i) =>
+      row = {}
+      row[field.name] = r[j] for field,j in fields
+      row
 
   parent: -> @
 
@@ -191,7 +192,7 @@ class QuickQueryPostgresConnection
     "WHERE datistemplate = false"
     @query text , (err, rows, fields) =>
       if !err
-        databases = rows.map (row) =>
+        databases = @objRows(rows,fields).map (row) =>
            new QuickQueryPostgresDatabase(@,row)
         databases = databases.filter (database) => !@hiddenDatabase(database.name)
       callback(databases,err)
@@ -204,7 +205,7 @@ class QuickQueryPostgresConnection
       "AND schema_name NOT IN ('pg_toast','pg_temp_1','pg_toast_temp_1','pg_catalog','information_schema')"
       @queryDatabaseConnection text, connection , (err, rows, fields) =>
         if !err
-          schemas = rows.map (row) ->
+          schemas = @objRows(rows,fields).map (row) ->
             new QuickQueryPostgresSchema(database,row)
           callback(schemas)
 
@@ -217,7 +218,7 @@ class QuickQueryPostgresConnection
       "AND table_schema = '#{schema.name}'"
       @queryDatabaseConnection text, connection , (err, rows, fields) =>
         if !err
-          tables = rows.map (row) ->
+          tables = @objRows(rows,fields).map (row) ->
             new QuickQueryPostgresTable(schema,row)
           callback(tables)
 
@@ -239,7 +240,7 @@ class QuickQueryPostgresConnection
       "AND ( kc.constraint_name IS NULL OR tc.constraint_name = kc.constraint_name)"
       @queryDatabaseConnection text, connection , (err, rows, fields) =>
         if !err
-          columns = rows.map (row) =>
+          columns = @objRows(rows,fields).map (row) =>
             new QuickQueryPostgresColumn(table,row)
           callback(columns)
 
@@ -336,9 +337,9 @@ class QuickQueryPostgresConnection
     for oid,t of tables
       @getTableByOID t.database,t.oid, (table) =>
         table.children (columns) =>
-          keys = (key for key in columns when key.primary_key)
+          keys = ({ ix: i, key: key} for key,i in columns when key.primary_key)
           allkeys = true
-          allkeys &= row[key.name]? for key in keys
+          allkeys &= row[k.ix]? for k in keys
           if allkeys && keys.length > 0
             @_matchColumns(t.fields,columns)
             assings = t.fields.filter( (field)-> field.column? ).map (field) =>
@@ -346,7 +347,7 @@ class QuickQueryPostgresConnection
             database = @defaultConnection.escapeIdentifier(table.schema.database.name)
             schema = @defaultConnection.escapeIdentifier(table.schema.name)
             table = @defaultConnection.escapeIdentifier(table.name)
-            where = keys.map (key)=> "#{@defaultConnection.escapeIdentifier(key.name)} = #{@escape(row[key.name],key.datatype)}"
+            where = keys.map (k)=> "#{@defaultConnection.escapeIdentifier(k.key.name)} = #{@escape(row[k.ix],k.key.datatype)}"
             update = "UPDATE #{database}.#{schema}.#{table}"+
             " SET #{assings.join(',')}"+
             " WHERE "+where.join(' AND ')+";"
@@ -377,14 +378,14 @@ class QuickQueryPostgresConnection
     for oid,t of tables
       @getTableByOID t.database,t.oid, (table) =>
         table.children (columns) =>
-          keys = (key for key in columns when key.primary_key)
+          keys = ({ ix: i, key: key} for key,i in columns when key.primary_key)
           allkeys = true
-          allkeys &= row[key.name]? for key in keys
+          allkeys &= row[k.ix]? for k in keys
           if allkeys && keys.length > 0
             database = @defaultConnection.escapeIdentifier(table.schema.database.name)
             schema = @defaultConnection.escapeIdentifier(table.schema.name)
             table = @defaultConnection.escapeIdentifier(table.name)
-            where = keys.map (key)=> "#{@defaultConnection.escapeIdentifier(key.name)} = #{@escape(row[key.name],key.datatype)}"
+            where = keys.map (k)=> "#{@defaultConnection.escapeIdentifier(k.key.name)} = #{@escape(row[k.ix],k.key.datatype)}"
             del = "DELETE FROM #{database}.#{schema}.#{table}"+
             " WHERE "+where.join(' AND ')+";"
             @emitter.emit 'sentence-ready', del
@@ -399,7 +400,7 @@ class QuickQueryPostgresConnection
       @queryDatabaseConnection text, connection , (err, rows, fields) =>
         db = {name: database, connection: @ }
         if !err && rows.length == 1
-          row = rows[0]
+          row = @objRows(rows,fields)[0]
           schema = new QuickQueryPostgresSchema(db,row,fields)
           table = new QuickQueryPostgresTable(schema,row)
           callback(table)
