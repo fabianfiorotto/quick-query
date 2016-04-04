@@ -175,11 +175,11 @@ class QuickQueryPostgresConnection
     else
       @queryDatabaseConnection(text,@defaultConnection,callback)
 
-  objRows: (rows,fields)->
+  objRowsMap: (rows,fields,callback)->
     rows.map (r,i) =>
       row = {}
       row[field.name] = r[j] for field,j in fields
-      row
+      if callback? then callback(row) else row
 
   parent: -> @
 
@@ -192,7 +192,7 @@ class QuickQueryPostgresConnection
     "WHERE datistemplate = false"
     @query text , (err, rows, fields) =>
       if !err
-        databases = @objRows(rows,fields).map (row) =>
+        databases = @objRowsMap rows,fields, (row) =>
            new QuickQueryPostgresDatabase(@,row)
         databases = databases.filter (database) => !@hiddenDatabase(database.name)
       callback(databases,err)
@@ -205,7 +205,7 @@ class QuickQueryPostgresConnection
       "AND schema_name NOT IN ('pg_toast','pg_temp_1','pg_toast_temp_1','pg_catalog','information_schema')"
       @queryDatabaseConnection text, connection , (err, rows, fields) =>
         if !err
-          schemas = @objRows(rows,fields).map (row) ->
+          schemas = @objRowsMap rows, fields , (row) ->
             new QuickQueryPostgresSchema(database,row)
           callback(schemas)
 
@@ -218,7 +218,7 @@ class QuickQueryPostgresConnection
       "AND table_schema = '#{schema.name}'"
       @queryDatabaseConnection text, connection , (err, rows, fields) =>
         if !err
-          tables = @objRows(rows,fields).map (row) ->
+          tables = @objRowsMap rows,fields, (row) ->
             new QuickQueryPostgresTable(schema,row)
           callback(tables)
 
@@ -240,7 +240,7 @@ class QuickQueryPostgresConnection
       "AND ( kc.constraint_name IS NULL OR tc.constraint_name = kc.constraint_name)"
       @queryDatabaseConnection text, connection , (err, rows, fields) =>
         if !err
-          columns = @objRows(rows,fields).map (row) =>
+          columns = @objRowsMap rows, fields, (row) =>
             new QuickQueryPostgresColumn(table,row)
           callback(columns)
 
@@ -400,7 +400,7 @@ class QuickQueryPostgresConnection
       @queryDatabaseConnection text, connection , (err, rows, fields) =>
         db = {name: database, connection: @ }
         if !err && rows.length == 1
-          row = @objRows(rows,fields)[0]
+          row = @objRowsMap(rows,fields)[0]
           schema = new QuickQueryPostgresSchema(db,row,fields)
           table = new QuickQueryPostgresTable(schema,row)
           callback(table)
