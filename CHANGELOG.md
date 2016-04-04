@@ -1,3 +1,7 @@
+## 0.8.0 - April Update
+* Array API + postgres implementation
+* Execute multiple INSERT, UPDATE or DELETE statements in mysql
+
 ## 0.7.2 - March Update
 * Copy errors to clipboard
 * Fix a bug with foreign keys in postgres
