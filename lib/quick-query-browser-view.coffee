@@ -38,7 +38,7 @@ class QuickQueryBrowserView extends ScrollView
   serialize: ->
 
   @content: ->
-    @div class: 'quick-query-browser tree-view-resizer tool-panel', 'data-show-on-right-side': true, =>
+    @div class: 'quick-query-browser tree-view-resizer tool-panel', 'data-show-on-right-side': !atom.config.get('quick-query.showBrowserOnLeftSide') , =>
       @div =>
         @button id: 'quick-query-run', class: 'btn icon icon-playback-play' , title: 'Run' , style: 'width:50%'
         @button id: 'quick-query-new-connection', class: 'btn icon icon-plus' , title: 'New connection' , style: 'width:50%'
@@ -312,9 +312,9 @@ class QuickQueryBrowserView extends ScrollView
   resizeTreeView: ({pageX, which}) =>
     return @resizeStopped() unless which is 1
     if @data('show-on-right-side')
-      width = $(document.body).width() - pageX
+      width =  @outerWidth() + @offset().left - pageX
     else
-      width = pageX
+      width = pageX - @offset().left
     @width(width)
   resizeToFitContent: ->
     @width(1) # Shrink to measure the minimum width of list

@@ -14,12 +14,16 @@ module.exports = QuickQuery =
       type: 'boolean'
       default: false
       title: 'Show results in a tab'
+    showBrowserOnLeftSide:
+      type: 'boolean'
+      default: false
+      title: 'Show browser on left side'
 
   editorView: null
   browser: null
   modalPanel: null
   bottomPanel: null
-  rightPanel: null
+  sidePanel: null
   subscriptions: null
   connection: null
   connections: null
@@ -96,7 +100,10 @@ module.exports = QuickQuery =
         (err) => @setModalPanel content: err, type: 'error'
       )
 
-    @rightPanel = atom.workspace.addRightPanel(item: @browser, visible:false )
+    if atom.config.get('quick-query.showBrowserOnLeftSide')
+      @sidePanel = atom.workspace.addLeftPanel(item: @browser, visible:false )
+    else
+      @sidePanel = atom.workspace.addRightPanel(item: @browser, visible:false )
 
     # Events subscribed to in atom's system can be easily cleaned up with a CompositeDisposable
     @subscriptions = new CompositeDisposable
@@ -126,6 +133,17 @@ module.exports = QuickQuery =
           i.panel.hide()
           i.panel.destroy()
         @queryEditors = []
+
+    atom.config.onDidChange 'quick-query.showBrowserOnLeftSide', ({newValue, oldValue}) =>
+      visible = @browser.is(':visible')
+      @browser.attr('data-show-on-right-side',!newValue)
+      @browser.data('show-on-right-side',!newValue)
+      @sidePanel.destroy()
+      if newValue
+        @sidePanel = atom.workspace.addLeftPanel(item: @browser, visible: visible )
+      else
+        @sidePanel = atom.workspace.addRightPanel(item: @browser, visible: visible )
+
 
     atom.workspace.onDidChangeActivePaneItem (item) =>
       if !atom.config.get('quick-query.resultsInTab')
@@ -201,10 +219,10 @@ module.exports = QuickQuery =
 
   toggleBrowser: ->
     if @browser.is(':visible')
-      @rightPanel.hide()
+      @sidePanel.hide()
     else
       @browser.showConnections()
-      @rightPanel.show()
+      @sidePanel.show()
 
   findTable: ()->
     if @connection
