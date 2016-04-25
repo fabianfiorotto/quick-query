@@ -1,3 +1,6 @@
+## 0.8.1 - April Update Pt2
+* Browser on left side
+
 ## 0.8.0 - April Update
 * Array API + postgres implementation
 * Execute multiple INSERT, UPDATE or DELETE statements in mysql
