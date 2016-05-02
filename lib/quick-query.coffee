@@ -50,6 +50,7 @@ module.exports = QuickQuery =
     @tableFinder = new QuickQueryTableFinderView()
 
     @browser = new QuickQueryBrowserView()
+    @browser.width(state.browserWidth) if state.browserWidth?
 
     @connectView = new QuickQueryConnectView(protocols)
 
@@ -178,7 +179,8 @@ module.exports = QuickQuery =
     @quickQueryView.destroy()
 
   serialize: ->
-     connections: @connections.map (c)-> c.serialize()
+     connections: @connections.map((c)-> c.serialize()),
+     browserWidth: @browser.width()
   newEditor: ->
     atom.workspace.open().then (editor) =>
       grammars = atom.grammars.getGrammars()
