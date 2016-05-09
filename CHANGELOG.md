@@ -1,3 +1,6 @@
+## 0.8.2 - Anniversary update :tada: :tada: :tada:
+* Remember browser width
+
 ## 0.8.1 - April Update Pt2
 * Browser on left side
 
