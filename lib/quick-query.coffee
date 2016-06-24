@@ -201,8 +201,12 @@ module.exports = QuickQuery =
     if @connection
       @setModalPanel content:"Running query...", spinner: true
       @connection.query text, (message, rows, fields) =>
+        @modalPanel.destroy() if @modalPanel?
         if (message)
-          @setModalPanel(message)
+          if message.type == 'error'
+            @setModalPanel message
+          else
+            @addInfoNotification(message.content);
           if message.type == 'success'
             @afterExecute(@queryEditor)
         else
@@ -217,7 +221,7 @@ module.exports = QuickQuery =
           queryResult.fixSizes()
 
     else
-      @setModalPanel content: "No connection selected"
+      @addWarningNotification("No connection selected")
 
   toggleBrowser: ->
     if @browser.is(':visible')
@@ -233,7 +237,15 @@ module.exports = QuickQuery =
       @modalPanel = atom.workspace.addModalPanel(item: @tableFinder , visible: true)
       @tableFinder.focusFilterEditor()
     else
-      @setModalPanel content: "No connection selected"
+      @addWarningNotification "No connection selected"
+
+  addWarningNotification:(message) ->
+    notification = atom.notifications.addWarning(message);
+    atom.views.getView(notification).addEventListener 'click', (e) -> @removeNotification()
+
+  addInfoNotification: (message)->
+    notification = atom.notifications.addInfo(message);
+    atom.views.getView(notification).addEventListener 'click', (e) -> @removeNotification()
 
   setModalPanel: (message)->
     item = document.createElement('div')
