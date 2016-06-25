@@ -176,4 +176,4 @@ class QuickQueryEditorView extends View
   getColumnInfo: ->
 
   focusFirst: ->
-    @find('#quick-query-editor-name').focus()
+    setTimeout((=> @find('#quick-query-editor-name').focus()) ,10)
