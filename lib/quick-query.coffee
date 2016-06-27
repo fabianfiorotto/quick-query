@@ -241,11 +241,11 @@ module.exports = QuickQuery =
 
   addWarningNotification:(message) ->
     notification = atom.notifications.addWarning(message);
-    atom.views.getView(notification).addEventListener 'click', (e) -> @removeNotification()
+    atom.views.getView(notification)?.addEventListener 'click', (e) -> @removeNotification()
 
   addInfoNotification: (message)->
     notification = atom.notifications.addInfo(message);
-    atom.views.getView(notification).addEventListener 'click', (e) -> @removeNotification()
+    atom.views.getView(notification)?.addEventListener 'click', (e) -> @removeNotification()
 
   setModalPanel: (message)->
     item = document.createElement('div')
