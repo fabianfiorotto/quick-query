@@ -1,3 +1,7 @@
+## 0.8.3 - Junne Update
+* Using atom notifications instead modals to show warnings and info
+* Fix a bug with modals in Atom One theme.
+
 ## 0.8.2 - Anniversary update :tada: :tada: :tada:
 * Remember browser width
 
