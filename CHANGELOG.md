@@ -1,4 +1,4 @@
-## 0.8.3 - Junne Update
+## 0.8.3 - June Update
 * Using atom notifications instead modals to show warnings and info
 * Fix a bug with modals in Atom One theme.
 
