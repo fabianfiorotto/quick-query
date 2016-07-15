@@ -182,7 +182,7 @@ class QuickQueryResultView extends View
       editor.focus()
 
   insertRecord: ->
-    $td = $("<td/>").text(@numbers.children().length)
+    $td = $("<td/>").text(@numbers.children().length + 1)
     $tr = $("<tr/>").html($td)
     @numbers.append($tr)
     $tr = $("<tr/>")
