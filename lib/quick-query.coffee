@@ -66,7 +66,10 @@ module.exports = QuickQuery =
       i = @connections.indexOf(connection)
       @connections.splice(i,1)
       connection.close()
-      @connection = null
+      if @connections.length > 0
+        @browser.selectConnection(@connections[@connections.length-1])
+      else
+        @connection = null
 
     @browser.bind 'quickQuery.edit', (e,action,model) =>
       @editorView = new QuickQueryEditorView(action,model)

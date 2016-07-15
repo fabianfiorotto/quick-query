@@ -290,6 +290,16 @@ class QuickQueryBrowserView extends ScrollView
       model = $li.data('item')
       @trigger('quickQuery.edit',['drop',model])
 
+  selectConnection: (connection)->
+    return unless connection != @selectedConnection
+    $ol = @find('ol#quick-query-connections')
+    $ol.children().each (i,li) =>
+      if $(li).data('item') == connection
+        $ol.children().removeClass('default')
+        $(li).addClass('default')
+        @selectedConnection = connection
+        @trigger('quickQuery.connectionSelected',[connection])
+
   #events
   onConnectionSelected: (callback)->
     @bind 'quickQuery.connectionSelected', (e,connection) =>
