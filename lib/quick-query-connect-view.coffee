@@ -95,16 +95,18 @@ class QuickQueryConnectView extends View
       protocolClass = @protocols[connectionInfo.protocol]?.handler
       if protocolClass
         connection = new protocolClass(connectionInfo)
-        connection.connect (err) ->
+        connection.connect (err) =>
           if err then reject(err) else resolve(connection)
+          @trigger('quickQuery.connected',connection)  unless err?
       else #whait until the package is loaded
         @connectionsStates.push
           info: connectionInfo
           callback: (connectionInfo) =>
             protocolClass = @protocols[connectionInfo.protocol].handler
             connection = new protocolClass(connectionInfo)
-            connection.connect (err) ->
+            connection.connect (err) =>
               if err then reject(err) else resolve(connection)
+              @trigger('quickQuery.connected',connection)  unless err?
 
   @content: ->
     @div class: 'dialog quick-query-connect', =>
@@ -145,3 +147,11 @@ class QuickQueryConnectView extends View
   showRemoteInfo: ->
     @find(".qq-remote-info").show()
     @find(".qq-local-info").hide()
+
+  onWillConnect: (callback)->
+    @bind 'quickQuery.connect', (e,connectionPromise) ->
+      callback(connectionPromise)
+
+  onConnectionStablished: (callback)->
+    @bind 'quickQuery.connected', (e,connection) ->
+      callback(connection)

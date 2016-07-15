@@ -58,13 +58,6 @@ module.exports = QuickQuery =
       for connectionInfo in state.connections
         connectionPromise = @connectView.buildConnection(connectionInfo)
         @browser.addConnection(connectionPromise)
-        connectionPromise.then(
-          (connection) =>
-              @connections.push(connection)
-              connection.sentenceReady (text) =>
-                @addSentence(text)
-          (err) => console.log(err)
-        )
 
     @browser.onConnectionSelected (connection) =>
       @connection = connection
@@ -90,14 +83,15 @@ module.exports = QuickQuery =
       @browser.reveal table, =>
         @browser.simpleSelect()
 
-    @connectView.bind 'quickQuery.connect', (e,connectionPromise) =>
+    @connectView.onConnectionStablished (connection)=>
+      @connections.push(connection)
+      connection.sentenceReady (text) =>
+        @addSentence(text)
+
+    @connectView.onWillConnect (connectionPromise) =>
       @browser.addConnection(connectionPromise)
       connectionPromise.then(
-        (connection) =>
-            @connections.push(connection)
-            @modalPanel.destroy()
-            connection.sentenceReady (text) =>
-              @addSentence(text)
+        (connection) => @modalPanel.destroy()
         (err) => @setModalPanel content: err, type: 'error'
       )
 
