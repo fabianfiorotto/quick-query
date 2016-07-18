@@ -1,7 +1,7 @@
 {
   "name": "quick-query",
   "main": "./lib/quick-query",
-  "version": "0.8.3",
+  "version": "0.8.4",
   "description": "Run sql queries",
   "keywords": [
     "sql",
