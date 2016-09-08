@@ -38,9 +38,6 @@ atom-panel.modal:not(:hover) .quick-query-modal-message.animated span.icon-clipp
 /*
 * Editor
 */
-.quick-query-editor{
-	display: inline-block;
-}
 
 #quick-query-default-is-null{
 	border-width: 1px;
@@ -198,7 +195,6 @@ atom-panel.bottom{
 
 // Connect
 .dialog.quick-query-connect{
-	display: inline-block;
 	select{
 		color: @text-color;
 		background-color: @input-background-color;
@@ -213,5 +209,33 @@ atom-panel.bottom{
 
 	.qq-local-info{
 		display: none;
+	}
+}
+
+/*
+	Bootstrap grid system was removed in atom v1.10
+*/
+.dialog.quick-query-connect,
+.quick-query-editor{
+	.col-sm-3, .col-sm-9 , .col-sm-6, .col-sm-12{
+		padding-right: 15px;
+		padding-left: 15px;
+	}
+	.row{
+		clear: both;
+		@media (min-width: 544px) {
+			.col-sm-3{
+				float: left;
+				width: 25%;
+			}
+			.col-sm-9{
+				float: left;
+				width: 75%;
+			}
+			.col-sm-6{
+				float: left;
+				width: 50%;
+			}
+		}
 	}
 }

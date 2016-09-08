@@ -113,25 +113,27 @@ class QuickQueryConnectView extends View
       @div class: "col-sm-12" , =>
         @label 'protocol'
         @select class: "form-control" , id: "quick-query-protocol", tabindex: "1"
-      @div class: "col-sm-9 qq-remote-info" , =>
-        @label 'host'
-        @currentBuilder.tag 'atom-text-editor', id: "quick-query-host", class: 'editor', mini: 'mini', type: 'string'
-      @div class:"col-sm-3 qq-remote-info" , =>
-        @label 'port'
-        @currentBuilder.tag 'atom-text-editor', id: "quick-query-port", class: 'editor', mini: 'mini', type: 'string'
-      @div class: "qq-local-info" , =>
+      @div class: "qq-remote-info row", =>
+        @div class: "col-sm-9" , =>
+          @label 'host'
+          @currentBuilder.tag 'atom-text-editor', id: "quick-query-host", class: 'editor', mini: 'mini', type: 'string'
+        @div class:"col-sm-3" , =>
+          @label 'port'
+          @currentBuilder.tag 'atom-text-editor', id: "quick-query-port", class: 'editor', mini: 'mini', type: 'string'
+      @div class: "qq-local-info row" , =>
         @div class: "col-sm-12", =>
           @label 'file'
         @div class: "col-sm-9", =>
           @currentBuilder.tag 'atom-text-editor', id: "quick-query-file", class: 'editor', mini: 'mini', type: 'string'
         @div class: "col-sm-3", =>
           @button id:"quick-query-browse-file", class: "btn btn-default icon icon-file-directory", "Browse"
-      @div class: "col-sm-6 qq-auth-info" , =>
-        @label 'user'
-        @currentBuilder.tag 'atom-text-editor', id: "quick-query-user", class: 'editor', mini: 'mini', type: 'string'
-      @div class: "col-sm-6 qq-auth-info" , =>
-        @label 'password'
-        @currentBuilder.tag 'atom-text-editor', id: "quick-query-pass", class: 'editor', mini: 'mini'
+      @div class: "qq-auth-info row", =>
+        @div class: "col-sm-6" , =>
+          @label 'user'
+          @currentBuilder.tag 'atom-text-editor', id: "quick-query-user", class: 'editor', mini: 'mini', type: 'string'
+        @div class: "col-sm-6" , =>
+          @label 'password'
+          @currentBuilder.tag 'atom-text-editor', id: "quick-query-pass", class: 'editor', mini: 'mini'
       @div class: "col-sm-12" , =>
         @button id:"quick-query-connect", class: "btn btn-default icon icon-plug" , tabindex: "6" , "Connect"
 
