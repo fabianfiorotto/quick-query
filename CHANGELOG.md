@@ -1,3 +1,6 @@
+## 0.8.5 - Fixes for 1.10
+* Fix bootstrap grid classes.
+
 ## 0.8.4 - June Update
 * Connect event
 * Select last connection when the default is deleted
