@@ -1,3 +1,6 @@
+## 0.8.6 - Patch
+* Fix missing foreign keys.
+
 ## 0.8.5 - Fixes for 1.10
 * Fix bootstrap grid classes.
 
