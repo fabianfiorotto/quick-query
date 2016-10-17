@@ -55,7 +55,7 @@ class QuickQueryResultView extends View
       $td = $('<td/>')
       $td.text(i+1)
       @numbers.append($('<tr/>').html($td))
-      for field,j in fields
+      for field,j in @fields
         $td = $('<td/>')
         row_value = if array_row then row[j] else row[field.name]
         if row_value?
