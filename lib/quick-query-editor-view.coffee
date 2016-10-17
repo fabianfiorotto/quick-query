@@ -76,25 +76,27 @@ class QuickQueryEditorView extends View
 
   @content: ->
     @div class: 'quick-query-editor' , =>
-      @div class: 'col-sm-12' , =>
-        @label 'name'
-        @currentBuilder.tag 'atom-text-editor', id: 'quick-query-editor-name' , class: 'editor', mini: 'mini'
-      @div class: 'col-sm-6 quick-query-column-editor hide' , =>
-        @label 'type'
-        # @currentBuilder.tag 'atom-text-editor', id: 'quick-query-datatype' , class: 'editor', mini: 'mini'
-        @subview 'selectDataType', new SelectDataType()
-
-      @div class: 'col-sm-2 quick-query-column-editor hide' , =>
-        @label 'nullable'
-        @button id:'quick-query-nullable',class: 'btn' ,'NO'
-      @div class: 'col-sm-3 quick-query-column-editor hide' , =>
-        @label 'default'
-        @currentBuilder.tag 'atom-text-editor', id: 'quick-query-default' , class: 'editor', mini: 'mini'
-        @div id: 'quick-query-default-is-null' ,class:'hide' , "Null"
-      @div class: 'col-sm-1 quick-query-column-editor hide' , =>
-        @input  id: 'quick-query-null', type: 'checkbox' , style: "margin-top:24px;"
-      @div class: 'col-sm-12', =>
-        @button 'Done', id: 'quick-query-editor-done' , class: 'btn btn-default icon icon-check'
+      @div class: 'row', =>
+        @div class: 'col-sm-12' , =>
+          @label 'name'
+          @currentBuilder.tag 'atom-text-editor', id: 'quick-query-editor-name' , class: 'editor', mini: 'mini'
+      @div class: 'row quick-query-column-editor hide', =>
+        @div class: 'col-sm-6' , =>
+          @label 'type'
+          # @currentBuilder.tag 'atom-text-editor', id: 'quick-query-datatype' , class: 'editor', mini: 'mini'
+          @subview 'selectDataType', new SelectDataType()
+        @div class: 'col-sm-2' , =>
+          @label 'nullable'
+          @button id:'quick-query-nullable',class: 'btn' ,'NO'
+        @div class: 'col-sm-3' , =>
+          @label 'default'
+          @currentBuilder.tag 'atom-text-editor', id: 'quick-query-default' , class: 'editor', mini: 'mini'
+          @div id: 'quick-query-default-is-null' ,class:'hide' , "Null"
+        @div class: 'col-sm-1' , =>
+          @input  id: 'quick-query-null', type: 'checkbox' , style: "margin-top:24px;"
+      @div class: 'row', =>
+        @div class: 'col-sm-12', =>
+          @button 'Done', id: 'quick-query-editor-done' , class: 'btn btn-default icon icon-check'
 
 
   openTextEditor: ()->
