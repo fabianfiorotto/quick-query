@@ -1,3 +1,6 @@
+## 0.8.7 - Patch
+* Prepare for coffeescript 1.11
+
 ## 0.8.6 - Patch
 * Fix missing foreign keys.
 
