@@ -1,3 +1,6 @@
+## 0.8.8 - Patch
+* Fix open file dialog
+
 ## 0.8.7 - Patch
 * Prepare for coffeescript 1.11
 
