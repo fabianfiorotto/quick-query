@@ -29,6 +29,11 @@
       "versions": {
         "0.7.0": "provideBrowserView"
       }
+    },
+    "autocomplete.provider": {
+      "versions": {
+        "2.0.0": "provideAutocomplete"
+      }
     }
   },
   "repository": "https://github.com/fabianfiorotto/quick-query",

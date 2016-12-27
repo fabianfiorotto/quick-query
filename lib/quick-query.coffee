@@ -5,11 +5,16 @@ QuickQueryEditorView = require './quick-query-editor-view'
 QuickQueryTableFinderView = require './quick-query-table-finder-view'
 QuickQueryMysqlConnection = require './quick-query-mysql-connection'
 QuickQueryPostgresConnection = require './quick-query-postgres-connection'
+QuickQueryAutocomplete = require './quick-query-autocomplete'
 
 {CompositeDisposable} = require 'atom'
 
 module.exports = QuickQuery =
   config:
+    autompleteIntegration:
+      type: 'boolean'
+      default: true
+      title: 'Autocomplete integration'
     resultsInTab:
       type: 'boolean'
       default: false
@@ -315,6 +320,8 @@ module.exports = QuickQuery =
   provideBrowserView: -> @browser
 
   provideConnectView: -> @connectView
+
+  provideAutocomplete: -> new QuickQueryAutocomplete(@browser)
 
   cancel: ->
     @modalPanel.destroy() if @modalPanel
