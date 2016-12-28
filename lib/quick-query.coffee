@@ -177,8 +177,15 @@ module.exports = QuickQuery =
         editor.insertText(text)
 
   deactivate: ->
+    c.close() for c in @connections
     @subscriptions.dispose()
-    @quickQueryView.destroy()
+    i.panel.destroy() for i in @queryEditors
+    @browser.destroy()
+    @connectView.destroy()
+    @modalPanel?.destroy()
+    pane = atom.workspace.getActivePane()
+    for item in pane.getItems() when item instanceof QuickQueryResultView
+      pane.destroyItem(item)
 
   serialize: ->
      connections: @connections.map((c)-> c.serialize()),
