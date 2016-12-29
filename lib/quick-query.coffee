@@ -15,6 +15,10 @@ module.exports = QuickQuery =
       type: 'boolean'
       default: true
       title: 'Autocomplete integration'
+    canUseStatusBar:
+      type: 'boolean'
+      default: true
+      title: 'Show info in status bar'
     resultsInTab:
       type: 'boolean'
       default: false
@@ -149,6 +153,7 @@ module.exports = QuickQuery =
 
 
     atom.workspace.onDidChangeActivePaneItem (item) =>
+      @hideStatusBar()
       if !atom.config.get('quick-query.resultsInTab')
         for i in @queryEditors
           resultView = i.panel.getItem()
@@ -157,6 +162,9 @@ module.exports = QuickQuery =
             resultView.fixNumbers()
           else
             i.panel.hide()
+          @updateStatusBar(resultView) if i.editor == item
+      else if item instanceof QuickQueryResultView
+        @updateStatusBar(item)
 
     atom.workspace.paneContainer.onDidDestroyPaneItem (d) =>
       @queryEditors = @queryEditors.filter (i) =>
@@ -183,6 +191,7 @@ module.exports = QuickQuery =
     @browser.destroy()
     @connectView.destroy()
     @modalPanel?.destroy()
+    @statusBarTile?.destroy()
     pane = atom.workspace.getActivePane()
     for item in pane.getItems() when item instanceof QuickQueryResultView
       pane.destroyItem(item)
@@ -228,6 +237,7 @@ module.exports = QuickQuery =
             @modalPanel.destroy() if @modalPanel
             queryResult.fixSizes() if rows.length > 100
           queryResult.fixSizes()
+          @updateStatusBar(queryResult)
 
     else
       @addWarningNotification("No connection selected")
@@ -290,6 +300,7 @@ module.exports = QuickQuery =
       item instanceof QuickQueryResultView
     if filter.length == 0
       queryResult = new QuickQueryResultView()
+      queryResult.onRowStatusChanged => @updateStatusBar(queryResult)
       pane.addItem queryResult
     else
       queryResult = filter[0]
@@ -312,6 +323,7 @@ module.exports = QuickQuery =
       queryResult = e[0].panel.getItem()
     else
       queryResult = new QuickQueryResultView()
+      queryResult.onRowStatusChanged => @updateStatusBar(queryResult)
       bottomPanel = atom.workspace.addBottomPanel(item: queryResult, visible:true )
       @queryEditors.push({editor: queryEditor,  panel: bottomPanel})
     queryResult
@@ -329,6 +341,40 @@ module.exports = QuickQuery =
   provideConnectView: -> @connectView
 
   provideAutocomplete: -> new QuickQueryAutocomplete(@browser)
+
+  consumeStatusBar: (statusBar) ->
+    element = document.createElement('a')
+    element.classList.add('quick-query-tile')
+    element.classList.add('hide')
+    element.onclick = (=> @toggleResults())
+    @statusBarTile = statusBar.addLeftTile(item: element, priority: 10)
+
+  hideStatusBar: ->
+    if @statusBarTile?
+      span = @statusBarTile.getItem()
+      span.classList.add('hide')
+
+  updateStatusBar: (queryResult) ->
+    return unless @statusBarTile? && queryResult?.rows?
+    return unless atom.config.get('quick-query.canUseStatusBar')
+    element = @statusBarTile.getItem()
+    element.classList.remove('hide')
+    if atom.config.get('quick-query.resultsInTab')
+      element.textContent = "(#{queryResult.rowsStatus()})"
+    else
+      element.textContent = "#{queryResult.getTitle()} (#{queryResult.rowsStatus()})"
+
+  toggleResults: ->
+    if !atom.config.get('quick-query.resultsInTab')
+      editor = atom.workspace.getActiveTextEditor()
+      for i in @queryEditors when i.editor == editor
+        resultView = i.panel.getItem()
+        if resultView.is(':visible')
+         i.panel.hide()
+         resultView.hideResults()
+        else
+         i.panel.show()
+         resultView.showResults()
 
   cancel: ->
     @modalPanel.destroy() if @modalPanel

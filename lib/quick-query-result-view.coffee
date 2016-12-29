@@ -97,6 +97,17 @@ class QuickQueryResultView extends View
        done?()
     doChunk()
 
+  rowsStatus: ->
+    added = @table.find('tr.added').length
+    status = (@rows.length + added).toString()
+    status += if status == '1' then ' row' else ' rows'
+    status += ",#{added} added" if added > 0
+    modified = @table.find('tr.modified').length
+    status += ",#{modified} modified" if modified > 0
+    removed = @table.find('tr.removed').length
+    status += ",#{removed} deleted" if removed > 0
+    status
+
   copy: ->
     $td = @find('td.selected')
     if $td.length == 1
@@ -179,6 +190,7 @@ class QuickQueryResultView extends View
             $td.removeClass('status-modified')
             if $tr.find('td.status-modified').length == 0
               $tr.removeClass('modified')
+        @trigger('quickQuery.rowStatusChanged',[$tr])
       editor.focus()
 
   insertRecord: ->
@@ -197,6 +209,7 @@ class QuickQueryResultView extends View
       $tr.append($td)
     @table.find('tbody').append($tr)
     @tableWrapper.scrollTop -> this.scrollHeight
+    @trigger('quickQuery.rowStatusChanged',[$tr])
 
   deleteRecord: ->
     $td = @find('td.selected')
@@ -205,6 +218,7 @@ class QuickQueryResultView extends View
       $tr.removeClass('modified')
       $tr.find('td').removeClass('status-modified selected')
       $tr.addClass('status-removed removed')
+      @trigger('quickQuery.rowStatusChanged',[$tr])
 
   undo: ->
     $td = @find('td.selected')
@@ -223,6 +237,7 @@ class QuickQueryResultView extends View
         $td.removeClass('status-modified')
         if $tr.find('td.status-modified').length == 0
           $tr.removeClass('modified')
+      @trigger('quickQuery.rowStatusChanged',[$tr])
 
   setNull: ->
     $td = @find('td.selected')
@@ -238,6 +253,7 @@ class QuickQueryResultView extends View
         $tr.addClass('modified')
         $td.addClass('status-modified')
       $td.removeClass('selected')
+      @trigger('quickQuery.rowStatusChanged',[$tr])
 
   apply: ->
     @table.find('tbody tr').each (i,tr)=>
@@ -258,8 +274,12 @@ class QuickQueryResultView extends View
       else if $(tr).hasClass('status-removed')
         row = @rows[i]
         @connection.deleteRecord(row,@fields)
+
   hiddenResults: ->
     @keepHidden
+
+  showResults: ->
+    @keepHidden = false
 
   hideResults: ->
     @keepHidden = true
@@ -291,6 +311,9 @@ class QuickQueryResultView extends View
   fixNumbers: ->  #ugly HACK
     @table.height(@table.height()+1)
     @table.height(@table.height()-1)
+
+  onRowStatusChanged: (callback)->
+    @bind 'quickQuery.rowStatusChanged', (e,row)-> callback(row)
 
   handleResizeEvents: ->
     @on 'mousedown', '.quick-query-result-resize-handler', (e) => @resizeStarted(e)
