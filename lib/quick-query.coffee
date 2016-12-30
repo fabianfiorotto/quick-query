@@ -120,6 +120,7 @@ module.exports = QuickQuery =
       'quick-query:run': => @run()
       'quick-query:new-editor': => @newEditor()
       'quick-query:toggle-browser': => @toggleBrowser()
+      'quick-query:toggle-results': => @toggleResults()
       'core:cancel': => @cancel()
       'quick-query:new-connection': => @newConnection()
       'quick-query:find-table-to-select': => @findTable()
