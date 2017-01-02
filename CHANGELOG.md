@@ -1,3 +1,9 @@
+## 0.9.0 - New year's update
+* Autocomplete integration
+* Remove all views after deactivate
+* Toggle result view
+* Show row count in the status bar
+
 ## 0.8.8 - Patch
 * Fix open file dialog
 

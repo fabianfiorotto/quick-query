@@ -9,6 +9,7 @@ Do queries against your local databases quickly. By default it only supports MyS
 - Multiple connections
 - Quick templates for alter/create/drop
 - Find table to select
+- Autocomplete integration
 
 ## Other DBMSs
  - [SQL Server](https://atom.io/packages/quick-query-mssql)
