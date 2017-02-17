@@ -264,7 +264,7 @@ class QuickQueryPostgresConnection
     table_name = @defaultConnection.escapeIdentifier(table.name)
     schema_name = @defaultConnection.escapeIdentifier(table.schema.name)
     database_name = @defaultConnection.escapeIdentifier(table.schema.database.name)
-    "SELECT #{columns} FROM #{database_name}.#{schema_name}.#{table_name} LIMIT 1000"
+    "SELECT #{columns} FROM #{database_name}.#{schema_name}.#{table_name} LIMIT 1000;"
 
 
   createDatabase: (model,info)->
