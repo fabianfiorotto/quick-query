@@ -136,11 +136,15 @@ module.exports = QuickQuery =
      'quick-query:apply': => @activeResultView().apply()
 
     atom.config.onDidChange 'quick-query.resultsInTab', ({newValue, oldValue}) =>
-      if !newValue
+      if newValue
         for i in @queryEditors
           i.panel.hide()
           i.panel.destroy()
         @queryEditors = []
+      else
+        pane = atom.workspace.getActivePane()
+        for item in pane.getItems()
+          pane.destroyItem(item) if item instanceof QuickQueryResultView
 
     atom.config.onDidChange 'quick-query.showBrowserOnLeftSide', ({newValue, oldValue}) =>
       visible = @browser.is(':visible')
