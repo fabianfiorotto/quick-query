@@ -56,9 +56,9 @@ module.exports = class QuickQueryAutocomplete
       defaultDatabase = @connection.getDefaultDatabase()
       suggestions = []
       @connection.children (databases) =>
-        if activatedManually
-          for database in databases
-            lwr_database = database.name.toLowerCase()
+        for database in databases
+          lwr_database = database.name.toLowerCase()
+          if activatedManually
             score = @getScore(lwr_database,lwr_prefix)
             if score? && score != -1
               suggestions.push
@@ -66,14 +66,14 @@ module.exports = class QuickQueryAutocomplete
                 lower: lwr_database
                 score: score
                 type: 'database'
-        for database in databases when defaultDatabase == database.name
-          database.children (items) =>
-            if database.child_type == 'schema'
-              @getSchemasSuggestions items , suggestions, lwr_prefix, editor_text,activatedManually, =>
-                resolve(@prepareSugestions(suggestions,prefix))
-            else
-              @getTablesSuggestions items,suggestions,lwr_prefix, editor_text, =>
-                resolve(@prepareSugestions(suggestions,prefix))
+          if defaultDatabase == database.name or (editor_text.includes(lwr_database) and @connection.protocol != 'postgres')
+            database.children (items) =>
+              if database.child_type == 'schema'
+                @getSchemasSuggestions items , suggestions, lwr_prefix, editor_text,activatedManually, =>
+                  resolve(@prepareSugestions(suggestions,prefix))
+              else
+                @getTablesSuggestions items,suggestions,lwr_prefix, editor_text, =>
+                  resolve(@prepareSugestions(suggestions,prefix))
 
 
   getSchemasSuggestions: (schemas,suggestions,prefix, editor_text, activatedManually , fn)->
