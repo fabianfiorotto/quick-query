@@ -1,3 +1,8 @@
+## 0.9.1 - Bugfixes
+* Show suggestions from others databases #32
+* Close result tab when config changes #31
+* Add semicolon at the end of SELECT #33
+
 ## 0.9.0 - New year's update
 * Autocomplete integration
 * Remove all views after deactivate
