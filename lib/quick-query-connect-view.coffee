@@ -54,7 +54,7 @@ class QuickQueryConnectView extends View
         currentWindow = atom.getCurrentWindow()
         if $(e.currentTarget).data("extensions")
           options.filters = [{ name: 'Database', extensions: $(e.target).data("extensions") }]
-        dialog = remote.require('dialog') || remote.require('electron').dialog
+        dialog = remote.Dialog || remote.require('dialog') || remote.require('electron').dialog
         dialog.showOpenDialog currentWindow, options, (files) =>
           @find('#quick-query-file')[0].getModel().setText(files[0]) if files?
 
