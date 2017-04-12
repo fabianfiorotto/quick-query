@@ -111,12 +111,7 @@ class QuickQueryBrowserView extends ScrollView
     if connection != @selectedConnection
       @selectedConnection = connection
       @trigger('quickQuery.connectionSelected',[connection])
-    $li.toggleClass('collapsed expanded')
-    if $li.hasClass("expanded")
-      connection.getDatabases (databases,err) =>
-        unless err
-          @showItems(connection,databases,$li)
-          callback() if callback
+    @expandItem($li,callback)
 
   showItems: (parentItem,childrenItems,$e)->
     ol_class = switch parentItem.child_type
@@ -188,13 +183,35 @@ class QuickQueryBrowserView extends ScrollView
         else
           $icon.addClass('icon-tag')
 
+  timeout: (t,bk) -> setTimeout(bk,t)
+
   expandItem: ($li,callback) ->
     $li.toggleClass('collapsed expanded')
-    if $li.hasClass("expanded")
+    if $li.hasClass("expanded") && !$li.hasClass("busy")
+      $li.addClass('busy')
+      $div = $li.children('div')
+      $div.children('.loading,.icon-stop').remove()
+      $icon = $div.children('.icon')
+      $loading = $('<span>').addClass("loading loading-spinner-tiny inline-block").hide()
+      $div.prepend($loading)
+      time1 = Date.now()
+      t100 = @timeout 100, =>
+        $icon.hide()
+        $loading.show()
+      t5000 = @timeout 5000, =>
+        $li.removeClass('busy')
+        $loading.attr('class','icon icon-stop')
       model = $li.data('item')
       model.children (children) =>
-        @showItems(model,children,$li)
-        callback(children) if callback
+        clearTimeout(t100)
+        clearTimeout(t5000)
+        time2 = Date.now()
+        if time2 - time1 < 5000
+          $li.removeClass('busy')
+          $loading.remove()
+          $icon.css('display','')
+          @showItems(model,children,$li)
+          callback(children) if callback
 
   refreshTree: (model)->
     $li = switch model.type
