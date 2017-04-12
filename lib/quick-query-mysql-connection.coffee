@@ -54,7 +54,7 @@ class QuickQueryMysqlConnection
   protocol: 'mysql'
   type: 'connection'
   child_type: 'database'
-  timeout: 5000 #time ot is set in 5s. queries should be fast.
+  timeout: 40000
 
   n_types: 'TINYINT SMALLINT MEDIUMINT INT INTEGER BIGINT FLOAT DOUBLE REAL DECIMAL NUMERIC TIMESTAMP YEAR ENUM SET'.split /\s+/
   s_types: 'CHAR VARCHAR TINYBLOB TINYTEXT MEDIUMBLOB MEDIUMTEXT LONGBLOB LONGTEXT BLOB TEXT DATETIME DATE TIME'.split /\s+/
