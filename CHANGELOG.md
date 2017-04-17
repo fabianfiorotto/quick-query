@@ -1,3 +1,8 @@
+## 0.9.2 - Improve for hight latency connections
+* Add spinner to browser
+* Increase mysql timeout to 40s #35
+* Fix deprecated line #36
+
 ## 0.9.1 - Bugfixes
 * Show suggestions from others databases #32
 * Close result tab when config changes #31
