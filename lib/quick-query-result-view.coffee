@@ -16,8 +16,8 @@ class QuickQueryResultView extends View
       @fixSizes()
     @handleResizeEvents()
 
-  getTitle: ->
-    return 'Query Result'
+  getTitle: -> 'Query Result'
+
   serialize: ->
 
   @content: ->

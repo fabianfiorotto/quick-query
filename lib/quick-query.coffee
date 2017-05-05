@@ -23,10 +23,6 @@ module.exports = QuickQuery =
       type: 'boolean'
       default: false
       title: 'Show results in a tab'
-    showBrowserOnLeftSide:
-      type: 'boolean'
-      default: false
-      title: 'Show browser on left side'
 
   editorView: null
   browser: null
@@ -59,7 +55,6 @@ module.exports = QuickQuery =
     @tableFinder = new QuickQueryTableFinderView()
 
     @browser = new QuickQueryBrowserView()
-    @browser.width(state.browserWidth) if state.browserWidth?
 
     @connectView = new QuickQueryConnectView(protocols)
 
@@ -107,11 +102,6 @@ module.exports = QuickQuery =
         (err) => @setModalPanel content: err, type: 'error'
       )
 
-    if atom.config.get('quick-query.showBrowserOnLeftSide')
-      @sidePanel = atom.workspace.addLeftPanel(item: @browser, visible:false )
-    else
-      @sidePanel = atom.workspace.addRightPanel(item: @browser, visible:false )
-
     # Events subscribed to in atom's system can be easily cleaned up with a CompositeDisposable
     @subscriptions = new CompositeDisposable
 
@@ -135,6 +125,9 @@ module.exports = QuickQuery =
      'quick-query:delete': => @activeResultView().deleteRecord()
      'quick-query:apply': => @activeResultView().apply()
 
+    @subscriptions.add atom.workspace.addOpener (uri) =>
+      return @browser if (uri == 'quick-query://browser')
+
     atom.config.onDidChange 'quick-query.resultsInTab', ({newValue, oldValue}) =>
       if newValue
         for i in @queryEditors
@@ -146,18 +139,7 @@ module.exports = QuickQuery =
         for item in pane.getItems()
           pane.destroyItem(item) if item instanceof QuickQueryResultView
 
-    atom.config.onDidChange 'quick-query.showBrowserOnLeftSide', ({newValue, oldValue}) =>
-      visible = @browser.is(':visible')
-      @browser.attr('data-show-on-right-side',!newValue)
-      @browser.data('show-on-right-side',!newValue)
-      @sidePanel.destroy()
-      if newValue
-        @sidePanel = atom.workspace.addLeftPanel(item: @browser, visible: visible )
-      else
-        @sidePanel = atom.workspace.addRightPanel(item: @browser, visible: visible )
-
-
-    atom.workspace.onDidChangeActivePaneItem (item) =>
+    atom.workspace.getCenter().onDidChangeActivePaneItem (item) =>
       @hideStatusBar()
       if !atom.config.get('quick-query.resultsInTab')
         for i in @queryEditors
@@ -171,13 +153,13 @@ module.exports = QuickQuery =
       else if item instanceof QuickQueryResultView
         @updateStatusBar(item)
 
-    atom.workspace.paneContainer.onDidDestroyPaneItem (d) =>
+    atom.workspace.getCenter().onDidDestroyPaneItem (d) =>
       @queryEditors = @queryEditors.filter (i) =>
         i.panel.destroy() if i.editor == d.item
         i.editor != d.item
 
   addSentence: (text) ->
-    queryEditor = atom.workspace.getActiveTextEditor()
+    queryEditor = atom.workspace.getCenter().getActiveTextEditor()
     if queryEditor
       queryEditor.moveToBottom()
       queryEditor.insertNewline()
@@ -203,7 +185,6 @@ module.exports = QuickQuery =
 
   serialize: ->
      connections: @connections.map((c)-> c.serialize()),
-     browserWidth: @browser.width()
   newEditor: ->
     atom.workspace.open().then (editor) =>
       grammars = atom.grammars.getGrammars()
@@ -214,7 +195,7 @@ module.exports = QuickQuery =
     @modalPanel = atom.workspace.addModalPanel(item: @connectView, visible: true)
     @connectView.focusFirst()
   run: ->
-    @queryEditor = atom.workspace.getActiveTextEditor()
+    @queryEditor = atom.workspace.getCenter().getActiveTextEditor()
     unless @queryEditor
       @setModalPanel content:"This tab is not an editor", type:'error'
       return
@@ -248,11 +229,7 @@ module.exports = QuickQuery =
       @addWarningNotification("No connection selected")
 
   toggleBrowser: ->
-    if @browser.is(':visible')
-      @sidePanel.hide()
-    else
-      @browser.showConnections()
-      @sidePanel.show()
+    atom.workspace.toggle('quick-query://browser')
 
   findTable: ()->
     if @connection
@@ -265,11 +242,13 @@ module.exports = QuickQuery =
 
   addWarningNotification:(message) ->
     notification = atom.notifications.addWarning(message);
-    atom.views.getView(notification)?.addEventListener 'click', (e) -> @removeNotification()
+    view = atom.views.getView(notification)
+    view?.element.addEventListener 'click', (e) -> view.removeNotification()
 
   addInfoNotification: (message)->
     notification = atom.notifications.addInfo(message);
-    atom.views.getView(notification)?.addEventListener 'click', (e) -> @removeNotification()
+    view = atom.views.getView(notification)
+    view?.element.addEventListener 'click', (e) -> view.removeNotification()
 
   setModalPanel: (message)->
     item = document.createElement('div')
@@ -300,7 +279,7 @@ module.exports = QuickQuery =
     @modalPanel = atom.workspace.addModalPanel(item: item , visible: true)
 
   showResultInTab: ->
-    pane = atom.workspace.getActivePane()
+    pane = atom.workspace.getCenter().getActivePane()
     filter = pane.getItems().filter (item) ->
       item instanceof QuickQueryResultView
     if filter.length == 0
@@ -316,7 +295,7 @@ module.exports = QuickQuery =
     if @editorView && @editorView.editor == queryEditor
       if !queryEditor.getPath?()
         queryEditor.setText('')
-        atom.workspace.destroyActivePaneItem()
+        queryEditor.destroy()
       @browser.refreshTree(@editorView.model)
       @modalPanel.destroy() if @modalPanel
       @editorView = null
@@ -337,7 +316,7 @@ module.exports = QuickQuery =
     if atom.config.get('quick-query.resultsInTab')
       atom.workspace.getActivePaneItem()
     else
-      editor = atom.workspace.getActiveTextEditor()
+      editor = atom.workspace.getCenter().getActiveTextEditor()
       for i in @queryEditors
         return i.panel.getItem() if i.editor == editor
 
@@ -371,7 +350,7 @@ module.exports = QuickQuery =
 
   toggleResults: ->
     if !atom.config.get('quick-query.resultsInTab')
-      editor = atom.workspace.getActiveTextEditor()
+      editor = atom.workspace.getCenter().getActiveTextEditor()
       for i in @queryEditors when i.editor == editor
         resultView = i.panel.getItem()
         if resultView.is(':visible')
@@ -384,7 +363,7 @@ module.exports = QuickQuery =
   cancel: ->
     @modalPanel.destroy() if @modalPanel
     for i in @queryEditors
-      if i.editor == atom.workspace.getActiveTextEditor()
+      if i.editor == atom.workspace.getCenter().getActiveTextEditor()
         resultView = i.panel.getItem()
         i.panel.hide()
         resultView.hideResults()

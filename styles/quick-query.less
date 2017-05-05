@@ -1,7 +1,15 @@
 @import "ui-variables";
 @import "ui-mixins";
-@import "git";
+@import (optional) "git";
 
+
+/* Make sure that the mixins exist */
+.status-added{
+}
+.status-modified{
+}
+.status-removed{
+}
 
 /*
 * Modal
@@ -56,6 +64,12 @@ atom-panel.modal:not(:hover) .quick-query-modal-message.animated span.icon-clipp
 
 ol#quick-query-connections{
 	padding-bottom: @component-line-height;
+	padding-left: 5px;
+	padding-right: 10px;
+	height: 100%;
+	position: relative;
+	top: 0;
+	left: 0;
 }
 
 
@@ -70,6 +84,7 @@ ol#quick-query-connections{
 atom-panel.right{
 	.quick-query-browser{
 		height: inherit;
+		width: 100%;
 	}
 }
 

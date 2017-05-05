@@ -31,20 +31,18 @@ class QuickQueryBrowserView extends ScrollView
       $tree = $(e.currentTarget)
       $li = $tree.find('li.selected')
       $li.removeClass('selected')
-    @handleResizeEvents()
+
   # Returns an object that can be retrieved when package is activated
-  getTitle: ->
-    return 'Query Result'
+  getTitle: -> 'Databases'
+
   serialize: ->
 
   @content: ->
-    @div class: 'quick-query-browser tree-view-resizer tool-panel', 'data-show-on-right-side': !atom.config.get('quick-query.showBrowserOnLeftSide') , =>
+    @div class: 'quick-query-browser tool-panel', 'data-show-on-right-side': !atom.config.get('quick-query.showBrowserOnLeftSide') , =>
       @div =>
         @button id: 'quick-query-run', class: 'btn icon icon-playback-play' , title: 'Run' , style: 'width:50%'
         @button id: 'quick-query-new-connection', class: 'btn icon icon-plus' , title: 'New connection' , style: 'width:50%'
-      @div class: 'tree-view-scroller', outlet: 'scroller', =>
-        @ol id:'quick-query-connections' , class: 'tree-view list-tree has-collapsable-children focusable-panel', tabindex: -1, outlet: 'list'
-      @div class: 'tree-view-resize-handle', outlet: 'resizeHandle'
+      @ol id:'quick-query-connections' , class: 'tree-view list-tree has-collapsable-children focusable-panel', tabindex: -1, outlet: 'list'
 
 
   # Tear down any state and detach
@@ -60,6 +58,15 @@ class QuickQueryBrowserView extends ScrollView
       @connections.splice(i,1)
       @showConnections()
       @trigger('quickQuery.connectionDeleted',[connection])
+
+  getURI: -> 'quick-query://browser'
+  getDefaultLocation: ->
+    if atom.config.get('quick-query.showBrowserOnLeftSide')
+      'left'
+    else
+      'right'
+  getAllowedLocations: -> ['left', 'right']
+  isPermanentDockItem: -> true
 
   setDefault: ->
     $li = @find('li.selected')
@@ -256,10 +263,10 @@ class QuickQueryBrowserView extends ScrollView
       $li.addClass('selected')
       top = $li.position().top
       bottom = top + $li.outerHeight()
-      if bottom > @scroller.scrollBottom()
-        @scroller.scrollBottom(bottom)
-      if top < @scroller.scrollTop()
-        @scroller.scrollTop(top)
+      if bottom > @list.scrollBottom()
+        @list.scrollBottom(bottom)
+      if top < @list.scrollTop()
+        @list.scrollTop(top)
       callback() if callback
 
   compareItemName: (item1,item2)->
@@ -325,24 +332,3 @@ class QuickQueryBrowserView extends ScrollView
   onConnectionDeleted: (callback)->
     @bind 'quickQuery.connectionDeleted', (e,connection) =>
       callback(connection)
-
-  #resizing methods copied from tree-view
-  handleResizeEvents: ->
-    @on 'dblclick', '.tree-view-resize-handle',  (e) => @resizeToFitContent()
-    @on 'mousedown', '.tree-view-resize-handle', (e) => @resizeStarted(e)
-  resizeStarted: =>
-    $(document).on('mousemove', @resizeTreeView)
-    $(document).on('mouseup', @resizeStopped)
-  resizeStopped: =>
-    $(document).off('mousemove', @resizeTreeView)
-    $(document).off('mouseup', @resizeStopped)
-  resizeTreeView: ({pageX, which}) =>
-    return @resizeStopped() unless which is 1
-    if @data('show-on-right-side')
-      width =  @outerWidth() + @offset().left - pageX
-    else
-      width = pageX - @offset().left
-    @width(width)
-  resizeToFitContent: ->
-    @width(1) # Shrink to measure the minimum width of list
-    @width(@list.outerWidth())
