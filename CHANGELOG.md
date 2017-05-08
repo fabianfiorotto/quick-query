@@ -1,3 +1,8 @@
+## 0.10.0 - Prepare for atom 1.17
+* Open browser in a dock
+* Remove dependency on git.less #26
+* Drop support for older versions of atom
+
 ## 0.9.2 - Improve for hight latency connections
 * Add spinner to browser
 * Increase mysql timeout to 40s #35
