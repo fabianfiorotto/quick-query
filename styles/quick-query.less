@@ -147,13 +147,15 @@ atom-panel.right{
 			top:0;
 			margin-left: 1px; //HACK
 		}
+		tbody{
+			font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+		}
 	}
 
 	table.table{
 			height: 94.5%;
 			color: @text-color;
 			margin-bottom: 0;
-
 			tbody , thead{
 				display: block;
 			}
@@ -207,6 +209,7 @@ atom-panel.right{
 						}
 						.lf,.cr,.crlf{
 							&::before{
+								font-family: initial;
 								color: mix( @text-color , @tool-panel-background-color, 20%);
 							}
 							white-space: nowrap;
