@@ -195,7 +195,22 @@ atom-panel.right{
 					td{
 						overflow:ellipsis;
 						text-overflow: ellipsis;
-						white-space: nowrap;
+						white-space: pre;
+						.lf::before{
+							content: "↵";
+						}
+						.cr::before{
+							content:"␍";
+						}
+						.crlf::before{
+							content: "⏎";
+						}
+						.lf,.cr,.crlf{
+							&::before{
+								color: mix( @text-color , @tool-panel-background-color, 20%);
+							}
+							white-space: nowrap;
+						}
 					}
 				}
 		}

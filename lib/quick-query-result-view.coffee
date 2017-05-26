@@ -61,6 +61,7 @@ class QuickQueryResultView extends View
         if row_value?
           $td.attr('data-original-value',row_value)
           $td.text(row_value)
+          @showInvisibles($td)
         else
           $td.data('original-value-null',true)
           $td.addClass('null').text('NULL')
@@ -81,6 +82,16 @@ class QuickQueryResultView extends View
       @numbers.css 'margin-top': (-1*scroll)
       scroll = $(e.target).scrollLeft()
       $thead.css 'margin-left': (-1*scroll)
+
+  showInvisibles: ($td)->
+    $td.html ->
+      $(@).html()
+        .replace(/\r\n/g,'<span class="crlf"></span>')
+        .replace(/\n/g,'<span class="lf"></span>')
+        .replace(/\r/g,'<span class="cr"></span>')
+    $td.find(".crlf").text("\r\n")
+    $td.find(".lf").text("\n")
+    $td.find(".cr").text("\r")
 
   forEachChunk: (array,done,fn)->
     chuncksize = 100
@@ -152,7 +163,7 @@ class QuickQueryResultView extends View
               if (err) then console.log(err) else console.log('file saved')
 
   editRecord: ($td)->
-    if $td.children().length == 0
+    if $td.children(":not(.lf,.cr,.crlf)").length == 0
       $td.addClass('editing')
       editor = $("<atom-text-editor/>").attr('mini','mini').addClass('editor')
       textEditor = editor[0].getModel()
@@ -178,6 +189,7 @@ class QuickQueryResultView extends View
         #$tr.hasClass('status-removed') return
         $td.removeClass('null')
         $td.text(e.currentTarget.getModel().getText())
+        @showInvisibles($td)
         @fixSizes()
         if $tr.hasClass('added')
           $td.removeClass('default')
@@ -234,6 +246,7 @@ class QuickQueryResultView extends View
         else
           value = $td.attr('data-original-value')
           $td.removeClass('null').text(value)
+          @showInvisibles($td)
         $td.removeClass('status-modified')
         if $tr.find('td.status-modified').length == 0
           $tr.removeClass('modified')
