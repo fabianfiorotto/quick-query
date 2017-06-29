@@ -229,11 +229,14 @@ atom-panel.bottom{
 // Connect
 .dialog.quick-query-connect{
 	select{
+		height: @component-line-height;
 		color: @text-color;
 		background-color: @input-background-color;
 		border-color: @pane-item-border-color;
-		padding: 3px 12px;
-		margin-bottom: 10px;
+		font-size: @input-font-size;
+		line-height: @component-line-height;
+		padding: 0 0 0 @component-padding/2;
+		margin-bottom: @component-padding;
 	}
 
 	#quick-query-browse-file{

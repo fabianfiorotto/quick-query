@@ -112,7 +112,7 @@ class QuickQueryConnectView extends View
     @div class: 'dialog quick-query-connect', =>
       @div class: "col-sm-12" , =>
         @label 'protocol'
-        @select class: "form-control" , id: "quick-query-protocol", tabindex: "1"
+        @select class: "form-control input-select" , id: "quick-query-protocol", tabindex: "1"
       @div class: "qq-remote-info row", =>
         @div class: "col-sm-9" , =>
           @label 'host'
