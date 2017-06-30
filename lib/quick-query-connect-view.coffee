@@ -78,7 +78,12 @@ class QuickQueryConnectView extends View
       if @protocols[connectionInfo.protocol]?.default?
         defaults = @protocols[connectionInfo.protocol].default
         connectionInfo[attr] = value for attr,value of defaults
+      if @database[0].getModel().getText() != ''
+        connectionInfo.database = @database[0].getModel().getText()
       $(@element).trigger('quickQuery.connect',[@buildConnection(connectionInfo)])
+    @advanced_toggle.click (e) =>
+      @find(".qq-advanced-info").slideToggle 400, =>
+        @advanced_toggle.children("i").toggleClass("icon-chevron-down icon-chevron-left")
 
   addProtocol: (key,protocol)->
     @protocols[key] = protocol
@@ -134,6 +139,14 @@ class QuickQueryConnectView extends View
         @div class: "col-sm-6" , =>
           @label 'password'
           @currentBuilder.tag 'atom-text-editor', id: "quick-query-pass", class: 'editor', mini: 'mini'
+      @div class: "qq-advanced-info-toggler row", =>
+        @div class: "col-sm-12", =>
+          @button outlet:"advanced_toggle", class: "advance-toggle", title:"toggle advanced options",=>
+            @i  class: "icon icon-chevron-left"
+      @div class: "qq-advanced-info row", =>
+        @div class: "col-sm-12" , =>
+          @label 'default database (optional)'
+          @currentBuilder.tag 'atom-text-editor',outlet: "database", id: "quick-query-database", class: 'editor', mini: 'mini', type: 'string'
       @div class: "col-sm-12" , =>
         @button id:"quick-query-connect", class: "btn btn-default icon icon-plug" , tabindex: "6" , "Connect"
 
