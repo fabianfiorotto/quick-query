@@ -10,18 +10,20 @@ class QuickQueryConnectView extends View
     super
 
   initialize: ->
-    portEditor = @find("#quick-query-port")[0].getModel()
+    portEditor = @port[0].getModel()
     portEditor.setText('3306')
 
-    @find("#quick-query-file").attr('tabindex',2)
-    @find("#quick-query-host").attr('tabindex',2)
-    @find("#quick-query-port").attr('tabindex',3)
-    @find("#quick-query-user").attr('tabindex',4)
-    @find("#quick-query-pass").attr('tabindex',5)
+    setTimeout((=> #HACK
+      @file.attr('tabindex',2)
+      @host.attr('tabindex',2)
+      @port.attr('tabindex',3)
+      @user.attr('tabindex',4)
+      @pass.attr('tabindex',5)
+    ),1000)
 
-    @find('#quick-query-connect').keydown (e) ->
+    @connect.keydown (e) ->
       $(this).click() if e.keyCode == 13
-    @find('#quick-query-protocol')
+    @protocol
       .keydown (e) ->
         if e.keyCode == 13
           $(e.target).css height: 'auto'
@@ -39,15 +41,14 @@ class QuickQueryConnectView extends View
           if protocol.handler.fromFilesystem?
             @showLocalInfo()
             if protocol.handler.fileExtencions?
-              @find('#quick-query-browse-file')
-               .data('extensions',protocol.handler.fileExtencions)
+              @browse_file.data('extensions',protocol.handler.fileExtencions)
             else
-              @find('#quick-query-browse-file').data('extensions',false)
+              @browse_file.data('extensions',false)
           else
             @showRemoteInfo()
             portEditor.setText(protocol.handler.defaultPort.toString())
 
-    @find('#quick-query-browse-file').click (e) =>
+    @browse_file.click (e) =>
         options =
           properties: ['openFile']
           title: 'Open Database'
@@ -55,26 +56,26 @@ class QuickQueryConnectView extends View
         if $(e.currentTarget).data("extensions")
           options.filters = [{ name: 'Database', extensions: $(e.target).data("extensions") }]
         remote.Dialog.showOpenDialog currentWindow, options, (files) =>
-          @find('#quick-query-file')[0].getModel().setText(files[0]) if files?
+          @file[0].getModel().setText(files[0]) if files?
 
     for key,protocol of @protocols
       option = $('<option/>')
         .text(protocol.name)
         .val(key)
         .data('protocol',protocol)
-      @find('#quick-query-protocol').append(option)
+      @protocol.append(option)
 
-    @find('#quick-query-connect').click (e) =>
+    @connect.click (e) =>
       connectionInfo = {
-        user: @find("#quick-query-user")[0].getModel().getText(),
-        password: @find("#quick-query-pass")[0].getModel().getText()
-        protocol: @find("#quick-query-protocol").val()
+        user: @user[0].getModel().getText(),
+        password: @pass[0].getModel().getText()
+        protocol: @protocol.val()
       }
       if @protocols[connectionInfo.protocol]?.handler.fromFilesystem?
-        connectionInfo.file = @find("#quick-query-file")[0].getModel().getText()
+        connectionInfo.file = @file[0].getModel().getText()
       else
-        connectionInfo.host = @find("#quick-query-host")[0].getModel().getText()
-        connectionInfo.port = @find("#quick-query-port")[0].getModel().getText()
+        connectionInfo.host = @host[0].getModel().getText()
+        connectionInfo.port = @port[0].getModel().getText()
       if @protocols[connectionInfo.protocol]?.default?
         defaults = @protocols[connectionInfo.protocol].default
         connectionInfo[attr] = value for attr,value of defaults
@@ -91,7 +92,7 @@ class QuickQueryConnectView extends View
       .text(protocol.name)
       .val(key)
       .data('protocol',protocol)
-    @find('#quick-query-protocol').append(option)
+    @protocol.append(option)
     for state in @connectionsStates
       state.callback(state.info) if state.info.protocol == key
 
@@ -117,28 +118,28 @@ class QuickQueryConnectView extends View
     @div class: 'dialog quick-query-connect', =>
       @div class: "col-sm-12" , =>
         @label 'protocol'
-        @select class: "form-control input-select" , id: "quick-query-protocol", tabindex: "1"
+        @select outlet: "protocol", class: "form-control input-select" , id: "quick-query-protocol", tabindex: "1"
       @div class: "qq-remote-info row", =>
         @div class: "col-sm-9" , =>
           @label 'host'
-          @currentBuilder.tag 'atom-text-editor', id: "quick-query-host", class: 'editor', mini: 'mini', type: 'string'
+          @currentBuilder.tag 'atom-text-editor', outlet: "host", id: "quick-query-host", class: 'editor', mini: 'mini', type: 'string'
         @div class:"col-sm-3" , =>
           @label 'port'
-          @currentBuilder.tag 'atom-text-editor', id: "quick-query-port", class: 'editor', mini: 'mini', type: 'string'
+          @currentBuilder.tag 'atom-text-editor', outlet: "port", id: "quick-query-port", class: 'editor', mini: 'mini', type: 'string'
       @div class: "qq-local-info row" , =>
         @div class: "col-sm-12", =>
           @label 'file'
         @div class: "col-sm-9", =>
-          @currentBuilder.tag 'atom-text-editor', id: "quick-query-file", class: 'editor', mini: 'mini', type: 'string'
+          @currentBuilder.tag 'atom-text-editor',outlet: "file", id: "quick-query-file", class: 'editor', mini: 'mini', type: 'string'
         @div class: "col-sm-3", =>
-          @button id:"quick-query-browse-file", class: "btn btn-default icon icon-file-directory", "Browse"
+          @button outlet: "browse_file", id:"quick-query-browse-file", class: "btn btn-default icon icon-file-directory", "Browse"
       @div class: "qq-auth-info row", =>
         @div class: "col-sm-6" , =>
           @label 'user'
-          @currentBuilder.tag 'atom-text-editor', id: "quick-query-user", class: 'editor', mini: 'mini', type: 'string'
+          @currentBuilder.tag 'atom-text-editor', outlet: "user", id: "quick-query-user", class: 'editor', mini: 'mini', type: 'string'
         @div class: "col-sm-6" , =>
           @label 'password'
-          @currentBuilder.tag 'atom-text-editor', id: "quick-query-pass", class: 'editor', mini: 'mini'
+          @currentBuilder.tag 'atom-text-editor', outlet: "pass", id: "quick-query-pass", class: 'editor', mini: 'mini'
       @div class: "qq-advanced-info-toggler row", =>
         @div class: "col-sm-12", =>
           @button outlet:"advanced_toggle", class: "advance-toggle", title:"toggle advanced options",=>
@@ -148,12 +149,12 @@ class QuickQueryConnectView extends View
           @label 'default database (optional)'
           @currentBuilder.tag 'atom-text-editor',outlet: "database", id: "quick-query-database", class: 'editor', mini: 'mini', type: 'string'
       @div class: "col-sm-12" , =>
-        @button id:"quick-query-connect", class: "btn btn-default icon icon-plug" , tabindex: "6" , "Connect"
+        @button outlet:"connect", id:"quick-query-connect", class: "btn btn-default icon icon-plug" , tabindex: "6" , "Connect"
 
   destroy: ->
     @element.remove()
   focusFirst: ->
-    @find('#quick-query-protocol').focus()
+    @protocol.focus()
 
   showLocalInfo: ->
     @find(".qq-local-info").show()
