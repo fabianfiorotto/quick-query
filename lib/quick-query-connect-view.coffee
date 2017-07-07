@@ -19,7 +19,8 @@ class QuickQueryConnectView extends View
       @port.attr('tabindex',3)
       @user.attr('tabindex',4)
       @pass.attr('tabindex',5)
-    ),1000)
+      @database.attr('tabindex',6)
+    ),1500)
 
     @connect.keydown (e) ->
       $(this).click() if e.keyCode == 13
@@ -142,14 +143,14 @@ class QuickQueryConnectView extends View
           @currentBuilder.tag 'atom-text-editor', outlet: "pass", id: "quick-query-pass", class: 'editor', mini: 'mini'
       @div class: "qq-advanced-info-toggler row", =>
         @div class: "col-sm-12", =>
-          @button outlet:"advanced_toggle", class: "advance-toggle", title:"toggle advanced options",=>
+          @button outlet:"advanced_toggle", class: "advance-toggle", tabindex: "-1", title:"toggle advanced options",=>
             @i  class: "icon icon-chevron-left"
       @div class: "qq-advanced-info row", =>
         @div class: "col-sm-12" , =>
           @label 'default database (optional)'
           @currentBuilder.tag 'atom-text-editor',outlet: "database", id: "quick-query-database", class: 'editor', mini: 'mini', type: 'string'
       @div class: "col-sm-12" , =>
-        @button outlet:"connect", id:"quick-query-connect", class: "btn btn-default icon icon-plug" , tabindex: "6" , "Connect"
+        @button outlet:"connect", id:"quick-query-connect", class: "btn btn-default icon icon-plug" , tabindex: "7" , "Connect"
 
   destroy: ->
     @element.remove()
