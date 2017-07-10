@@ -1,3 +1,8 @@
+## 0.10.2 - Connect view update
+* Allow to fill default database in connect view #39
+* HACK to get tabindex working in atom 1.19
+* Fix open file dialog in atom 1.18 #40
+
 ## 0.10.1 - The invisible update
 * Show a ghost character to indicate where the breaklines are
 * Don't collapse multiple spaces in cells(nowrap)
