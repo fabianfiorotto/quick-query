@@ -56,7 +56,7 @@ class QuickQueryConnectView extends View
         currentWindow = atom.getCurrentWindow()
         if $(e.currentTarget).data("extensions")
           options.filters = [{ name: 'Database', extensions: $(e.target).data("extensions") }]
-        remote.Dialog.showOpenDialog currentWindow, options, (files) =>
+        remote.dialog.showOpenDialog currentWindow, options, (files) =>
           @file[0].getModel().setText(files[0]) if files?
 
     for key,protocol of @protocols
