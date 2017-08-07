@@ -13,15 +13,6 @@ class QuickQueryConnectView extends View
     portEditor = @port[0].getModel()
     portEditor.setText('3306')
 
-    setTimeout((=> #HACK
-      @file.attr('tabindex',2)
-      @host.attr('tabindex',2)
-      @port.attr('tabindex',3)
-      @user.attr('tabindex',4)
-      @pass.attr('tabindex',5)
-      @database.attr('tabindex',6)
-    ),1500)
-
     @connect.keydown (e) ->
       $(this).click() if e.keyCode == 13
     @protocol
@@ -86,6 +77,14 @@ class QuickQueryConnectView extends View
     @advanced_toggle.click (e) =>
       @find(".qq-advanced-info").slideToggle 400, =>
         @advanced_toggle.children("i").toggleClass("icon-chevron-down icon-chevron-left")
+
+  fixTabindex: ->
+    @file.attr('tabindex',2)
+    @host.attr('tabindex',2)
+    @port.attr('tabindex',3)
+    @user.attr('tabindex',4)
+    @pass.attr('tabindex',5)
+    @database.attr('tabindex',6)
 
   addProtocol: (key,protocol)->
     @protocols[key] = protocol
@@ -155,6 +154,7 @@ class QuickQueryConnectView extends View
   destroy: ->
     @element.remove()
   focusFirst: ->
+    @fixTabindex()
     @protocol.focus()
 
   showLocalInfo: ->
