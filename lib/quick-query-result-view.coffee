@@ -217,7 +217,7 @@ class QuickQueryResultView extends View
             td.classList.add('status-modified')
           else
             td.classList.remove('status-modified')
-            if tr.querySelector('td.status-modified') != null
+            if tr.querySelector('td.status-modified') == null
               tr.classList.remove('modified')
         @trigger('quickQuery.rowStatusChanged',[tr])
       $(editor).focus()
@@ -274,7 +274,7 @@ class QuickQueryResultView extends View
           td.textContent = value
           @showInvisibles(td)
         td.classList.remove('status-modified')
-        if tr.querySelector('td.status-modified') != null
+        if tr.querySelector('td.status-modified') == null
           tr.classList.remove('modified')
       @trigger('quickQuery.rowStatusChanged',[tr])
 
