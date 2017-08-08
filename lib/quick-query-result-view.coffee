@@ -7,6 +7,7 @@ class QuickQueryResultView extends View
   keepHidden: false
   rows: null,
   fields: null
+  canceled: false
 
   constructor:  ()->
     super
@@ -49,6 +50,7 @@ class QuickQueryResultView extends View
     @numbers.empty()
     tbody = document.createElement('tbody')
     # for row,i in @rows
+    @canceled = false
     @forEachChunk @rows , done , (row,i) =>
       array_row = Array.isArray(row)
       tr = document.createElement('tr')
@@ -105,15 +107,25 @@ class QuickQueryResultView extends View
         ++index
         cnt--
       if index < array.length
-        setTimeout(doChunk, 1)
+        @loop = setTimeout(doChunk, 1)
       else
-       done?()
+        @loop = null
+        done?()
     doChunk()
+
+  stopLoop: ->
+    if @loop?
+      clearTimeout(@loop)
+      @loop = null
+      @canceled = true
 
   rowsStatus: ->
     added = @table.find('tr.added').length
     status = (@rows.length + added).toString()
     status += if status == '1' then ' row' else ' rows'
+    if @canceled
+      tr_count = @table.find('tr').length - 1
+      status = "#{tr_count} of #{status}"
     status += ",#{added} added" if added > 0
     modified = @table.find('tr.modified').length
     status += ",#{modified} modified" if modified > 0

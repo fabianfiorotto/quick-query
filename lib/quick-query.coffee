@@ -380,6 +380,12 @@ module.exports = QuickQuery =
   cancel: ->
     @modalPanel.destroy() if @modalPanel
     @modalConnect.hide()
+    if @modalSpinner.isVisible()
+      resultView = @activeResultView()
+      if resultView?
+        resultView.stopLoop()
+        @updateStatusBar(resultView)
+      @modalSpinner.hide()
     for i in @queryEditors
       if i.editor == atom.workspace.getCenter().getActiveTextEditor()
         resultView = i.panel.getItem()
