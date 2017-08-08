@@ -27,6 +27,8 @@ module.exports = QuickQuery =
   editorView: null
   browser: null
   modalPanel: null
+  modalConnect: null
+  modalSpinner: null
   bottomPanel: null
   sidePanel: null
   subscriptions: null
@@ -57,6 +59,9 @@ module.exports = QuickQuery =
     @browser = new QuickQueryBrowserView()
 
     @connectView = new QuickQueryConnectView(protocols)
+    @modalConnect = atom.workspace.addModalPanel(item: @connectView , visible: false)
+
+    @modalSpinner = atom.workspace.addModalPanel(item: @createSpinner() , visible: false)
 
     if state.connections
       for connectionInfo in state.connections
@@ -98,7 +103,7 @@ module.exports = QuickQuery =
     @connectView.onWillConnect (connectionPromise) =>
       @browser.addConnection(connectionPromise)
       connectionPromise.then(
-        (connection) => @modalPanel.destroy()
+        (connection) => @modalConnect.hide()
         (err) => @setModalPanel content: err, type: 'error'
       )
 
@@ -178,6 +183,8 @@ module.exports = QuickQuery =
     @browser.destroy()
     @connectView.destroy()
     @modalPanel?.destroy()
+    @modalConnect.destroy()
+    @modalSpinner.destroy()
     @statusBarTile?.destroy()
     pane = atom.workspace.getActivePane()
     for item in pane.getItems() when item instanceof QuickQueryResultView
@@ -191,8 +198,7 @@ module.exports = QuickQuery =
       grammar = (i for i in grammars when i.name is 'SQL')[0]
       editor.setGrammar(grammar)
   newConnection: ->
-    @modalPanel.destroy() if @modalPanel?
-    @modalPanel = atom.workspace.addModalPanel(item: @connectView, visible: true)
+    @modalConnect.show()
     @connectView.focusFirst()
   run: ->
     @queryEditor = atom.workspace.getCenter().getActiveTextEditor()
@@ -203,9 +209,8 @@ module.exports = QuickQuery =
     text = @queryEditor.getText() if(text == '')
 
     if @connection
-      @setModalPanel content:"Running query...", spinner: true
+      @showModalSpinner content:"Running query..."
       @connection.query text, (message, rows, fields) =>
-        @modalPanel.destroy() if @modalPanel?
         if (message)
           if message.type == 'error'
             @setModalPanel message
@@ -214,13 +219,13 @@ module.exports = QuickQuery =
           if message.type == 'success'
             @afterExecute(@queryEditor)
         else
-          @setModalPanel content:"Loading results...", spinner: true
+          @showModalSpinner content:"Loading results..."
           if atom.config.get('quick-query.resultsInTab')
             queryResult = @showResultInTab()
           else
             queryResult = @showResultView(@queryEditor)
           queryResult.showRows rows, fields, @connection , =>
-            @modalPanel.destroy() if @modalPanel
+            @modalSpinner.hide()
             queryResult.fixSizes() if rows.length > 100
           queryResult.fixSizes()
           @updateStatusBar(queryResult)
@@ -253,30 +258,42 @@ module.exports = QuickQuery =
   setModalPanel: (message)->
     item = document.createElement('div')
     item.classList.add('quick-query-modal-message')
-    item.textContent = message.content
-    if message.spinner? && message.spinner
-      spinner = document.createElement('span')
-      spinner.classList.add('loading')
-      spinner.classList.add('loading-spinner-tiny')
-      spinner.classList.add('inline-block')
-      item.insertBefore(spinner,item.childNodes[0])
+    content = document.createElement('span')
+    content.classList.add('message')
+    content.textContent = message.content
+    item.appendChild(content)
     if message.type == 'error'
       item.classList.add('text-error')
       copy = document.createElement('span')
-      copy.classList.add('icon')
-      copy.classList.add('icon-clippy')
+      copy.classList.add('icon','icon-clippy')
       copy.setAttribute('title',"Copy to clipboard")
       copy.setAttribute('data-error',message.content)
       item.onmouseover = (-> @classList.add('animated') )
       copy.onclick = (->atom.clipboard.write(@getAttribute('data-error')))
       item.appendChild(copy)
     close = document.createElement('span')
-    close.classList.add('icon')
-    close.classList.add('icon-x')
+    close.classList.add('icon','icon-x')
     close.onclick = (=> @modalPanel.destroy())
     item.appendChild(close)
     @modalPanel.destroy() if @modalPanel?
     @modalPanel = atom.workspace.addModalPanel(item: item , visible: true)
+
+  createSpinner: ->
+    item = document.createElement('div')
+    item.classList.add('quick-query-modal-spinner')
+    spinner = document.createElement('span')
+    spinner.classList.add('loading','loading-spinner-tiny','inline-block')
+    item.appendChild spinner
+    content = document.createElement('span')
+    content.classList.add('message')
+    item.appendChild content
+    return item
+
+  showModalSpinner: (message)->
+    item = @modalSpinner.getItem()
+    content = item.getElementsByClassName('message').item(0)
+    content.textContent = message.content
+    @modalSpinner.show()
 
   showResultInTab: ->
     pane = atom.workspace.getCenter().getActivePane()
@@ -362,6 +379,7 @@ module.exports = QuickQuery =
 
   cancel: ->
     @modalPanel.destroy() if @modalPanel
+    @modalConnect.hide()
     for i in @queryEditors
       if i.editor == atom.workspace.getCenter().getActiveTextEditor()
         resultView = i.panel.getItem()
