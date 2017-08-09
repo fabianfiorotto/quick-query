@@ -84,13 +84,13 @@ class QuickQueryBrowserView extends ScrollView
         @defaultDatabaseChanged(connection,database)
 
   defaultDatabaseChanged: (connection,database)->
-    @find('ol#quick-query-connections').children().each (i,e)->
+    @list.children().each (i,e)->
       if $(e).data('item') == connection
         $(e).find(".quick-query-database").removeClass('default')
         $(e).find(".quick-query-database[data-name=\"#{database}\"]").addClass('default')
 
   showConnections: ()->
-    $ol = @find('ol#quick-query-connections')
+    $ol = @list
     $ol.empty()
     for connection in @connections
         $li = $('<li/>').addClass('entry list-nested-item collapsed')
@@ -151,7 +151,7 @@ class QuickQueryBrowserView extends ScrollView
         $li.addClass('default')
       $div.mousedown (e) =>
         $li = $(e.currentTarget).parent()
-        $li.closest('ol#quick-query-connections').find('li').removeClass('selected')
+        @list.find('li').removeClass('selected')
         $li.addClass('selected')
         @expandItem($li) if e.which != 3
       $div.text(childItem)
@@ -242,8 +242,7 @@ class QuickQueryBrowserView extends ScrollView
 
   expand: (model,callback)->
     if model.type == 'connection'
-      $ol = @find('ol#quick-query-connections')
-      $ol.children().each (i,li) =>
+      @list.children().each (i,li) =>
         if $(li).data('item') == model
           $(li).removeClass('expanded').addClass('collapsed') #HACK?
           @expandConnection $(li) , =>
@@ -316,8 +315,7 @@ class QuickQueryBrowserView extends ScrollView
 
   selectConnection: (connection)->
     return unless connection != @selectedConnection
-    $ol = @find('ol#quick-query-connections')
-    $ol.children().each (i,li) =>
+    @list.children().each (i,li) =>
       if $(li).data('item') == connection
         $ol.children().removeClass('default')
         $(li).addClass('default')
