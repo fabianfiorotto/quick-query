@@ -89,28 +89,36 @@ class QuickQueryBrowserView extends ScrollView
         $(e).find(".quick-query-database").removeClass('default')
         $(e).find(".quick-query-database[data-name=\"#{database}\"]").addClass('default')
 
+  newItem: (item)->
+    li = document.createElement 'li'
+    li.classList.add('entry')
+    li.setAttribute('data-name',item.name)
+    div = document.createElement 'div'
+    div.classList.add('header','list-item')
+    li.appendChild div
+    icon = document.createElement 'span'
+    icon.classList.add('icon')
+    div.textContent = item.toString()
+    div.insertBefore icon, div.firstChild
+    @setItemClasses(item,li,div,icon)
+    return $(li)
+
   showConnections: ()->
     $ol = @list
     $ol.empty()
     for connection in @connections
-        $li = $('<li/>').addClass('entry list-nested-item collapsed')
-        $div = $('<div/>').addClass('header list-item')
-        $icon = $('<span/>').addClass('icon')
+        $li = @newItem(connection)
         $li.attr('data-protocol',connection.protocol)
         if connection == @selectedConnection
           $li.addClass('default')
-        $div.mousedown (e) =>
+        $li.children('div').mousedown (e) =>
           $li = $(e.currentTarget).parent()
           $li.parent().find('li').removeClass('selected')
           $li.addClass('selected')
           $li.parent().find('li').removeClass('default')
           $li.addClass('default')
           @expandConnection($li) if e.which != 3
-        $div.text(connection)
-        $div.prepend($icon)
         $li.data('item',connection)
-        $li.html($div)
-        @setItemClasses(connection,$li)
         $ol.append($li)
 
   expandConnection: ($li,callback)->
@@ -142,53 +150,44 @@ class QuickQueryBrowserView extends ScrollView
     if parentItem.child_type != 'column'
       childrenItems = childrenItems.sort(@compareItemName)
     for childItem in childrenItems
-      $li = $('<li/>').addClass('entry')
-      $div = $('<div/>').addClass('header list-item')
-      $icon = $('<span/>').addClass('icon')
-      if childItem.type != 'column'
-        $li.addClass('list-nested-item collapsed')
-      if childItem.type == 'database' && childItem.name == @selectedConnection.getDefaultDatabase()
-        $li.addClass('default')
-      $div.mousedown (e) =>
+      $li = @newItem(childItem)
+      $li.children('div').mousedown (e) =>
         $li = $(e.currentTarget).parent()
         @list.find('li').removeClass('selected')
         $li.addClass('selected')
         @expandItem($li) if e.which != 3
-      $div.text(childItem)
-      $div.prepend($icon)
-      $li.attr('data-name',childItem.name)
       $li.data('item',childItem)
-      $li.html($div)
-      @setItemClasses(childItem,$li)
       $ol.append($li)
 
-  setItemClasses: (item,$li)->
-    $div = $li.children('.header')
-    $icon = $div.children('.icon')
+  setItemClasses: (item,li,div,icon)->
     switch item.type
       when 'connection'
-        $li.addClass('quick-query-connection')
-        $div.addClass("qq-connection-item")
-        $icon.addClass('icon-plug')
+        li.classList.add('quick-query-connection')
+        div.classList.add("qq-connection-item")
+        icon.classList.add('icon-plug')
       when 'database'
-        $li.addClass('quick-query-database')
-        $div.addClass("qq-database-item")
-        $icon.addClass('icon-database')
+        li.classList.add('quick-query-database')
+        div.classList.add("qq-database-item")
+        icon.classList.add('icon-database')
+        if item.name == @selectedConnection.getDefaultDatabase()
+          li.classList.add('default')
       when 'schema'
-        $li.addClass('quick-query-schema')
-        $div.addClass("qq-schema-item")
-        $icon.addClass('icon-book')
+        li.classList.add('quick-query-schema')
+        div.classList.add("qq-schema-item")
+        icon.classList.add('icon-book')
       when 'table'
-        $li.addClass('quick-query-table')
-        $div.addClass("qq-table-item")
-        $icon.addClass('icon-browser')
+        li.classList.add('quick-query-table')
+        div.classList.add("qq-table-item")
+        icon.classList.add('icon-browser')
       when 'column'
-        $li.addClass('quick-query-column')
-        $div.addClass("qq-column-item")
+        li.classList.add('quick-query-column')
+        div.classList.add("qq-column-item")
         if item.primary_key
-          $icon.addClass('icon-key')
+          icon.classList.add('icon-key')
         else
-          $icon.addClass('icon-tag')
+          icon.classList.add('icon-tag')
+    if item.type != 'column'
+      li.classList.add('list-nested-item','collapsed')
 
   timeout: (t,bk) -> setTimeout(bk,t)
 
