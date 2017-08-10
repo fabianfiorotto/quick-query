@@ -2,6 +2,7 @@
 class QuickQueryCachedTable
   type: 'table'
   child_type: 'column'
+  childs: []
   constructor: (@parent,@real) ->
     @connection = @parent.connection
     @name = @real.name
@@ -21,6 +22,7 @@ class QuickQueryCachedTable
 class QuickQueryCachedSchema
   type: 'schema'
   child_type: 'table'
+  childs: []
   constructor: (@database,@real) ->
     @connection = @database.connection
     @name = @real.name
@@ -40,6 +42,7 @@ class QuickQueryCachedSchema
 
 class QuickQueryCachedDatabase
   type: 'database'
+  childs: []
   constructor: (@connection,@real) ->
     @name = @real.name
     @child_type = @real.child_type
