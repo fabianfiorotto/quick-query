@@ -289,7 +289,7 @@ class QuickQueryResultView extends View
         td.classList.remove('default')
         td.classList.add('status-added')
       else if td.dataset.originalValueNull
-        td.classList.add('status-modified')
+        td.classList.remove('status-modified')
         if tr.querySelector('td.status-modified') == null
           tr.classList.remove('modified')
       else
