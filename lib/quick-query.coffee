@@ -212,6 +212,7 @@ module.exports = QuickQuery =
       @showModalSpinner content:"Running query..."
       @connection.query text, (message, rows, fields) =>
         if (message)
+          @modalSpinner.hide()
           if message.type == 'error'
             @setModalPanel message
           else
