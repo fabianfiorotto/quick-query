@@ -316,7 +316,7 @@ class QuickQueryBrowserView extends ScrollView
     return unless connection != @selectedConnection
     @list.children().each (i,li) =>
       if $(li).data('item') == connection
-        $ol.children().removeClass('default')
+        @list.children().removeClass('default')
         $(li).addClass('default')
         @selectedConnection = connection
         @trigger('quickQuery.connectionSelected',[connection])
