@@ -1,3 +1,9 @@
+## 0.11.0 - Loading huge tables
+* Get tabindex working in atom 1.19
+* Removing a LOT of jQuery has reduced table loading time in almost 70%
+* Add the ability to cancel result loading if it's taking too long.
+* Fix an odd behavior in spinner modal overlay
+
 ## 0.10.2 - Connect view update
 * Allow to fill default database in connect view #39
 * HACK to get tabindex working in atom 1.19
