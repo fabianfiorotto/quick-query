@@ -19,6 +19,10 @@ module.exports = QuickQuery =
       type: 'boolean'
       default: true
       title: 'Show info in status bar'
+    browserButtons:
+      type: 'boolean'
+      default: true
+      title: 'Browser buttons'
     resultsInTab:
       type: 'boolean'
       default: false

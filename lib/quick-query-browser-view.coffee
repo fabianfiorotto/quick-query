@@ -17,10 +17,13 @@ class QuickQueryBrowserView extends ScrollView
       'quick-query:copy': => @copy()
       'quick-query:set-default': => @setDefault()
       'core:delete': => @delete()
-
     super
 
   initialize: ->
+    if !atom.config.get('quick-query.browserButtons')
+      @buttons.hide()
+    atom.config.onDidChange 'quick-query.browserButtons', ({newValue, oldValue}) =>
+      @buttons.toggle(newValue)
     @find('#quick-query-new-connection').click (e) =>
       workspaceElement = atom.views.getView(atom.workspace)
       atom.commands.dispatch(workspaceElement, 'quick-query:new-connection')
@@ -38,8 +41,8 @@ class QuickQueryBrowserView extends ScrollView
   serialize: ->
 
   @content: ->
-    @div class: 'quick-query-browser tool-panel', 'data-show-on-right-side': !atom.config.get('quick-query.showBrowserOnLeftSide') , =>
-      @div =>
+    @div class: 'quick-query-browser tool-panel', =>
+      @div class: 'btn-group', outlet: 'buttons', =>
         @button id: 'quick-query-run', class: 'btn icon icon-playback-play' , title: 'Run' , style: 'width:50%'
         @button id: 'quick-query-new-connection', class: 'btn icon icon-plus' , title: 'New connection' , style: 'width:50%'
       @ol id:'quick-query-connections' , class: 'tree-view list-tree has-collapsable-children focusable-panel', tabindex: -1, outlet: 'list'
