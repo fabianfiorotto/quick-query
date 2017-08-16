@@ -30,10 +30,6 @@ class QuickQueryBrowserView extends ScrollView
     @find('#quick-query-run').click (e) =>
       workspaceElement = atom.views.getView(atom.workspace)
       atom.commands.dispatch(workspaceElement, 'quick-query:run')
-    @find('#quick-query-connections').blur (e) =>
-      $tree = $(e.currentTarget)
-      $li = $tree.find('li.selected')
-      $li.removeClass('selected')
 
   # Returns an object that can be retrieved when package is activated
   getTitle: -> 'Databases'
