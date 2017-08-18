@@ -62,6 +62,7 @@ class QuickQueryResultView extends View
       for field,j in @fields
         td = document.createElement('td')
         row_value = if array_row then row[j] else row[field.name]
+        row_value = JSON.stringify(row_value) if typeof row_value == 'object'  
         if row_value?
           td.setAttribute 'data-original-value' , row_value
           td.textContent = row_value
