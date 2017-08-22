@@ -225,7 +225,8 @@ class QuickQueryResultView extends View
   insertRecord: ->
     td = document.createElement 'td'
     tr = document.createElement 'tr'
-    td.textContent = @numbers.children().length + 1
+    number = @numbers.children().length + 1
+    td.textContent = number
     tr.appendChild(td)
     @numbers.append(tr)
     tr = document.createElement 'tr'
@@ -239,6 +240,7 @@ class QuickQueryResultView extends View
       td.addEventListener 'dblclick', (e) => @editRecord(e.currentTarget)
       tr.appendChild(td)
     @table.find('tbody').append(tr)
+    @fixSizes() if number == 1
     @tableWrapper.scrollTop -> this.scrollHeight
     @trigger('quickQuery.rowStatusChanged',[tr])
 
