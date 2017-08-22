@@ -2,11 +2,13 @@ pg = require 'pg'
 
 {Emitter} = require 'atom'
 
-# don't parse dates and times.
+# don't parse dates, times and json.
 pg.types.setTypeParser  1082 , (x) -> x
 pg.types.setTypeParser  1183 , (x) -> x
 pg.types.setTypeParser  1114 , (x) -> x
 pg.types.setTypeParser  1184 , (x) -> x
+pg.types.setTypeParser  3802 , (x) -> x
+pg.types.setTypeParser  114  , (x) -> x
 
 class QuickQueryPostgresColumn
   type: 'column'
@@ -82,8 +84,8 @@ class QuickQueryPostgresConnection
   type: 'connection'
   child_type: 'database'
   timeout: 5000 #time ot is set in 5s. queries should be fast.
-  n_types: 'bigint bigserial bit boolean box bytea circle integer interval json line lseg money numeric path point polygon real smallint smallserial timestamp tsquery tsvector xml'.split(/\s+/).concat(['bit varying'])
-  s_types: ['character','character varying','date','inet','cidr','time','macaddr','text','uuid']
+  n_types: 'bigint bigserial bit boolean box bytea circle integer interval line lseg money numeric path point polygon real smallint smallserial timestamp tsquery tsvector xml'.split(/\s+/).concat(['bit varying'])
+  s_types: ['character','character varying','date','inet','cidr','time','macaddr','text','uuid','json','jsonb']
 
   allowEdition: true
   @defaultPort: 5432
