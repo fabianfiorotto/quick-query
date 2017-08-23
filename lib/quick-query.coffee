@@ -318,7 +318,10 @@ module.exports = QuickQuery =
       if !queryEditor.getPath?()
         queryEditor.setText('')
         queryEditor.destroy()
-      @browser.refreshTree(@editorView.model)
+      if @editorView.action == 'create'
+        @browser.refreshTree(@editorView.model)
+      else
+        @browser.refreshTree(@editorView.model.parent())
       @modalPanel.destroy() if @modalPanel
       @editorView = null
 

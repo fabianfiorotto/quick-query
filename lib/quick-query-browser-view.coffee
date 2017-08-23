@@ -222,24 +222,17 @@ class QuickQueryBrowserView extends ScrollView
           callback(children) if callback
 
   refreshTree: (model)->
-    $li = switch model.type
-      when 'connection'
-        @find('li.quick-query-connection').filter (i,e)->
-          $(e).data('item') == model
-      when 'database'
-        @find('li.quick-query-connection').filter (i,e)->
-          $(e).data('item') == model.parent()
-      when 'table'
-        @find('li.quick-query-database').filter (i,e)->
-          $(e).data('item') == model.parent()
-      when 'column'
-        @find('li.quick-query-table').filter (i,e)->
-          $(e).data('item') == model.parent()
+    selector = switch model.type
+      when 'connection' then 'li.quick-query-connection'
+      when 'database' then 'li.quick-query-database'
+      when 'schema' then 'li.quick-query-schema'
+      when 'table' then 'li.quick-query-table'
+      else 'li'
+    $li = @find(selector).filter (i,e)-> $(e).data('item') == model
     $li.removeClass('collapsed')
     $li.addClass('expanded')
     $li.find('ol').empty();
-    model.parent().children (children) =>
-      @showItems(model.parent(),children,$li)
+    model.children (children) => @showItems(model,children,$li)
 
   expand: (model,callback)->
     if model.type == 'connection'
