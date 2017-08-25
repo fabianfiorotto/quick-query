@@ -1,3 +1,11 @@
+## 0.11.1 - Bugfixes
+* Add a config to hide browser buttons
+* Fix refreshing tree view after table create
+* Fix "add record" when the table is empty
+* Press delete over an element in browser to drop it
+* Render JSON fields properly (#43)
+* Treat UUID fields as strings (#42)
+
 ## 0.11.0 - Loading huge tables
 * Get tabindex working in atom 1.19
 * Removing a LOT of jQuery has reduced table loading time in almost 70%
