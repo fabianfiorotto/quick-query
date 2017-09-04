@@ -122,16 +122,27 @@ module.exports = QuickQuery =
       'quick-query:new-connection': => @newConnection()
       'quick-query:find-table-to-select': => @findTable()
 
-    atom.commands.add '.quick-query-result',
-     'quick-query:copy': => @activeResultView().copy()
-     'quick-query:copy-all': => @activeResultView().copyAll()
-     'quick-query:save-csv': => @activeResultView().saveCSV()
-     'quick-query:insert': => @activeResultView().insertRecord()
-     'quick-query:null': => @activeResultView().setNull()
-     'quick-query:undo': => @activeResultView().undo()
-     'quick-query:delete': => @activeResultView().deleteRecord()
-     'quick-query:copy-changes': => @activeResultView().copyChanges()
-     'quick-query:apply-changes': => @activeResultView().applyChanges()
+    @subscriptions.add atom.commands.add '.quick-query-result',
+      'quick-query:copy': => @activeResultView().copy()
+      'quick-query:copy-all': => @activeResultView().copyAll()
+      'quick-query:save-csv': => @activeResultView().saveCSV()
+      'quick-query:insert': => @activeResultView().insertRecord()
+      'quick-query:null': => @activeResultView().setNull()
+      'quick-query:undo': => @activeResultView().undo()
+      'quick-query:delete': => @activeResultView().deleteRecord()
+      'quick-query:copy-changes': => @activeResultView().copyChanges()
+      'quick-query:apply-changes': => @activeResultView().applyChanges()
+
+      'core:move-left':  => @activeResultView().moveSelection('left'),
+      'core:move-right': => @activeResultView().moveSelection('right'),
+      'core:move-up':    => @activeResultView().moveSelection('up'),
+      'core:move-down':  => @activeResultView().moveSelection('down')
+      'core:undo':       => @activeResultView().undo()
+      'core:confirm':    => @activeResultView().editSelected()
+      'core:copy':       => @activeResultView().copy()
+      'core:paste':      => @activeResultView().paste()
+      'core:backspace':   => @activeResultView().setNull()
+      'core:delete':      => @activeResultView().deleteRecord()
 
     @subscriptions.add atom.workspace.addOpener (uri) =>
       return @browser if (uri == 'quick-query://browser')
@@ -380,8 +391,15 @@ module.exports = QuickQuery =
         resultView.stopLoop()
         @updateStatusBar(resultView)
       @modalSpinner.hide()
-    for i in @queryEditors
-      if i.editor == atom.workspace.getCenter().getActiveTextEditor()
+    if atom.config.get('quick-query.resultsInTab')
+      resultView = atom.workspace.getActivePaneItem()
+      resultView.editSelected() if resultView.editing
+    else
+      editor = atom.workspace.getCenter().getActiveTextEditor()
+      for i in @queryEditors when i.editor == editor
         resultView = i.panel.getItem()
-        i.panel.hide()
-        resultView.hideResults()
+        if resultView.editing
+          resultView.editSelected()
+        else
+          i.panel.hide()
+          resultView.hideResults()

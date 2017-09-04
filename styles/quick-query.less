@@ -152,6 +152,19 @@ atom-panel.modal:not(:hover) .quick-query-modal-message.animated span.icon-clipp
 			height: 94.5%;
 			color: @text-color;
 			margin-bottom: 0;
+			user-select: none;
+			cursor: default;
+			&:focus{
+				td.selected{
+					border: 1px solid @button-background-color-selected;
+				}
+				tr:nth-child(even) td.selected{
+					background-color: mix(@background-color-selected,@tool-panel-background-color, 30%);
+				}
+				tr:nth-child(odd) td.selected{
+					background-color: darken(mix(@background-color-selected,@tool-panel-background-color, 30%), 3%);
+				}
+			}
 			tbody , thead{
 				display: block;
 			}

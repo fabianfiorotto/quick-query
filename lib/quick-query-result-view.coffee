@@ -31,12 +31,49 @@ class QuickQueryResultView extends View
             @button class: 'btn icon icon-pencil',title: 'Apply changes' , outlet: 'applyButton' , ''
           ))
           @tbody outlet: 'numbers', ''
-        @table class: 'quick-query-result-table table', outlet: 'table' , ''
+        @table class: 'quick-query-result-table table', outlet: 'table', tabindex: -1 , ''
       @div class: 'preview', outlet: 'preview' , =>
         @div class: 'container', syle: 'position:relative;', =>
       @div class: 'buttons', =>
         @button class: 'btn btn-success icon icon-check',outlet:'acceptButton', ''
         @button class: 'btn btn-error icon icon-x',outlet:'cancelButton',''
+
+  moveSelection: (direction)->
+    $td1 = @find('td.selected')
+    index = $td1.index()
+    $td2 = switch direction
+      when 'right' then $td1.next()
+      when 'left'  then $td1.prev()
+      when 'up' then $td1.parent().prev().children().eq(index)
+      when 'down' then $td1.parent().next().children().eq(index)
+    if !$td1.hasClass('editing') && $td2.length > 0
+      $td1.removeClass('selected')
+      $td2.addClass('selected')
+      table = @tableWrapper.offset()
+      table.bottom = table.top + @tableWrapper.height()
+      table.right = table.left + @tableWrapper.width()
+      cell = $td2.offset()
+      cell.bottom = cell.top + $td2.height()
+      cell.right = cell.left + $td2.width()
+      if cell.top < table.top
+        @tableWrapper.scrollTop(@tableWrapper.scrollTop() - table.top + cell.top)
+      if cell.bottom > table.bottom
+        @tableWrapper.scrollTop(@tableWrapper.scrollTop() + cell.bottom - table.bottom + 1.5 * $td2.height())
+      if cell.left < table.left
+        @tableWrapper.scrollLeft(@tableWrapper.scrollLeft() - table.left + cell.left)
+      if cell.right > table.right
+        @tableWrapper.scrollLeft(@tableWrapper.scrollLeft() + cell.right - table.right + 1.5 * $td2.width())
+
+  editSelected: ->
+    td = @selectedTd()
+    if td? && @connection.allowEdition
+      editors = td.getElementsByTagName("atom-text-editor")
+      if editors.length == 0
+        @editRecord(td)
+      else
+        val = editors[0].getModel().getText()
+        @setCellVal(td,val)
+        @table.focus()
 
   # Tear down any state and detach
   destroy: ->
@@ -148,6 +185,11 @@ class QuickQueryResultView extends View
     if $td.length == 1
       atom.clipboard.write($td.text())
 
+  paste: ->
+    if @connection.allowEdition
+      td = @selectedTd()
+      val = atom.clipboard.read()
+      @setCellVal(td,val)
   copyAll: ->
     if @rows? && @fields?
       if Array.isArray(@rows[0])
@@ -189,6 +231,7 @@ class QuickQueryResultView extends View
   editRecord: (td)->
     if td.getElementsByTagName("atom-text-editor").length == 0
       td.classList.add('editing')
+      @editing  = true
       editor = document.createElement('atom-text-editor')
       editor.setAttribute('mini','mini');
       editor.classList.add('editor')
@@ -196,8 +239,6 @@ class QuickQueryResultView extends View
       textEditor.setText(td.textContent) unless td.classList.contains('null')
       td.innerHTML = ''
       td.appendChild(editor)
-      editor.addEventListener 'keydown', (e) ->
-        $(this).blur() if e.keyCode == 13
       textEditor.onDidChangeCursorPosition (e) =>
         if editor.offsetWidth > @tableWrapper.width() #center cursor on screen
           td = editor.parentNode
@@ -212,25 +253,29 @@ class QuickQueryResultView extends View
             @tableWrapper.scrollLeft(left + column * charWidth)
       editor.addEventListener 'blur', (e) =>
         td = e.currentTarget.parentNode
-        td.classList.remove('editing','selected','null')
-        tr = td.parentNode
-        #$tr.hasClass('status-removed') return
-        td.textContent = e.currentTarget.getModel().getText()
-        @showInvisibles(td)
-        @fixSizes()
-        if tr.classList.contains('added')
-          td.classList.remove('default')
-          td.classList.add('status-added')
-        else
-          if e.currentTarget.getModel().getText() != td.getAttribute('data-original-value')
-            tr.classList.add('modified')
-            td.classList.add('status-modified')
-          else
-            td.classList.remove('status-modified')
-            if tr.querySelector('td.status-modified') == null
-              tr.classList.remove('modified')
-        @trigger('quickQuery.rowStatusChanged',[tr])
+        val = e.currentTarget.getModel().getText()
+        @setCellVal(td,val)
       $(editor).focus()
+
+  setCellVal: (td,text)->
+    @editing = false
+    td.classList.remove('editing','null')
+    tr = td.parentNode
+    #$tr.hasClass('status-removed') return
+    td.textContent = text
+    @showInvisibles(td)
+    @fixSizes()
+    if tr.classList.contains('added')
+      td.classList.remove('default')
+      td.classList.add('status-added')
+    else if text != td.getAttribute('data-original-value')
+        tr.classList.add('modified')
+        td.classList.add('status-modified')
+    else
+      td.classList.remove('status-modified')
+      if tr.querySelector('td.status-modified') == null
+        tr.classList.remove('modified')
+    @trigger('quickQuery.rowStatusChanged',[tr])
 
   insertRecord: ->
     td = document.createElement 'td'
@@ -258,11 +303,11 @@ class QuickQueryResultView extends View
 
   deleteRecord: ->
     td = @selectedTd()
-    if td?
+    if @connection.allowEdition && td?
       tr = td.parentNode
       tr.classList.remove('modified')
       for td1 in tr.children
-        td1.classList.remove('status-modified','selected')
+        td1.classList.remove('status-modified')
       tr.classList.add('status-removed','removed')
       @trigger('quickQuery.rowStatusChanged',[tr])
 
@@ -292,7 +337,7 @@ class QuickQueryResultView extends View
 
   setNull: ->
     td = @selectedTd()
-    if td? && !td.classList.contains('null')
+    if @connection.allowEdition && td? && !td.classList.contains('null')
       tr = td.parentNode
       #$tr.hasClass('status-removed') return
       td.textContent = 'NULL'
@@ -307,7 +352,6 @@ class QuickQueryResultView extends View
       else
         tr.classList.add('modified')
         td.classList.add('status-modified')
-      td.classList.remove('selected')
       @trigger('quickQuery.rowStatusChanged',[tr])
 
   getSentences: ->
