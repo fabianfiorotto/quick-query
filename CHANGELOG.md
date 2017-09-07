@@ -1,3 +1,6 @@
+## 0.11.2 - Bugfixe
+* Make horizontal scroll visible in One theme (#45)
+
 ## 0.11.1 - Bugfixes
 * Add a config to hide browser buttons
 * Fix refreshing tree view after table create
