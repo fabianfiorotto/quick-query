@@ -1,0 +1,30 @@
+@import "ui-variables";
+
+/*
+* Browser
+*/
+
+.quick-query-browser{
+
+	& > .btn-group{
+		display: block;
+	}
+	ol#quick-query-connections{
+		padding-bottom: @component-line-height;
+		padding-left: 5px;
+		padding-right: 10px;
+		height: 100%;
+		position: relative;
+		top: 0;
+		left: 0;
+	}
+
+	.list-tree li.list-nested-item.quick-query-database.default > .list-item.header{
+		font-weight: bold;
+	}
+
+	.list-tree li.list-nested-item.quick-query-connection.default > .list-item.header{
+		font-weight: bold;
+	}
+
+}

@@ -1,0 +1,222 @@
+@import "ui-variables";
+@import "ui-mixins";
+@import (optional) "git";
+
+
+/* Make sure that the mixins exist */
+.status-added{
+}
+.status-modified{
+}
+.status-removed{
+}
+
+/*
+*	Query Result
+*/
+
+.quick-query-result{
+	overflow: hidden;
+	position: relative;
+
+	.quick-query-result-resize-handler{
+		height: 5px;
+		cursor: ns-resize;
+	}
+
+	table.table.quick-query-result-numbers{
+		overflow: hidden;
+		margin-left: 0;
+		position: absolute;
+		width: auto;
+		left: 0;
+		top: 4px;
+
+		thead{
+			tr th{
+				text-align: center;
+				width: 100%;
+				position: absolute;
+				z-index: 2;
+				background-color: @tool-panel-background-color;
+			}
+		}
+
+		tbody{
+			overflow: hidden;
+			text-align: center;
+			tr:nth-child(even){
+				font-weight: bold;
+				background-color: darken(@tool-panel-background-color, 8%);
+			}
+			tr:nth-child(odd){
+				font-weight: bold;
+				background-color: darken(@tool-panel-background-color, 16%);
+			}
+		}
+	}
+
+	.quick-query-result-table-wrapper{
+		width: inherit;
+		overflow: auto;
+	}
+
+	table.table.quick-query-result-table{
+		thead{
+			z-index: 1;
+			background-color: @tool-panel-background-color;
+			margin-top: 4px;
+			position:absolute;
+			top:0;
+			margin-left: 1px; //HACK
+		}
+		tbody{
+			font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+		}
+	}
+
+	table.table{
+			height: 94.5%;
+			color: @text-color;
+			margin-bottom: 0;
+			user-select: none;
+			cursor: default;
+			&:focus{
+				td.selected{
+					border: 1px solid @button-background-color-selected;
+				}
+				tr:nth-child(even) td.selected{
+					background-color: mix(@background-color-selected,@tool-panel-background-color, 30%);
+				}
+				tr:nth-child(odd) td.selected{
+					background-color: darken(mix(@background-color-selected,@tool-panel-background-color, 30%), 3%);
+				}
+			}
+			tbody , thead{
+				display: block;
+			}
+			tbody{
+				height: 100%;
+				overflow-y: hidden;
+				overflow-x: hidden;
+
+				tr:nth-child(even){
+					background-color: @tool-panel-background-color;
+				}
+				tr:nth-child(odd){
+					background-color: darken(@tool-panel-background-color, 3%);
+				}
+				tr.added{
+					height: @component-line-height + @component-padding - 2px;
+					td,td.null{
+						.status-added();
+					}
+				}
+				tr.removed{
+					td{
+						.status-removed();
+					}
+				}
+				tr{
+					width: 100%;
+					height: @component-line-height + @component-padding - 2px;
+					td.editing{
+						padding: 2px 0 0 0;
+					}
+					td.null.status-modified{
+						.status-modified();
+					}
+					td.null{
+						color: mix( @text-color , @tool-panel-background-color, 20%);
+						font-style:italic;
+					}
+					td{
+						overflow:ellipsis;
+						text-overflow: ellipsis;
+						white-space: pre;
+						.lf::before{
+							content: "↵";
+						}
+						.cr::before{
+							content:"␍";
+						}
+						.crlf::before{
+							content: "⏎";
+						}
+						.lf,.cr,.crlf{
+							&::before{
+								font-family: initial;
+								color: mix( @text-color , @tool-panel-background-color, 20%);
+							}
+							white-space: nowrap;
+						}
+					}
+				}
+		}
+	}
+	.btn.icon-pencil{
+		display: none;
+		border-radius: 1em;
+		font-weight: bolder;
+	}
+	&.changed{
+		.hash{
+			visibility: hidden;
+		}
+		.btn.icon-pencil{
+			display: inline;
+			position: absolute;
+			top: 0;
+			left: 0;
+		}
+	}
+	.preview{
+		overflow: auto;
+		padding-top: @component-icon-padding;
+		display: none;
+		position: absolute;
+		width: 100%;
+		height: auto;
+		top: @component-icon-padding;
+		left: 0;
+		bottom:0;
+		z-index: 2;
+		background-color: @base-background-color;
+		.container{
+			padding: 2*@component-line-height @component-padding;
+		}
+		atom-text-editor{
+			background-color: @base-background-color;
+		}
+	}
+	.buttons{
+		display: none;
+		position: absolute;
+		top: @component-icon-padding;
+		left: 1px;
+		z-index: 4;
+		.btn{
+			display: none;
+			border-radius: 1em;
+			margin-right: @component-icon-padding;
+			padding-top: 3px;
+		}
+	}
+	&.confirmation{
+		.buttons{
+			display: block;
+			.btn.icon-x,.btn.icon-check{
+				display: inline;
+			}
+		}
+		.preview{
+			display: block;
+		}
+	}
+}
+
+atom-panel.bottom{
+	.quick-query-result {
+		height: @component-line-height * 11;
+	}
+}
