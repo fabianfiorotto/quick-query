@@ -13,8 +13,8 @@ class QuickQueryResultView extends View
     super
 
   initialize: ->
-    $(window).resize =>
-      @fixSizes()
+    $(window).resize => @fixSizes()
+    @applyButton.click (e) => @applyChanges()
     @handleResizeEvents()
 
   getTitle: -> 'Query Result'
@@ -26,9 +26,17 @@ class QuickQueryResultView extends View
       @div class: 'quick-query-result-resize-handler', ''
       @div class: 'quick-query-result-table-wrapper', outlet: 'tableWrapper' , =>
         @table class: 'table quick-query-result-numbers', =>
-          @thead => (@tr => @th '#')
+          @thead => (@tr => (@th =>
+            @span class: 'hash', '#'
+            @button class: 'btn icon icon-pencil',title: 'Apply changes' , outlet: 'applyButton' , ''
+          ))
           @tbody outlet: 'numbers', ''
         @table class: 'quick-query-result-table table', outlet: 'table' , ''
+      @div class: 'preview', outlet: 'preview' , =>
+        @div class: 'container', syle: 'position:relative;', =>
+      @div class: 'buttons', =>
+        @button class: 'btn btn-success icon icon-check',outlet:'acceptButton', ''
+        @button class: 'btn btn-error icon icon-x',outlet:'cancelButton',''
 
   # Tear down any state and detach
   destroy: ->
@@ -36,6 +44,7 @@ class QuickQueryResultView extends View
 
   showRows: (@rows, @fields,@connection,done)->
     @table.css('height','') #added in fixNumbers()
+    @removeClass('changed confirmation')
     @attr 'data-allow-edition' , =>
       if @connection.allowEdition then 'yes' else null
     @keepHidden = false
@@ -131,6 +140,7 @@ class QuickQueryResultView extends View
     status += ",#{modified} modified" if modified > 0
     removed = @table.find('tr.removed').length
     status += ",#{removed} deleted" if removed > 0
+    @toggleClass('changed',added+modified+removed>0)
     status
 
   copy: ->
@@ -300,10 +310,11 @@ class QuickQueryResultView extends View
       td.classList.remove('selected')
       @trigger('quickQuery.rowStatusChanged',[tr])
 
-  apply: ->
+  getSentences: ->
+    sentences = []
     @table.find('tbody tr').each (i,tr)=>
       values = {}
-      if tr.classList.contains('modified')
+      promise = if tr.classList.contains('modified')
         row = @rows[i]
         for td,j in tr.childNodes
           if td.classList.contains('status-modified')
@@ -321,6 +332,97 @@ class QuickQueryResultView extends View
       else if tr.classList.contains('status-removed')
         row = @rows[i]
         @connection.deleteRecord(row,@fields)
+      else null
+      if promise? then sentences.push promise.then (sentence) ->
+        new Promise (resolve,reject) -> resolve({sentence,tr,index:i})
+    Promise.all(sentences)
+
+  copyChanges: ->
+    @getSentences().then (sentences)->
+      changes = sentences.map ({sentence})-> sentence
+      atom.clipboard.write(changes.join("\n"))
+    .catch (err)-> console.log err
+
+  confirm: ->
+    new Promise (resolve,reject) =>
+      @acceptButton.off('click.confirm').one 'click.confirm', (e) -> resolve(true)
+      @cancelButton.off('click.confirm').one 'click.confirm', (e) -> resolve(false)
+
+  applyChanges: ->
+    @getSentences().then (sentences) =>
+      return if sentences.length == 0
+      if sentences.every( ({sentence})-> !/\S/.test(sentence) )
+        wr = """
+         Couldn't generate SQL\n
+         Make sure that:\n
+         * The primary key is included in the query.\n
+         * The edited column isn't a computed column.\n
+        """
+        atom.notifications.addWarning(wr, dismissable: true)
+        return
+      @addClass('confirmation')
+      @loadPreview(sentences)
+      @confirm().then (accept) =>
+        @removeClass('confirmation')
+        if accept then @executeChange(sentence,tr,index) for {sentence,tr,index} in sentences
+    .catch (err) -> console.log(err)
+
+  loadPreview: (sentences)->
+    changes = sentences.map ({sentence})-> sentence
+    editorElement = document.createElement('atom-text-editor')
+    editorElement.setAttributeNode(document.createAttribute('gutter-hidden'))
+    editor = editorElement.getModel()
+    editor.setText(changes.join("\n"))
+    grammars = atom.grammars.getGrammars()
+    grammar = (i for i in grammars when i.name is 'SQL')[0]
+    editor.setGrammar(grammar)
+    if editor.cursorLineDecorations?
+      for cursorLineDecoration in editor.cursorLineDecorations
+        cursorLineDecoration.destroy()
+    else
+      editor.getDecorations(class: 'cursor-line', type: 'line')[0].destroy()
+    @preview.find('.container').html(editorElement)
+    editorElement.removeAttribute('tabindex') # make read-only
+    @preview.find('.container').width($('.horizontal-scrollbar > div',editorElement).width()) #HACK
+
+  executeChange: (sentence,tr,index)->
+    @connection.query sentence, (msg,_r,_f) =>
+      if msg && msg.type == 'error'
+        e = msg.content.replace(/`/g,'\\`')
+        err = """
+          The following sentence gave an error.
+          Please create an issue if you think that
+          the SQL wasn't properly generated: <br/> #{e}"
+        """
+        atom.notifications.addError err, detail:sentence ,dismissable: true
+      else
+        @applyChangesToRow(tr,index)
+
+  applyChangesToRow: (tr,index)->
+    tbody = tr.parentNode
+    values = for td in tr.children
+      if td.classList.contains('null') then null else td.textContent
+    values = @connection.prepareValues(values,@fields)
+    if tr.classList.contains('status-removed')
+      @rows.splice(index,1)
+      tbody.removeChild(tr)
+      @numbers.children('tr:last-child').remove()
+    else if tr.classList.contains('added')
+      @rows.push values
+      tr.classList.remove('added')
+      for td in tr.children
+        td.classList.remove('status-added','default')
+        td.setAttribute 'data-original-value', td.textContent
+        td.dataset.originalValueNull = td.classList.contains('null')
+    else if tr.classList.contains('modified')
+      @rows[index] = values
+      tr.classList.remove('modified')
+      for td in tr.children
+        td.classList.remove('status-modified')
+        td.setAttribute 'data-original-value', td.textContent
+        td.dataset.originalValueNull = td.classList.contains('null')
+    @trigger('quickQuery.rowStatusChanged',[tr])
+
 
   hiddenResults: ->
     @keepHidden

@@ -214,6 +214,65 @@ atom-panel.modal:not(:hover) .quick-query-modal-message.animated span.icon-clipp
 				}
 		}
 	}
+	.btn.icon-pencil{
+		display: none;
+		border-radius: 1em;
+		font-weight: bolder;
+	}
+	&.changed{
+		.hash{
+			visibility: hidden;
+		}
+		.btn.icon-pencil{
+			display: inline;
+			position: absolute;
+			top: 0;
+			left: 0;
+		}
+	}
+	.preview{
+		overflow: auto;
+		padding-top: @component-icon-padding;
+		display: none;
+		position: absolute;
+		width: 100%;
+		height: auto;
+		top: @component-icon-padding;
+		left: 0;
+		bottom:0;
+		z-index: 2;
+		background-color: @base-background-color;
+		.container{
+			padding: 2*@component-line-height @component-padding;
+		}
+		atom-text-editor{
+			background-color: @base-background-color;
+		}
+	}
+	.buttons{
+		display: none;
+		position: absolute;
+		top: @component-icon-padding;
+		left: 1px;
+		z-index: 4;
+		.btn{
+			display: none;
+			border-radius: 1em;
+			margin-right: @component-icon-padding;
+			padding-top: 3px;
+		}
+	}
+	&.confirmation{
+		.buttons{
+			display: block;
+			.btn.icon-x,.btn.icon-check{
+				display: inline;
+			}
+		}
+		.preview{
+			display: block;
+		}
+	}
 }
 
 atom-panel.bottom{

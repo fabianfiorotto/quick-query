@@ -101,8 +101,6 @@ module.exports = QuickQuery =
 
     @connectView.onConnectionStablished (connection)=>
       @connections.push(connection)
-      connection.sentenceReady (text) =>
-        @addSentence(text)
 
     @connectView.onWillConnect (connectionPromise) =>
       @browser.addConnection(connectionPromise)
@@ -132,7 +130,8 @@ module.exports = QuickQuery =
      'quick-query:null': => @activeResultView().setNull()
      'quick-query:undo': => @activeResultView().undo()
      'quick-query:delete': => @activeResultView().deleteRecord()
-     'quick-query:apply': => @activeResultView().apply()
+     'quick-query:copy-changes': => @activeResultView().copyChanges()
+     'quick-query:apply-changes': => @activeResultView().applyChanges()
 
     @subscriptions.add atom.workspace.addOpener (uri) =>
       return @browser if (uri == 'quick-query://browser')
@@ -166,19 +165,6 @@ module.exports = QuickQuery =
       @queryEditors = @queryEditors.filter (i) =>
         i.panel.destroy() if i.editor == d.item
         i.editor != d.item
-
-  addSentence: (text) ->
-    queryEditor = atom.workspace.getCenter().getActiveTextEditor()
-    if queryEditor
-      queryEditor.moveToBottom()
-      queryEditor.insertNewline()
-      queryEditor.insertText(text)
-    else
-      atom.workspace.open().then (editor) =>
-        grammars = atom.grammars.getGrammars()
-        grammar = (i for i in grammars when i.name is 'SQL')[0]
-        editor.setGrammar(grammar)
-        editor.insertText(text)
 
   deactivate: ->
     c.close() for c in @connections

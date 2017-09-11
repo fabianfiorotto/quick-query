@@ -35,11 +35,14 @@
     {'label': 'Set NULL', 'command': 'quick-query:null'}
     {'label': 'Delete record', 'command': 'quick-query:delete'}
   ]
-  '.quick-query-result[data-allow-edition]':[
+  '.quick-query-result[data-allow-edition] table':[
     {'label': 'New record', 'command': 'quick-query:insert'}
-    {'label': 'Get changes\' SQL', 'command': 'quick-query:apply'}
   ]
-  '.quick-query-result':[
+  '.quick-query-result.changed':[
+    {'label': 'Copy changes\' SQL', 'command': 'quick-query:copy-changes'}
+    {'label': 'Apply changes', 'command': 'quick-query:apply-changes'}
+  ]
+  '.quick-query-result table':[
     {'type': 'separator'}
     {'label': 'Save as CSV', 'command': 'quick-query:save-csv'}
   ]

@@ -221,57 +221,74 @@ class QuickQueryMysqlConnection
     column = @connection.escapeId(model.name)
     "ALTER TABLE #{database}.#{table} DROP COLUMN #{column};"
 
+  prepareValues: (values,fields)->
+    obj = {}
+    obj[f.name] = values[i] for f,i in fields
+    return obj
 
   updateRecord: (row,fields,values)->
     tables = @_tableGroup(fields)
-    for name,table of tables
-      @getColumns table, (columns)=>
-        keys = (key for key in columns when key.primary_key)
-        allkeys = true
-        allkeys &= row[key.name]? for key in keys
-        if allkeys && keys.length > 0
-          assings = fields.map (field) =>
-            column = (column for column in columns when column.name == field.orgName)[0]
-            "#{@connection.escapeId(field.orgName)} = #{@escape(values[field.name],column.datatype)}"
-          database = @connection.escapeId(table.database.name)
-          table = @connection.escapeId(table.name)
-          where = keys.map (key)=> "#{@connection.escapeId(key.name)} = #{@escape(row[key.name],key.datatype)}"
-          update = "UPDATE #{database}.#{table}"+
-          " SET #{assings.join(',')}"+
-          " WHERE "+where.join(' AND ')+";"
-          @emitter.emit 'sentence-ready', update
+    Promise.all(
+      for name,table of tables
+        new Promise (resolve, reject) =>
+          @getColumns table, (columns)=>
+            keys = (key for key in columns when key.primary_key)
+            allkeys = true
+            allkeys &= row[key.name]? for key in keys
+            if allkeys && keys.length > 0
+              assings = fields.map (field) =>
+                column = (column for column in columns when column.name == field.orgName)[0]
+                "#{@connection.escapeId(field.orgName)} = #{@escape(values[field.name],column.datatype)}"
+              database = @connection.escapeId(table.database.name)
+              table = @connection.escapeId(table.name)
+              where = keys.map (key)=> "#{@connection.escapeId(key.name)} = #{@escape(row[key.name],key.datatype)}"
+              update = "UPDATE #{database}.#{table}"+
+              " SET #{assings.join(',')}"+
+              " WHERE "+where.join(' AND ')+";"
+              resolve(update)
+            else
+              resolve('')
+    ).then (updates) -> (new Promise (resolve, reject) -> resolve(updates.join("\n")))
 
   insertRecord: (fields,values)->
     tables = @_tableGroup(fields)
-    for name,table of tables
-      @getColumns table, (columns)=>
-        aryfields = table.fields.map (field) =>
-          @connection.escapeId(field.orgName)
-        strfields = aryfields.join(',')
-        aryvalues = table.fields.map (field) =>
-          column = (column for column in columns when column.name == field.orgName)[0]
-          @escape(values[field.name],column.datatype)
-        strvalues = aryvalues.join(',')
-        database = @connection.escapeId(table.database.name)
-        table = @connection.escapeId(table.name)
-        insert = "INSERT INTO #{database}.#{table}"+
-        " (#{strfields}) VALUES (#{strvalues});"
-        @emitter.emit 'sentence-ready', insert
+    Promise.all(
+      for name,table of tables
+        new Promise (resolve, reject) =>
+          @getColumns table, (columns)=>
+            aryfields = table.fields.map (field) =>
+              @connection.escapeId(field.orgName)
+            strfields = aryfields.join(',')
+            aryvalues = table.fields.map (field) =>
+              column = (column for column in columns when column.name == field.orgName)[0]
+              @escape(values[field.name],column.datatype)
+            strvalues = aryvalues.join(',')
+            database = @connection.escapeId(table.database.name)
+            table = @connection.escapeId(table.name)
+            insert = "INSERT INTO #{database}.#{table}"+
+            " (#{strfields}) VALUES (#{strvalues});"
+            resolve(insert)
+    ).then (inserts) -> (new Promise (resolve, reject) -> resolve(inserts.join("\n")))
 
   deleteRecord: (row,fields)->
     tables = @_tableGroup(fields)
-    for name,table of tables
-      @getColumns table, (columns)=>
-        keys = (key for key in columns when key.primary_key)
-        allkeys = true
-        allkeys &= row[key.name]? for key in keys
-        if allkeys && keys.length > 0
-          database = @connection.escapeId(table.database.name)
-          table = @connection.escapeId(table.name)
-          where = keys.map (key)=> "#{@connection.escapeId(key.name)} = #{@escape(row[key.name],key.datatype)}"
-          del = "DELETE FROM #{database}.#{table}"+
-          " WHERE "+where.join(' AND ')+";"
-          @emitter.emit 'sentence-ready', del
+    Promise.all(
+      for name,table of tables
+        new Promise (resolve, reject) =>
+          @getColumns table, (columns)=>
+            keys = (key for key in columns when key.primary_key)
+            allkeys = true
+            allkeys &= row[key.name]? for key in keys
+            if allkeys && keys.length > 0
+              database = @connection.escapeId(table.database.name)
+              table = @connection.escapeId(table.name)
+              where = keys.map (key)=> "#{@connection.escapeId(key.name)} = #{@escape(row[key.name],key.datatype)}"
+              del = "DELETE FROM #{database}.#{table}"+
+              " WHERE "+where.join(' AND ')+";"
+              resolve(del)
+            else
+              resolve('')
+    ).then (deletes) -> (new Promise (resolve, reject) -> resolve(deletes.join("\n")))
 
   _tableGroup: (fields)->
     tables = {}
@@ -283,9 +300,6 @@ class QuickQueryMysqlConnection
           fields: []
         tables[field.orgTable].fields.push(field)
     tables
-
-  sentenceReady: (callback)->
-    @emitter.on 'sentence-ready', callback
 
   onDidChangeDefaultDatabase: (callback)->
     @emitter.on 'did-change-default-database', callback
