@@ -16,6 +16,7 @@ class QuickQueryResultView extends View
     $(window).resize => @fixSizes()
     @applyButton.click (e) => @applyChanges()
     @handleResizeEvents()
+    @handleScrollEvent()
 
   getTitle: -> 'Query Result'
 
@@ -128,11 +129,6 @@ class QuickQueryResultView extends View
       @find('.quick-query-result-resize-handler').hide()
       @find('.quick-query-result-numbers').css top:0
       thead.style.marginTop = 0
-    @tableWrapper.unbind('scroll').scroll (e) =>
-      scroll = $(e.target).scrollTop() - thead.offsetHeight
-      @numbers.css 'margin-top': (-1*scroll)
-      scroll = $(e.target).scrollLeft()
-      thead.style.marginLeft = (-1*scroll)+"px"
 
   showInvisibles: (td)->
     td.innerHTML = td.innerHTML
@@ -504,6 +500,15 @@ class QuickQueryResultView extends View
   fixNumbers: ->  #ugly HACK
     @table.height(@table.height()+1)
     @table.height(@table.height()-1)
+
+  handleScrollEvent: ->
+    @tableWrapper.scroll (e) =>
+      thead = @table.find('thead')[0]
+      return unless thead?
+      scroll = $(e.target).scrollTop() - thead.offsetHeight
+      @numbers.css 'margin-top': (-1*scroll)
+      scroll = $(e.target).scrollLeft()
+      thead.style.marginLeft = (-1*scroll)+"px"
 
   onRowStatusChanged: (callback)->
     @bind 'quickQuery.rowStatusChanged', (e,row)-> callback(row)
