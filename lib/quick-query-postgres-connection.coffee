@@ -190,8 +190,8 @@ class QuickQueryPostgresConnection
       unless err? then callback(databases) else console.log err
 
   getDatabases: (callback) ->
-    text = "SELECT datname FROM pg_database "+
-    "WHERE datistemplate = false"
+    text = "SELECT datname FROM pg_database
+    WHERE datistemplate = false"
     @query text , (err, rows, fields) =>
       if !err
         databases = @objRowsMap rows,fields, (row) =>
@@ -202,9 +202,9 @@ class QuickQueryPostgresConnection
 
   getSchemas: (database, callback)->
     @getDatabaseConnection database.name, (connection) =>
-      text = "SELECT schema_name FROM information_schema.schemata "+
-      "WHERE catalog_name = '#{database.name}' "+
-      "AND schema_name NOT IN ('pg_toast','pg_temp_1','pg_toast_temp_1','pg_catalog','information_schema')"
+      text = "SELECT schema_name FROM information_schema.schemata
+      WHERE catalog_name = '#{database.name}'
+      AND schema_name NOT IN ('pg_toast','pg_temp_1','pg_toast_temp_1','pg_catalog','information_schema')"
       @queryDatabaseConnection text, connection , (err, rows, fields) =>
         if !err
           schemas = @objRowsMap rows, fields , (row) ->
@@ -214,10 +214,11 @@ class QuickQueryPostgresConnection
 
   getTables: (schema,callback) ->
     @getDatabaseConnection schema.database.name, (connection) =>
-      text = "SELECT table_name "+
-      "FROM information_schema.tables "+
-      "WHERE table_catalog = '#{schema.database.name}' "+
-      "AND table_schema = '#{schema.name}'"
+      text = "
+        SELECT table_name
+        FROM information_schema.tables
+        WHERE table_catalog = '#{schema.database.name}'
+        AND table_schema = '#{schema.name}'"
       @queryDatabaseConnection text, connection , (err, rows, fields) =>
         if !err
           tables = @objRowsMap rows,fields, (row) ->
@@ -226,29 +227,29 @@ class QuickQueryPostgresConnection
 
   getColumns: (table,callback) ->
     @getDatabaseConnection table.schema.database.name, (connection)=>
-      text = "SELECT  pk.constraint_type ,c.*"+
-      " FROM information_schema.columns c"+
-      " LEFT OUTER JOIN ("+
-      "  SELECT"+
-      "   tc.constraint_type,"+
-      "   kc.column_name,"+
-      "   tc.table_catalog,"+
-      "   tc.table_name,"+
-      "   tc.table_schema"+
-      "  FROM information_schema.table_constraints tc"+
-      "  INNER JOIN information_schema.CONSTRAINT_COLUMN_USAGE kc"+
-      "  ON kc.constraint_name = tc.constraint_name"+
-      "  AND kc.table_catalog = tc.table_catalog"+
-      "  AND kc.table_name = tc.table_name"+
-      "  AND kc.table_schema = tc.table_schema"+
-      "  WHERE tc.constraint_type = 'PRIMARY KEY'"+
-      " ) pk ON pk.column_name = c.column_name"+
-      "  AND pk.table_catalog = c.table_catalog"+
-      "  AND pk.table_name = c.table_name"+
-      "  AND pk.table_schema = c.table_schema"+
-      " WHERE c.table_name = '#{table.name}' "+
-      " AND c.table_schema = '#{table.schema.name}' "+
-      " AND c.table_catalog = '#{table.schema.database.name}'"
+      text = "SELECT  pk.constraint_type ,c.*
+       FROM information_schema.columns c
+       LEFT OUTER JOIN (
+        SELECT
+         tc.constraint_type,
+         kc.column_name,
+         tc.table_catalog,
+         tc.table_name,
+         tc.table_schema
+        FROM information_schema.table_constraints tc
+        INNER JOIN information_schema.CONSTRAINT_COLUMN_USAGE kc
+        ON kc.constraint_name = tc.constraint_name
+        AND kc.table_catalog = tc.table_catalog
+        AND kc.table_name = tc.table_name
+        AND kc.table_schema = tc.table_schema
+        WHERE tc.constraint_type = 'PRIMARY KEY'
+       ) pk ON pk.column_name = c.column_name
+        AND pk.table_catalog = c.table_catalog
+        AND pk.table_name = c.table_name
+        AND pk.table_schema = c.table_schema
+       WHERE c.table_name = '#{table.name}'
+       AND c.table_schema = '#{table.schema.name}'
+       AND c.table_catalog = '#{table.schema.database.name}'"
       @queryDatabaseConnection text, connection , (err, rows, fields) =>
         if !err
           columns = @objRowsMap rows, fields, (row) =>
@@ -282,9 +283,12 @@ class QuickQueryPostgresConnection
     database = @defaultConnection.escapeIdentifier(model.database.name)
     schema = @defaultConnection.escapeIdentifier(model.name)
     table = @defaultConnection.escapeIdentifier(info.name)
-    "CREATE TABLE #{database}.#{schema}.#{table} ( \n"+
-    " \"id\" INT NOT NULL ,\n"+
-    " CONSTRAINT \"#{info.name}_pk\" PRIMARY KEY (\"id\") );"
+    """
+      CREATE TABLE #{database}.#{schema}.#{table} (
+        "id" INT NOT NULL ,
+        CONSTRAINT "#{info.name}_pk" PRIMARY KEY ("id")
+      );
+    """
 
   createColumn: (model,info)->
     database = @defaultConnection.escapeIdentifier(model.schema.database.name)
@@ -312,10 +316,12 @@ class QuickQueryPostgresConnection
     oldName = @defaultConnection.escapeIdentifier(delta.old_name)
     nullable = if delta.nullable then 'DROP NOT NULL' else 'SET NOT NULL'
     defaultValue = if delta.default == null then 'NULL' else @escape(delta.default,delta.datatype)
-    result = "ALTER TABLE #{database}.#{schema}.#{table}"+
-    "\nALTER COLUMN #{oldName} SET DATA TYPE #{delta.datatype},"+
-    "\nALTER COLUMN #{oldName} #{nullable},"+
-    "\nALTER COLUMN #{oldName} SET DEFAULT #{defaultValue}"
+    result = """
+      ALTER TABLE #{database}.#{schema}.#{table}
+      ALTER COLUMN #{oldName} SET DATA TYPE #{delta.datatype},
+      ALTER COLUMN #{oldName} #{nullable},
+      ALTER COLUMN #{oldName} SET DEFAULT #{defaultValue}
+    """
     if oldName != newName
       result += "\nALTER TABLE #{database}.#{schema}.#{table}"+
       " RENAME COLUMN #{oldName} TO #{newName};"
@@ -419,11 +425,11 @@ class QuickQueryPostgresConnection
 
   getTableByOID: (database,oid,callback)->
     @getDatabaseConnection database, (connection) =>
-      text = "SELECT s.nspname AS schema_name,"+
-      " t.relname AS table_name"+
-      " FROM pg_class t"+
-      " INNER JOIN pg_namespace s ON t.relnamespace = s.oid"+
-      " WHERE t.oid = #{oid}"
+      text = "SELECT s.nspname AS schema_name,
+       t.relname AS table_name
+       FROM pg_class t
+       INNER JOIN pg_namespace s ON t.relnamespace = s.oid
+       WHERE t.oid = #{oid}"
       @queryDatabaseConnection text, connection , (err, rows, fields) =>
         db = {name: database, connection: @ }
         if !err && rows.length == 1

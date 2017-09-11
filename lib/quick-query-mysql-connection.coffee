@@ -176,9 +176,12 @@ class QuickQueryMysqlConnection
   createTable: (model,info)->
     database = @connection.escapeId(model.name)
     table = @connection.escapeId(info.name)
-    "CREATE TABLE #{database}.#{table} ( \n"+
-    " `id` INT NOT NULL ,\n"+
-    " PRIMARY KEY (`id`) );"
+    """
+    CREATE TABLE #{database}.#{table} (
+       `id` INT NOT NULL ,
+       PRIMARY KEY (`id`)
+     );
+    """
 
   createColumn: (model,info)->
     database = @connection.escapeId(model.database.name)
