@@ -35,7 +35,7 @@
     {'label': 'Set NULL', 'command': 'quick-query:null'}
     {'label': 'Delete record', 'command': 'quick-query:delete'}
   ]
-  '.quick-query-result[data-allow-edition] table':[
+  '.quick-query-result[data-allow-edition] .quick-query-result-table-wrapper':[
     {'label': 'New record', 'command': 'quick-query:insert'}
   ]
   '.quick-query-result.changed':[

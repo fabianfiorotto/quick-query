@@ -19,9 +19,40 @@
 	overflow: hidden;
 	position: relative;
 
+	@qq_handler_size: 5px;
+
 	.quick-query-result-resize-handler{
-		height: 5px;
+		background-color: @tool-panel-background-color;
+		height: @qq_handler_size;
 		cursor: ns-resize;
+		position: absolute;
+		width: 100%;
+		z-index: 3;
+		top: 0;
+	}
+
+	table.table.quick-query-result-corner{
+		width: auto;
+		background-color: @tool-panel-background-color;
+		overflow: hidden;
+		margin-left: 0;
+		position: absolute;
+		left: 0;
+		z-index: 3;
+		top: @qq_handler_size;
+		th{
+			text-align: center;
+		}
+	}
+
+	table.table.quick-query-result-header{
+		background-color: @tool-panel-background-color;
+		overflow: hidden;
+		margin-left: 0;
+		position: absolute;
+		width: auto;
+		left: 0;
+		top: @qq_handler_size;
 	}
 
 	table.table.quick-query-result-numbers{
@@ -30,17 +61,7 @@
 		position: absolute;
 		width: auto;
 		left: 0;
-		top: 4px;
-
-		thead{
-			tr th{
-				text-align: center;
-				width: 100%;
-				position: absolute;
-				z-index: 2;
-				background-color: @tool-panel-background-color;
-			}
-		}
+		top: @qq_handler_size;
 
 		tbody{
 			overflow: hidden;
@@ -57,6 +78,12 @@
 	}
 
 	.quick-query-result-table-wrapper{
+		position: absolute;
+		top: @qq_handler_size;
+		left:0;
+		bottom: 0;
+		right: 0;
+		height: auto;
 		width: inherit;
 		overflow: auto;
 	}
@@ -65,10 +92,8 @@
 		thead{
 			z-index: 1;
 			background-color: @tool-panel-background-color;
-			margin-top: 4px;
 			position:absolute;
-			top:0;
-			margin-left: 1px; //HACK
+			top: 4px;
 		}
 		tbody{
 			font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
@@ -76,7 +101,6 @@
 	}
 
 	table.table{
-			height: 94.5%;
 			color: @text-color;
 			margin-bottom: 0;
 			user-select: none;
@@ -166,7 +190,7 @@
 		.btn.icon-pencil{
 			display: inline;
 			position: absolute;
-			top: 0;
+			top: 1px;
 			left: 0;
 		}
 	}
@@ -180,7 +204,7 @@
 		top: @component-icon-padding;
 		left: 0;
 		bottom:0;
-		z-index: 2;
+		z-index: 4;
 		background-color: @base-background-color;
 		.container{
 			padding: 2*@component-line-height @component-padding;
@@ -194,7 +218,7 @@
 		position: absolute;
 		top: @component-icon-padding;
 		left: 1px;
-		z-index: 4;
+		z-index: 5;
 		.btn{
 			display: none;
 			border-radius: 1em;

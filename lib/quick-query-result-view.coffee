@@ -25,13 +25,14 @@ class QuickQueryResultView extends View
   @content: ->
     @div class: 'quick-query-result' , =>
       @div class: 'quick-query-result-resize-handler', ''
+      @table class: 'table quick-query-result-corner', =>
+        @thead => (@tr => (@th outlet: 'corner', =>
+          @span class: 'hash', '#'
+          @button class: 'btn icon icon-pencil',title: 'Apply changes' , outlet: 'applyButton' , ''
+        ))
+      @table class: 'table quick-query-result-numbers', outlet: 'numbers' ,=>
+      @table class: 'table quick-query-result-header', outlet: 'header', =>
       @div class: 'quick-query-result-table-wrapper', outlet: 'tableWrapper' , =>
-        @table class: 'table quick-query-result-numbers', =>
-          @thead => (@tr => (@th =>
-            @span class: 'hash', '#'
-            @button class: 'btn icon icon-pencil',title: 'Apply changes' , outlet: 'applyButton' , ''
-          ))
-          @tbody outlet: 'numbers', ''
         @table class: 'quick-query-result-table table', outlet: 'table', tabindex: -1 , ''
       @div class: 'preview', outlet: 'preview' , =>
         @div class: 'container', syle: 'position:relative;', =>
@@ -93,8 +94,9 @@ class QuickQueryResultView extends View
       th.textContent = field.name
       tr.appendChild(th)
     thead.appendChild(tr)
-    @table.html(thead)
-    @numbers.empty()
+    @header.html(thead)
+    numbersBody = document.createElement('tbody')
+    @numbers.html(numbersBody)
     tbody = document.createElement('tbody')
     # for row,i in @rows
     @canceled = false
@@ -104,7 +106,7 @@ class QuickQueryResultView extends View
       td = document.createElement('td')
       td.textContent = i+1
       tr.appendChild td
-      @numbers.append(tr)
+      numbersBody.appendChild(tr)
       tr = document.createElement('tr')
       for field,j in @fields
         td = document.createElement('td')
@@ -124,7 +126,7 @@ class QuickQueryResultView extends View
           td.addEventListener 'dblclick', (e)=> @editRecord(e.currentTarget)
         tr.appendChild td
       tbody.appendChild(tr)
-    @table.append(tbody)
+    @table.html(tbody)
     if atom.config.get('quick-query.resultsInTab')
       @find('.quick-query-result-resize-handler').hide()
       @find('.quick-query-result-numbers').css top:0
@@ -276,13 +278,13 @@ class QuickQueryResultView extends View
   insertRecord: ->
     td = document.createElement 'td'
     tr = document.createElement 'tr'
-    number = @numbers.children().length + 1
+    number = @numbers.find('tr').length + 1
     td.textContent = number
     tr.appendChild(td)
-    @numbers.append(tr)
+    @numbers.children('tbody').append(tr)
     tr = document.createElement 'tr'
     tr.classList.add 'added'
-    @table.find("th").each =>
+    @header.find("th").each =>
       td = document.createElement 'td'
       td.addEventListener 'mousedown', (e)=>
         @table.find('td').removeClass('selected')
@@ -384,6 +386,7 @@ class QuickQueryResultView extends View
     .catch (err)-> console.log err
 
   confirm: ->
+    @acceptButton.focus()
     new Promise (resolve,reject) =>
       @acceptButton.off('click.confirm').one 'click.confirm', (e) -> resolve(true)
       @cancelButton.off('click.confirm').one 'click.confirm', (e) -> resolve(false)
@@ -446,7 +449,7 @@ class QuickQueryResultView extends View
     if tr.classList.contains('status-removed')
       @rows.splice(index,1)
       tbody.removeChild(tr)
-      @numbers.children('tr:last-child').remove()
+      @numbers.children('tbody').children('tr:last-child').remove()
     else if tr.classList.contains('added')
       @rows.push values
       tr.classList.remove('added')
@@ -476,39 +479,38 @@ class QuickQueryResultView extends View
   fixSizes: ->
     if @table.find('tbody tr').length > 0
       tds = @table.find('tbody tr:first').children()
-      @table.find('thead tr').children().each (i, th) =>
+      @header.find('thead tr').children().each (i, th) =>
         td = tds[i]
         thw = th.offsetWidth
         tdw = td.offsetWidth
         w = Math.max(tdw,thw)
         td.style.minWidth = w+"px"
         th.style.minWidth = w+"px"
-      @fixScrolls()
     else
-      @table.width(@table.find('thead').width())
+      @table.width(@header.width())
+    @fixScrolls()
 
   fixScrolls: ->
-    headerHeght = @table.find('thead').outerHeight()
-    numbersWidth = @numbers.width()
-    @tableWrapper.css 'margin-left': numbersWidth , 'margin-top': (headerHeght - 1)
-    @tableWrapper.height( @height() - headerHeght - 4)
-    scroll = headerHeght  - @tableWrapper.scrollTop()
-    @numbers.css 'margin-top': scroll
-    scroll = -1 * @tableWrapper.scrollLeft()
-    @table.find('thead').css 'margin-left': scroll
-
-  fixNumbers: ->  #ugly HACK
-    @table.height(@table.height()+1)
-    @table.height(@table.height()-1)
+    handlerHeight = 5
+    headerHeght = @header.height()
+    if @numbers.find('tr').length > 0
+      numbersWidth = @numbers.width()
+      @corner.css width: numbersWidth
+    else
+      numbersWidth = @corner.outerWidth()
+    @tableWrapper.css left: numbersWidth , top: (headerHeght + handlerHeight)
+    scroll = handlerHeight + headerHeght  - @tableWrapper.scrollTop()
+    @numbers.css top: scroll
+    scroll = numbersWidth - @tableWrapper.scrollLeft()
+    @header.css left: scroll
 
   handleScrollEvent: ->
     @tableWrapper.scroll (e) =>
-      thead = @table.find('thead')[0]
-      return unless thead?
-      scroll = $(e.target).scrollTop() - thead.offsetHeight
-      @numbers.css 'margin-top': (-1*scroll)
-      scroll = $(e.target).scrollLeft()
-      thead.style.marginLeft = (-1*scroll)+"px"
+      handlerHeight = 5
+      scroll = $(e.target).scrollTop() - handlerHeight - @header.height()
+      @numbers.css top: (-1*scroll)
+      scroll = $(e.target).scrollLeft() - @numbers.width()
+      @header.css left: -1*scroll
 
   onRowStatusChanged: (callback)->
     @bind 'quickQuery.rowStatusChanged', (e,row)-> callback(row)
