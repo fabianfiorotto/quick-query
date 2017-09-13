@@ -477,7 +477,8 @@ class QuickQueryResultView extends View
     @keepHidden = true
 
   fixSizes: ->
-    if @table.find('tbody tr').length > 0
+    row_count = @table.find('tbody tr').length
+    if row_count > 0
       tds = @table.find('tbody tr:first').children()
       @header.find('thead tr').children().each (i, th) =>
         td = tds[i]
@@ -488,6 +489,8 @@ class QuickQueryResultView extends View
         th.style.minWidth = w+"px"
     else
       @table.width(@header.width())
+    @applyButton.toggleClass('tight',row_count < 100)
+    @applyButton.toggleClass('x2',row_count < 10)
     @fixScrolls()
 
   fixScrolls: ->
