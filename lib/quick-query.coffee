@@ -143,6 +143,8 @@ module.exports = QuickQuery =
       'core:paste':      => @activeResultView().paste()
       'core:backspace':   => @activeResultView().setNull()
       'core:delete':      => @activeResultView().deleteRecord()
+      'core:save':    => @activeResultView().applyChanges() if atom.config.get('quick-query.resultsInTab')
+      'core:save-as': => @activeResultView().saveCSV() if atom.config.get('quick-query.resultsInTab')
 
     @subscriptions.add atom.workspace.addOpener (uri) =>
       return @browser if (uri == 'quick-query://browser')

@@ -15,7 +15,7 @@ class QuickQueryResultView extends View
   initialize: ->
     $(window).resize => @fixSizes()
     @applyButton.click (e) => @applyChanges()
-    @handleResizeEvents()
+    @handleResizeEvents() unless atom.config.get('quick-query.resultsInTab')
     @handleScrollEvent()
 
   getTitle: -> 'Query Result'
@@ -127,10 +127,6 @@ class QuickQueryResultView extends View
         tr.appendChild td
       tbody.appendChild(tr)
     @table.html(tbody)
-    if atom.config.get('quick-query.resultsInTab')
-      @find('.quick-query-result-resize-handler').hide()
-      @find('.quick-query-result-numbers').css top:0
-      thead.style.marginTop = 0
 
   showInvisibles: (td)->
     td.innerHTML = td.innerHTML
