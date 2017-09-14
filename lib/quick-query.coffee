@@ -133,8 +133,9 @@ module.exports = QuickQuery =
       'quick-query:copy-changes': => @activeResultView().copyChanges()
       'quick-query:apply-changes': => @activeResultView().applyChanges()
 
-      'core:move-left':  => @activeResultView().moveSelection('left'),
-      'core:move-right': => @activeResultView().moveSelection('right'),
+    @subscriptions.add atom.commands.add '.quick-query-result-table',
+      'core:move-left':  => @activeResultView().moveSelection('left')
+      'core:move-right': => @activeResultView().moveSelection('right')
       'core:move-up':    => @activeResultView().moveSelection('up'),
       'core:move-down':  => @activeResultView().moveSelection('down')
       'core:undo':       => @activeResultView().undo()

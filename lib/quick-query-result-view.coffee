@@ -15,6 +15,12 @@ class QuickQueryResultView extends View
   initialize: ->
     $(window).resize => @fixSizes()
     @applyButton.click (e) => @applyChanges()
+    @acceptButton.keydown (e) =>
+      if e.keyCode == 13 then @acceptButton.click()
+      if e.keyCode == 39 then @cancelButton.focus()
+    @cancelButton.keydown (e) =>
+      if e.keyCode == 13 then @cancelButton.click()
+      if e.keyCode == 37 then @acceptButton.focus()
     @handleResizeEvents() unless atom.config.get('quick-query.resultsInTab')
     @handleScrollEvent()
 
@@ -411,7 +417,8 @@ class QuickQueryResultView extends View
     editorElement = document.createElement('atom-text-editor')
     editorElement.setAttributeNode(document.createAttribute('gutter-hidden'))
     editor = editorElement.getModel()
-    editor.setText(changes.join("\n"))
+    help = "-- The following SQL is going to be executed to apply the changes.\n"
+    editor.setText(help+changes.join("\n"))
     grammars = atom.grammars.getGrammars()
     grammar = (i for i in grammars when i.name is 'SQL')[0]
     editor.setGrammar(grammar)
