@@ -142,8 +142,10 @@ module.exports = QuickQuery =
       'core:confirm':    => @activeResultView().editSelected()
       'core:copy':       => @activeResultView().copy()
       'core:paste':      => @activeResultView().paste()
-      'core:backspace':   => @activeResultView().setNull()
-      'core:delete':      => @activeResultView().deleteRecord()
+      'core:backspace':  => @activeResultView().setNull()
+      'core:delete':     => @activeResultView().deleteRecord()
+      'core:page-up':    => @activeResultView().moveSelection('page-up')
+      'core:page-down':  => @activeResultView().moveSelection('page-down')
       'core:save':    => @activeResultView().applyChanges() if atom.config.get('quick-query.resultsInTab')
       'core:save-as': => @activeResultView().saveCSV() if atom.config.get('quick-query.resultsInTab')
 

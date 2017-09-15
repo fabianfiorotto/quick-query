@@ -48,12 +48,21 @@ class QuickQueryResultView extends View
 
   moveSelection: (direction)->
     $td1 = @find('td.selected')
+    $tr = $td1.parent()
     index = $td1.index()
     $td2 = switch direction
       when 'right' then $td1.next()
       when 'left'  then $td1.prev()
-      when 'up' then $td1.parent().prev().children().eq(index)
-      when 'down' then $td1.parent().next().children().eq(index)
+      when 'up'    then $tr.prev().children().eq(index)
+      when 'down'  then $tr.next().children().eq(index)
+      when 'page-up', 'page-down'
+        $trs = $tr.parent().children()
+        page_size = Math.floor(@tableWrapper.height()/$td1.outerHeight())
+        tr_index = if direction == 'page-up'
+          Math.max(0,$tr.index() - page_size)
+        else
+          Math.min($trs.length-1,$tr.index() + page_size)
+        $trs.eq(tr_index).children().eq(index)
     if !$td1.hasClass('editing') && $td2.length > 0
       $td1.removeClass('selected')
       $td2.addClass('selected')
