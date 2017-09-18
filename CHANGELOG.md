@@ -1,3 +1,25 @@
+## 0.12.0 - Quick ~~Query~~ ...Edition
+* No more negative margins.
+* A button to apply changes. (#20)
+* Now tables have a cursor. Press:
+  * <kbd>←</kbd> <kbd>→</kbd> <kbd>↑</kbd> or <kbd>↓</kbd> to move the cursor
+
+  * <kbd>enter</kbd> to edit the current cell
+
+  * <kbd>backspace</kbd> to set the current cell in *NULL*
+
+  * <kbd>del</kbd> to mark the record to delete.
+
+  * <kbd>ctrl</kbd> + <kbd>c</kbd> to copy the current cell's text
+
+  * <kbd>ctrl</kbd> + <kbd>v</kbd> to paste the clipboard's content into the current cell
+
+  * <kbd>ctrl</kbd> + <kbd>z</kbd> to undo cell's changes
+
+  * <kbd>ctrl</kbd> + <kbd>s</kbd> to apply the changes
+
+  * <kbd>ctrl</kbd> + <kbd>shift</kbd> + <kbd>s</kbd> to save the results as CSV
+
 ## 0.11.2 - Bugfixe
 * Make horizontal scroll visible in One theme (#45)
 
