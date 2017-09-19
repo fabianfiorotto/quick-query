@@ -97,7 +97,6 @@ class QuickQueryResultView extends View
     # @element.remove()
 
   showRows: (@rows, @fields,@connection,done)->
-    @table.css('height','') #added in fixNumbers()
     @removeClass('changed confirmation')
     @attr 'data-allow-edition' , =>
       if @connection.allowEdition then 'yes' else null
