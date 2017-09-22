@@ -418,6 +418,7 @@ class QuickQueryResultView extends View
       @confirm().then (accept) =>
         @removeClass('confirmation')
         if accept then @executeChange(sentence,tr,index) for {sentence,tr,index} in sentences
+        @table.focus()
     .catch (err) -> console.log(err)
 
   loadPreview: (sentences)->
