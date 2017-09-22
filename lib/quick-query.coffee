@@ -136,7 +136,7 @@ module.exports = QuickQuery =
     @subscriptions.add atom.commands.add '.quick-query-result-table',
       'core:move-left':  => @activeResultView().moveSelection('left')
       'core:move-right': => @activeResultView().moveSelection('right')
-      'core:move-up':    => @activeResultView().moveSelection('up'),
+      'core:move-up':    => @activeResultView().moveSelection('up')
       'core:move-down':  => @activeResultView().moveSelection('down')
       'core:undo':       => @activeResultView().undo()
       'core:confirm':    => @activeResultView().editSelected()
@@ -148,6 +148,19 @@ module.exports = QuickQuery =
       'core:page-down':  => @activeResultView().moveSelection('page-down')
       'core:save':    => @activeResultView().applyChanges() if atom.config.get('quick-query.resultsInTab')
       'core:save-as': => @activeResultView().saveCSV() if atom.config.get('quick-query.resultsInTab')
+
+    @subscriptions.add atom.commands.add '#quick-query-connections',
+      'quick-query:select-1000': => @browser.simpleSelect()
+      'quick-query:set-default': => @browser.setDefault()
+      'quick-query:alter':  => @browser.alter()
+      'quick-query:drop':   => @browser.drop()
+      'quick-query:create': => @browser.create()
+      'quick-query:copy':   => @browser.copy()
+      'core:copy':       => @browser.copy()
+      'core:delete':     => @browser.delete()
+      'core:move-up':    => @browser.moveUp()
+      'core:move-down':  => @browser.moveDown()
+      'core:confirm':    => @browser.expandSelected()
 
     @subscriptions.add atom.workspace.addOpener (uri) =>
       return @browser if (uri == 'quick-query://browser')

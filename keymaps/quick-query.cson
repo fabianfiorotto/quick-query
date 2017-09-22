@@ -5,9 +5,6 @@
   'ctrl-alt-c': 'quick-query:new-connection'
   'alt-\\': 'quick-query:toggle-browser'
 
-'ol#quick-query-connections':
-  'delete': 'core:delete'
-
 'atom-workspace .quick-query-result-table':
   'ctrl-s': 'quick-query:apply-changes'
   'ctrl-shift-s': 'quick-query:save-csv'

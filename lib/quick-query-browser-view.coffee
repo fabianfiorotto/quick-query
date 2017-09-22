@@ -9,21 +9,13 @@ class QuickQueryBrowserView extends ScrollView
   selectedConnection: null
 
   constructor: ->
-    atom.commands.add '#quick-query-connections',
-      'quick-query:select-1000': => @simpleSelect()
-      'quick-query:alter': => @alter()
-      'quick-query:drop': => @drop()
-      'quick-query:create': => @create()
-      'quick-query:copy': => @copy()
-      'quick-query:set-default': => @setDefault()
-      'core:delete': => @delete()
     super
 
   initialize: ->
     if !atom.config.get('quick-query.browserButtons')
-      @buttons.hide()
+      @addClass('no-buttons')
     atom.config.onDidChange 'quick-query.browserButtons', ({newValue, oldValue}) =>
-      @buttons.toggle(newValue)
+      @toggleClass('no-buttons',!newValue)
     @find('#quick-query-new-connection').click (e) =>
       workspaceElement = atom.views.getView(atom.workspace)
       atom.commands.dispatch(workspaceElement, 'quick-query:new-connection')
@@ -41,7 +33,7 @@ class QuickQueryBrowserView extends ScrollView
       @div class: 'btn-group', outlet: 'buttons', =>
         @button id: 'quick-query-run', class: 'btn icon icon-playback-play' , title: 'Run' , style: 'width:50%'
         @button id: 'quick-query-new-connection', class: 'btn icon icon-plus' , title: 'New connection' , style: 'width:50%'
-      @ol id:'quick-query-connections' , class: 'tree-view list-tree has-collapsable-children focusable-panel', tabindex: -1, outlet: 'list'
+      @ol id:'quick-query-connections' , class: 'list-tree has-collapsable-children focusable-panel', tabindex: -1, outlet: 'list'
 
 
   # Tear down any state and detach
@@ -75,6 +67,42 @@ class QuickQueryBrowserView extends ScrollView
     unless $li.hasClass('default')
       model = $li.data('item')
       model.connection.setDefaultDatabase model.name
+
+  moveUp: ->
+    $li = @find('li.selected')
+    $prev = $li.prev()
+    if $prev.hasClass('expanded') && $prev.find('>ol>li').length > 0
+      $prev = $prev.find('>ol>li:last')
+    if $prev.length == 0 && $li.parent().get(0) != @list[0]
+      $prev = $li.parent().parent()
+    if $prev.length
+      $prev.addClass('selected')
+      $li.removeClass('selected')
+      @scrollToItem($prev)
+
+  moveDown: ->
+    $li = @find('li.selected')
+    if $li.hasClass('expanded') && $li.find('>ol>li').length > 0
+      $next = $li.find('>ol>li:first')
+    else
+      $next = $li.next()
+    if $next.length == 0 && $li.parent().get(0) != @list[0]
+      $next = $li.parent().parent().next()
+    if $next.length
+      $next.addClass('selected')
+      $li.removeClass('selected')
+      @scrollToItem($next)
+
+  scrollToItem: ($li)->
+    list_height = @list.outerHeight()
+    height = $li.children('div').height()
+    top = $li.position().top
+    bottom = top + height
+    scroll = @list.scrollTop()
+    if bottom > list_height
+      @list.scrollTop(scroll - list_height + bottom)
+    else if top < 0
+      @list.scrollTop(scroll + top)
 
   addConnection: (connectionPromise) ->
     connectionPromise.then (connection)=>
@@ -192,6 +220,10 @@ class QuickQueryBrowserView extends ScrollView
       li.classList.add('list-nested-item','collapsed')
 
   timeout: (t,bk) -> setTimeout(bk,t)
+
+  expandSelected: (callback)->
+    $li = @find('li.selected')
+    @expandItem($li,callback)
 
   expandItem: ($li,callback) ->
     $li.toggleClass('collapsed expanded')
