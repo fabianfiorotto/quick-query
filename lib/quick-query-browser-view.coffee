@@ -71,7 +71,7 @@ class QuickQueryBrowserView extends ScrollView
   moveUp: ->
     $li = @find('li.selected')
     $prev = $li.prev()
-    if $prev.hasClass('expanded') && $prev.find('>ol>li').length > 0
+    while $prev.hasClass('expanded') && $prev.find('>ol>li').length > 0
       $prev = $prev.find('>ol>li:last')
     if $prev.length == 0 && $li.parent().get(0) != @list[0]
       $prev = $li.parent().parent()
@@ -81,13 +81,14 @@ class QuickQueryBrowserView extends ScrollView
       @scrollToItem($prev)
 
   moveDown: ->
-    $li = @find('li.selected')
+    $i = $li = @find('li.selected')
     if $li.hasClass('expanded') && $li.find('>ol>li').length > 0
       $next = $li.find('>ol>li:first')
     else
       $next = $li.next()
-    if $next.length == 0 && $li.parent().get(0) != @list[0]
-      $next = $li.parent().parent().next()
+    while $next.length == 0 && $i.length != 0 && $i.parent().get(0) != @list[0]
+      $i = $i.parent().parent()
+      $next = $i.next()
     if $next.length
       $next.addClass('selected')
       $li.removeClass('selected')
