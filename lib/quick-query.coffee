@@ -353,11 +353,16 @@ module.exports = QuickQuery =
 
   activeResultView: ->
     if atom.config.get('quick-query.resultsInTab')
-      atom.workspace.getActivePaneItem()
+      item = atom.workspace.getActivePaneItem()
+      if item instanceof QuickQueryResultView
+        return item
+      else
+        return null
     else
       editor = atom.workspace.getCenter().getActiveTextEditor()
       for i in @queryEditors
         return i.panel.getItem() if i.editor == editor
+      return null
 
   provideBrowserView: -> @browser
 
