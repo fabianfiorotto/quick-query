@@ -187,6 +187,7 @@ module.exports = QuickQuery =
             i.panel.hide()
           @updateStatusBar(resultView) if i.editor == item
       else if item instanceof QuickQueryResultView
+        item.focusTable()
         @updateStatusBar(item)
 
     atom.workspace.getCenter().onDidDestroyPaneItem (d) =>
@@ -243,9 +244,11 @@ module.exports = QuickQuery =
             queryResult = @showResultInTab()
           else
             queryResult = @showResultView(@queryEditor)
+          cursor = queryResult.getCursor()
           queryResult.showRows rows, fields, @connection , =>
             @modalSpinner.hide()
             queryResult.fixSizes() if rows.length > 100
+            queryResult.setCursor(cursor...) if cursor?
           queryResult.fixSizes()
           @updateStatusBar(queryResult)
 

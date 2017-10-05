@@ -47,7 +47,7 @@ class QuickQueryResultView extends View
         @button class: 'btn btn-error icon icon-x',outlet:'cancelButton',''
 
   moveSelection: (direction)->
-    $td1 = @find('td.selected')
+    $td1 = @table.find('td.selected')
     $tr = $td1.parent()
     index = $td1.index()
     $td2 = switch direction
@@ -80,6 +80,22 @@ class QuickQueryResultView extends View
         @tableWrapper.scrollLeft(@tableWrapper.scrollLeft() - table.left + cell.left)
       if cell.right > table.right
         @tableWrapper.scrollLeft(@tableWrapper.scrollLeft() + cell.right - table.right + 1.5 * $td2.width())
+
+  focusTable: ->
+    @table.focus() unless @hasClass('confirmation')
+
+  getCursor: ->
+    $td = @table.find('td.selected')
+    x = $td.index()
+    y = $td.parent().index()
+    if x != -1 then [x,y] else null
+
+  setCursor: (x,y)->
+    $td1 = @table.find('td.selected')
+    $td2 = @table.find('tbody').children().eq(y).children().eq(x)
+    if $td2.length > 0 && $td1[0] != $td2[0]
+      $td1.removeClass('selected')
+      $td2.addClass('selected')
 
   editSelected: ->
     td = @selectedTd()
@@ -178,7 +194,7 @@ class QuickQueryResultView extends View
     status = (@rows.length + added).toString()
     status += if status == '1' then ' row' else ' rows'
     if @canceled
-      tr_count = @table.find('tr').length - 1
+      tr_count = @table.find('tr').length
       status = "#{tr_count} of #{status}"
     status += ",#{added} added" if added > 0
     modified = @table.find('tr.modified').length
