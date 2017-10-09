@@ -1,8 +1,12 @@
+## 0.12.2 - Bugfixes
+* Fix #48
+* More cursor improvements.
+
 ## 0.12.1 - Browser View Update
 * Remove dependency on tree-view
 * Move browser selection and toggle items with the keyboard.
 * Now horizontal scroll bar is visible in Browser
-* Fix horizontal scroll bar in result view when there is no results.
+* Fix horizontal scroll bar in result view when there are no results.
 
 ## 0.12.0 - Quick ~~Query~~ ...Edition
 * No more negative margins.
