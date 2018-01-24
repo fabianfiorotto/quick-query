@@ -43,15 +43,17 @@ class QuickQueryBrowserView extends ScrollView
   delete: ->
     connection = null
     $li = @find('ol:focus li.selected')
+    model = $li.data('item')
     if $li.hasClass('quick-query-connection')
-      connection = $li.data('item')
-      i = @connections.indexOf(connection)
-      @connections.splice(i,1)
-      @showConnections()
-      @trigger('quickQuery.connectionDeleted',[connection])
+      @removeConnection(model)
     else
-      model = $li.data('item')
       @trigger('quickQuery.edit',['drop',model])
+
+  removeConnection: (connection)->
+    i = @connections.indexOf(connection)
+    @connections.splice(i,1)
+    @showConnections()
+    @trigger('quickQuery.connectionDeleted',[connection])
 
   getURI: -> 'quick-query://browser'
   getDefaultLocation: ->
@@ -105,10 +107,13 @@ class QuickQueryBrowserView extends ScrollView
     else if top < 0
       @list.scrollTop(scroll + top)
 
-  addConnection: (connectionPromise) ->
+  addConnection: (connectionPromise,pos) ->
     connectionPromise.then (connection)=>
       @selectedConnection = connection
-      @connections.push(connection)
+      if pos?
+        @connections.splice(pos, 0, connection)
+      else
+        @connections.push(connection)
       @trigger('quickQuery.connectionSelected',[connection])
       @showConnections()
       connection.onDidChangeDefaultDatabase (database) =>

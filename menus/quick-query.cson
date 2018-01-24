@@ -48,6 +48,7 @@
   ]
   '.quick-query-browser .qq-connection-item':[
       {'label': 'Create database', 'command': 'quick-query:create'}
+      {'label': 'Force Reconnect', 'command': 'quick-query:reconnect'}
       {'label': 'Close connection', 'command': 'core:delete'}
   ]
   '.quick-query-browser .qq-database-item':[

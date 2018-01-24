@@ -150,6 +150,7 @@ module.exports = QuickQuery =
       'core:save-as': => @activeResultView().saveCSV() if atom.config.get('quick-query.resultsInTab')
 
     @subscriptions.add atom.commands.add '#quick-query-connections',
+      'quick-query:reconnect':   => @reconnect()
       'quick-query:select-1000': => @browser.simpleSelect()
       'quick-query:set-default': => @browser.setDefault()
       'quick-query:alter':  => @browser.alter()
@@ -257,6 +258,17 @@ module.exports = QuickQuery =
 
   toggleBrowser: ->
     atom.workspace.toggle('quick-query://browser')
+
+  reconnect: ->
+    oldConnection = @connection
+    pos = @browser.connections.indexOf(oldConnection)
+    connectionInfo = oldConnection.serialize()
+    connectionPromise = @connectView.buildConnection(connectionInfo)
+    @browser.addConnection(connectionPromise,pos)
+    connectionPromise.then(
+      (newConnection) => @browser.removeConnection(oldConnection)
+      (err) => @setModalPanel content: err, type: 'error'
+    )
 
   findTable: ()->
     if @connection
