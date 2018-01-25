@@ -157,6 +157,7 @@ class QuickQueryMysqlConnection
   hiddenDatabase: (database) ->
     database == "information_schema" ||
     database == "performance_schema" ||
+    database == "sys" ||
     database == "mysql"
 
   simpleSelect: (table, columns = '*') ->
