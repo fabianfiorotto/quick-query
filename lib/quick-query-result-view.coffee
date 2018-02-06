@@ -444,9 +444,7 @@ class QuickQueryResultView extends View
     editor = editorElement.getModel()
     help = "-- The following SQL is going to be executed to apply the changes.\n"
     editor.setText(help+changes.join("\n"))
-    grammars = atom.grammars.getGrammars()
-    grammar = (i for i in grammars when i.name is 'SQL')[0]
-    editor.setGrammar(grammar)
+    atom.textEditors.setGrammarOverride(editor, 'source.sql')
     if editor.cursorLineDecorations?
       for cursorLineDecoration in editor.cursorLineDecorations
         cursorLineDecoration.destroy()

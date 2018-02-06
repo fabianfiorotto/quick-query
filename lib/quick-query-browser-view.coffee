@@ -315,9 +315,7 @@ class QuickQueryBrowserView extends ScrollView
       model.connection.getColumns model ,(columns) =>
         text = model.connection.simpleSelect(model,columns)
         atom.workspace.open().then (editor) =>
-          grammars = atom.grammars.getGrammars()
-          grammar = (i for i in grammars when i.name is 'SQL')[0]
-          editor.setGrammar(grammar)
+          atom.textEditors.setGrammarOverride(editor, 'source.sql')
           editor.insertText(text)
 
   copy: ->

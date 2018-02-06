@@ -214,9 +214,7 @@ module.exports = QuickQuery =
      connections: @connections.map((c)-> c.serialize()),
   newEditor: ->
     atom.workspace.open().then (editor) =>
-      grammars = atom.grammars.getGrammars()
-      grammar = (i for i in grammars when i.name is 'SQL')[0]
-      editor.setGrammar(grammar)
+      atom.textEditors.setGrammarOverride(editor, 'source.sql')
   newConnection: ->
     @modalConnect.show()
     @connectView.focusFirst()

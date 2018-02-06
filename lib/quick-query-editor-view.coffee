@@ -111,9 +111,7 @@ class QuickQueryEditorView extends View
         @getDropText()
     if editText != ''
       atom.workspace.open().then (editor) =>
-        grammars = atom.grammars.getGrammars()
-        grammar = (i for i in grammars when i.name is 'SQL')[0]
-        editor.setGrammar(grammar)
+        atom.textEditors.setGrammarOverride(editor, 'source.sql')
         editor.insertText(comment+editText)
         @editor = editor
 
