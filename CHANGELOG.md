@@ -1,3 +1,6 @@
+## 0.12.3 - Reconnect
+* Add an option to force reconnect  #37 #51
+
 ## 0.12.2 - Bugfixes
 * Fix #48
 * More cursor improvements.
