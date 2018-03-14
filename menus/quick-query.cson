@@ -84,6 +84,12 @@
   ]
 'menu': [
   {
+    'label': 'View'
+    'submenu': [
+      { 'label': 'Toggle Database Browser', 'command': 'quick-query:toggle-browser' }
+    ]
+  }
+  {
     'label': 'Packages'
     'submenu': [
       'label': 'Quick query'
