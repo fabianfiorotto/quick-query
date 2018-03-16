@@ -233,24 +233,24 @@ class QuickQueryResultView extends View
 
   saveCSV: ->
     if @rows? && @fields?
-      filepath = atom.showSaveDialogSync()
-      if filepath?
-        if Array.isArray(@rows[0])
-          fields = @fields.map (field,i) ->
-            label: field.name
-            value: (row)-> row[i]
-        else
-          fields = @fields.map (field) -> field.name
-        rows = @rows.map (row) ->
-          simpleRow = JSON.parse(JSON.stringify(row))
-          simpleRow[field] ?= '' for field in fields #HERE
-          simpleRow
-        json2csv  data: rows , fields: fields , defaultValue: '' , (err, csv)->
-          if (err)
-            console.log(err)
+      atom.getCurrentWindow().showSaveDialog title: 'Save Query Result as CSV', defaultPath: process.cwd(), (filepath) =>
+        if filepath?
+          if Array.isArray(@rows[0])
+            fields = @fields.map (field,i) ->
+              label: field.name
+              value: (row)-> row[i]
           else
-            fs.writeFile filepath, csv, (err)->
-              if (err) then console.log(err) else console.log('file saved')
+            fields = @fields.map (field) -> field.name
+          rows = @rows.map (row) ->
+            simpleRow = JSON.parse(JSON.stringify(row))
+            simpleRow[field] ?= '' for field in fields
+            simpleRow
+          json2csv  data: rows , fields: fields , defaultValue: '' , (err, csv)->
+            if (err)
+              console.log(err)
+            else
+              fs.writeFile filepath, csv, (err)->
+                if (err) then console.log(err) else console.log('file saved')
 
   editRecord: (td)->
     if td.getElementsByTagName("atom-text-editor").length == 0
