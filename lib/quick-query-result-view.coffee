@@ -441,6 +441,7 @@ class QuickQueryResultView extends View
     changes = sentences.map ({sentence})-> sentence
     editorElement = document.createElement('atom-text-editor')
     editorElement.setAttributeNode(document.createAttribute('gutter-hidden'))
+    editorElement.setAttributeNode(document.createAttribute('readonly'))
     editor = editorElement.getModel()
     help = "-- The following SQL is going to be executed to apply the changes.\n"
     editor.setText(help+changes.join("\n"))
