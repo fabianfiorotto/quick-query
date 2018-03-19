@@ -15,8 +15,8 @@ Do queries against your local databases quickly. By default it only supports MyS
  - [SQL Server](https://atom.io/packages/quick-query-mssql)
  - [Sqlite](https://atom.io/packages/quick-query-sqlite)
 
-## Todo List
-- Make timeouts configurable
-
 ## Screenshot
 ![](https://raw.githubusercontent.com/fabianfiorotto/quick-query/master/resources/screenshot.png)
+
+
+[![☕](https://www.buymeacoffee.com/assets/img/BMC-btn-logo.svg) *Buy me a coffee*](https://www.buymeacoffee.com/fabianfiorotto)
