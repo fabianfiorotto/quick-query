@@ -444,7 +444,7 @@ class QuickQueryResultView extends View
     editorElement.setAttributeNode(document.createAttribute('readonly'))
     editor = editorElement.getModel()
     help = "-- The following SQL is going to be executed to apply the changes.\n"
-    editor.setText(help+changes.join("\n"))
+    editor.setText(help+changes.join("\n"), bypassReadOnly: true)
     atom.textEditors.setGrammarOverride(editor, 'source.sql')
     if editor.cursorLineDecorations?
       for cursorLineDecoration in editor.cursorLineDecorations
