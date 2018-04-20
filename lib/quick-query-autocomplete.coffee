@@ -16,6 +16,8 @@ module.exports = class QuickQueryAutocomplete
 
 
   prepareSugestions: (suggestions,prefix)->
+    texts = suggestions.map (s) -> s.text
+    suggestions = suggestions.filter (s, index) -> texts.indexOf(s.text) == index
     suggestions = suggestions.sort((s1,s2)-> Math.sign(s1.score - s2.score ))
     suggestions.map (item)->
       if item.type == 'table'
