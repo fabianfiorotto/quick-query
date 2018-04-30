@@ -1,6 +1,10 @@
+## 0.12.5 - Prepare for atom 1.27
+ * Set text with bypass readonly.
+ * Remove duplicated suggestions.
+
 ## 0.12.4 - Prepare for atom 1.25
  * Remove call to deprecated function *showSaveDialogSync*.
- * Compatibilty with City Lights theme.
+ * Add Compatibility with City Lights theme.
  * Add Toggle Database Browser to View menu.
 
 ## 0.12.3 - Reconnect
