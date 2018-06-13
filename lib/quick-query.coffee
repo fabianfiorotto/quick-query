@@ -7,6 +7,9 @@ QuickQueryMysqlConnection = require './quick-query-mysql-connection'
 QuickQueryPostgresConnection = require './quick-query-postgres-connection'
 QuickQueryAutocomplete = require './quick-query-autocomplete'
 
+path = require 'path'
+fs = require 'fs'
+
 {CompositeDisposable} = require 'atom'
 
 module.exports = QuickQuery =
@@ -27,6 +30,10 @@ module.exports = QuickQuery =
       type: 'boolean'
       default: false
       title: 'Show results in a tab'
+    storeGlobally:
+      type: 'boolean'
+      default: false
+      title: 'Store connections globally'
 
   editorView: null
   browser: null
@@ -67,8 +74,13 @@ module.exports = QuickQuery =
 
     @modalSpinner = atom.workspace.addModalPanel(item: @createSpinner() , visible: false)
 
-    if state.connections
-      for connectionInfo in state.connections
+    storage = state
+    if atom.config.get('quick-query.storeGlobally')
+      gloalStoragePath = path.join(process.env.ATOM_HOME, 'quick-query.json')
+      if fs.existsSync(gloalStoragePath)
+        storage = JSON.parse(fs.readFileSync(gloalStoragePath))
+    if storage.connections?
+      for connectionInfo in storage.connections
         connectionPromise = @connectView.buildConnection(connectionInfo)
         @browser.addConnection(connectionPromise)
 
@@ -101,6 +113,10 @@ module.exports = QuickQuery =
 
     @connectView.onConnectionStablished (connection)=>
       @connections.push(connection)
+      if atom.config.get('quick-query.storeGlobally')
+        gloalStoragePath = path.join(process.env.ATOM_HOME, 'quick-query.json')
+        connectionsInfo = JSON.stringify(connections: @connections.map((c)-> c.serialize()),null,2)
+        fs.writeFile gloalStoragePath, connectionsInfo , ((err)-> console.log(err) if err?)
 
     @connectView.onWillConnect (connectionPromise) =>
       @browser.addConnection(connectionPromise)
@@ -177,6 +193,14 @@ module.exports = QuickQuery =
         for item in pane.getItems()
           pane.destroyItem(item) if item instanceof QuickQueryResultView
 
+    atom.config.onDidChange 'quick-query.storeGlobally', ({newValue, oldValue}) =>
+      gloalStoragePath = path.join(process.env.ATOM_HOME, 'quick-query.json')
+      if newValue
+        connectionsInfo = JSON.stringify(connections: @connections.map((c)-> c.serialize()),null,2)
+        fs.writeFile gloalStoragePath, connectionsInfo , ((err)-> console.log(err) if err?)
+      else if fs.existsSync(gloalStoragePath)
+        fs.unlink gloalStoragePath, ((err)-> console.log(err) if err?)
+
     atom.workspace.getCenter().onDidChangeActivePaneItem (item) =>
       @hideStatusBar()
       if !atom.config.get('quick-query.resultsInTab')
@@ -211,6 +235,7 @@ module.exports = QuickQuery =
       pane.destroyItem(item)
 
   serialize: ->
+    if !atom.config.get('quick-query.storeGlobally')
      connections: @connections.map((c)-> c.serialize()),
   newEditor: ->
     atom.workspace.open().then (editor) =>
