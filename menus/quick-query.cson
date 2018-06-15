@@ -15,6 +15,14 @@
         'label': 'New connection..',
         'command': 'quick-query:new-connection'
       }
+      {
+        'label': 'Import Connections',
+        'command': 'quick-query:import-connections'
+      }
+      {
+        'label': 'Export Connections',
+        'command': 'quick-query:export-connections'
+      }
 
   ]
   '.quick-query-result tr.added td.selected:not(.default)': [

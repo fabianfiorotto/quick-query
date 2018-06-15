@@ -9,6 +9,7 @@ QuickQueryAutocomplete = require './quick-query-autocomplete'
 
 path = require 'path'
 fs = require 'fs'
+remote = require 'remote'
 
 {CompositeDisposable} = require 'atom'
 
@@ -166,6 +167,8 @@ module.exports = QuickQuery =
       'core:save-as': => @activeResultView().saveCSV() if atom.config.get('quick-query.resultsInTab')
 
     @subscriptions.add atom.commands.add '#quick-query-connections',
+      'quick-query:export-connections': => @exportConnections()
+      'quick-query:import-connections': => @importConnections()
       'quick-query:reconnect':   => @reconnect()
       'quick-query:select-1000': => @browser.simpleSelect()
       'quick-query:set-default': => @browser.setDefault()
@@ -281,6 +284,27 @@ module.exports = QuickQuery =
 
   toggleBrowser: ->
     atom.workspace.toggle('quick-query://browser')
+
+  exportConnections: ->
+    options =
+      title: 'Export connections'
+      defaultPath: path.join(process.cwd(), 'connections.json')
+    atom.getCurrentWindow().showSaveDialog options, (filepath) =>
+      if filepath?
+        connectionsInfo = JSON.stringify(@connections.map((c)-> c.serialize()),null,2)
+        fs.writeFile filepath, connectionsInfo , ((err)-> console.log(err) if err?)
+
+  importConnections: ->
+    currentWindow = atom.getCurrentWindow()
+    options =
+      properties: ['openFile']
+      title: 'Import Connections'
+      filters: [{ name: 'Connections', extensions: ['json'] }]
+    remote.dialog.showOpenDialog currentWindow, options, (files) =>
+      if files?
+        for connectionInfo in JSON.parse(fs.readFileSync(files[0]))
+          connectionPromise = @connectView.buildConnection(connectionInfo)
+          @browser.addConnection(connectionPromise)
 
   reconnect: ->
     oldConnection = @connection
