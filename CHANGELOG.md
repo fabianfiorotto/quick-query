@@ -1,3 +1,7 @@
+## 0.13.0 - Global Storage
+ * Store connections globally
+ * Import/Export connections
+
 ## 0.12.5 - Prepare for atom 1.27
  * Set text with bypass readonly.
  * Remove duplicated suggestions.
