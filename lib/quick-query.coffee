@@ -239,7 +239,7 @@ module.exports = QuickQuery =
 
   serialize: ->
     if !atom.config.get('quick-query.storeGlobally')
-     connections: @connections.map((c)-> c.serialize()),
+      connections: @connections.map((c)-> c.serialize()),
   newEditor: ->
     atom.workspace.open().then (editor) =>
       atom.textEditors.setGrammarOverride(editor, 'source.sql')
