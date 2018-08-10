@@ -1,0 +1,67 @@
+.quick-query-dump-loader {
+	padding-left: @component-padding;
+	background-color: @tool-panel-background-color;
+	.flex-row {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+	}
+	.left {
+		flex: 1;
+	}
+	.right {
+		flex: 9999;
+		padding-top: @component-icon-padding;
+		padding-bottom: @component-icon-padding;
+		padding-left: @component-icon-padding;
+		padding-right: @component-padding;
+	}
+	progress {
+		width: 100%;
+	}
+	.stop, .start {
+		border-radius: @component-line-height;
+	}
+	.stop {
+		display: none;
+		&:before {
+			font-size: @component-icon-size * 0.8125;
+		}
+	}
+	.fileview {
+		padding: 0.25em;
+		border-width: 1px;
+		border-style: solid;
+		border-color: @input-border-color;
+		border-radius: @component-border-radius;
+		background-color: @input-background-color;
+		width: auto;
+		overflow: auto;
+		.icon {
+			padding-left: @component-icon-padding * 2;
+		}
+	}
+	.source {
+		flex: 2;
+		padding-top: @component-padding;
+		padding-right: @component-padding;
+		min-width: 250px;
+	}
+	.destination {
+		flex: 1;
+		padding-top: @component-padding;
+		padding-right: @component-padding;
+		min-width: 150px;
+		.input-select {
+			width: 100%;
+		}
+	}
+	.input-text, .input-select, .fileview {
+		height: @component-line-height + 2;
+	}
+	.message {
+		padding: @component-padding;
+		border-radius: @component-icon-padding;
+		margin-bottom: @component-icon-padding;
+	}
+}

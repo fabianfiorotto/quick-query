@@ -318,6 +318,11 @@ class QuickQueryBrowserView extends ScrollView
           atom.textEditors.setGrammarOverride(editor, 'source.sql')
           editor.insertText(text)
 
+  importDump: ->
+    $li = @find('li.selected')
+    model = $li.data('item')
+    atom.workspace.open('quick-query://dump-loader', database: model.name )
+
   copy: ->
     $li = @find('li.selected')
     $header = $li.children('div.header')

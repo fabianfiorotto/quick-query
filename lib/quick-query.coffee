@@ -6,6 +6,7 @@ QuickQueryTableFinderView = require './quick-query-table-finder-view'
 QuickQueryMysqlConnection = require './quick-query-mysql-connection'
 QuickQueryPostgresConnection = require './quick-query-postgres-connection'
 QuickQueryAutocomplete = require './quick-query-autocomplete'
+QuickQueryDumpLoader = require './quick-query-dump-loader'
 
 path = require 'path'
 fs = require 'fs'
@@ -138,6 +139,7 @@ module.exports = QuickQuery =
       'core:cancel': => @cancel()
       'quick-query:new-connection': => @newConnection()
       'quick-query:find-table-to-select': => @findTable()
+      'quick-query:open-dump-loader': => @openDumpLoader()
 
     @subscriptions.add atom.commands.add '.quick-query-result',
       'quick-query:copy': => @activeResultView().copy()
@@ -170,6 +172,7 @@ module.exports = QuickQuery =
       'quick-query:export-connections': => @exportConnections()
       'quick-query:import-connections': => @importConnections()
       'quick-query:reconnect':   => @reconnect()
+      'quick-query:import-dump': => @browser.importDump()
       'quick-query:select-1000': => @browser.simpleSelect()
       'quick-query:set-default': => @browser.setDefault()
       'quick-query:alter':  => @browser.alter()
@@ -182,7 +185,9 @@ module.exports = QuickQuery =
       'core:move-down':  => @browser.moveDown()
       'core:confirm':    => @browser.expandSelected()
 
-    @subscriptions.add atom.workspace.addOpener (uri) =>
+    @subscriptions.add atom.workspace.addOpener (uri,options) =>
+      return new QuickQueryDumpLoader(@browser, filename: uri) if @isSqlDump(uri)
+      return new QuickQueryDumpLoader(@browser,options) if (uri == 'quick-query://dump-loader')
       return @browser if (uri == 'quick-query://browser')
 
     atom.config.onDidChange 'quick-query.resultsInTab', ({newValue, oldValue}) =>
@@ -282,6 +287,9 @@ module.exports = QuickQuery =
     else
       @addWarningNotification("No connection selected")
 
+  openDumpLoader: ->
+    atom.workspace.open('quick-query://dump-loader')
+
   toggleBrowser: ->
     atom.workspace.toggle('quick-query://browser')
 
@@ -325,6 +333,13 @@ module.exports = QuickQuery =
       @tableFinder.focusFilterEditor()
     else
       @addWarningNotification "No connection selected"
+
+  isSqlDump: (uri)->
+    if path.extname(uri) == '.gz'
+      baseuri = path.basename(uri, '.gz')
+      path.extname(baseuri) == '.sql' || path.extname(baseuri) == '.mysql'
+    else
+      path.extname(uri) == '.mysql'
 
   addWarningNotification:(message) ->
     notification = atom.notifications.addWarning(message);
