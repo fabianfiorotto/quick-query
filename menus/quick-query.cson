@@ -116,6 +116,10 @@
           'command': 'quick-query:toggle-browser'
         },
         {
+          'label': 'Dump Loader'
+          'command': 'quick-query:open-dump-loader'
+        },
+        {
           'label': 'Find table to select rows'
           'command': 'quick-query:find-table-to-select'
         }
