@@ -1,3 +1,12 @@
+## 0.14.0 - Dump Loader
+  * Dump loader allows to execute dump files
+  * Splits sentences and executes one by one
+  * Shows the progress in realtime
+  * Can load from filesystem or from cloud
+  * Uncompress GZ if is needed
+  * Select database from contextual menu in browser
+  * Automatically handle *.sql.gz*, *.mysql*, *.mysql.gz* extensions.
+
 ## 0.13.0 - Global Storage
  * Store connections globally
  * Import/Export connections
