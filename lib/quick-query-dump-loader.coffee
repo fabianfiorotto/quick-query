@@ -113,7 +113,7 @@ class QuickQueryDumpLoader extends View
   @content: ->
     @div class: 'quick-query-dump-loader', =>
       @div class: 'block flex-row', =>
-        @div class: 'source btn-group', =>
+        @div class: 'source flex-row btn-group', =>
           @button outlet: 'desktop', class: 'btn icon icon-desktop-download'
           @button outlet: 'cloud', class: 'btn icon icon-cloud-download'
           @input outlet: 'url', type: 'url', class: 'input-text hidden native-key-bindings' ,placeholder: 'Type an URL', value: ""

@@ -37,7 +37,6 @@
 		border-color: @input-border-color;
 		border-radius: @component-border-radius;
 		background-color: @input-background-color;
-		width: auto;
 		overflow: auto;
 		.icon {
 			padding-left: @component-icon-padding * 2;
@@ -48,6 +47,12 @@
 		padding-top: @component-padding;
 		padding-right: @component-padding;
 		min-width: 250px;
+		.fileview, input {
+			flex: 99999;
+		}
+		.icon-desktop-download, .icon-cloud-download {
+			flex: 1;
+		}
 	}
 	.destination {
 		flex: 1;
