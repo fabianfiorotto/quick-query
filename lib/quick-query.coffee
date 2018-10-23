@@ -165,6 +165,8 @@ module.exports = QuickQuery =
       'core:delete':     => @activeResultView().deleteRecord()
       'core:page-up':    => @activeResultView().moveSelection('page-up')
       'core:page-down':  => @activeResultView().moveSelection('page-down')
+      'core:focus-next': => @activeResultView().focusNextCell()
+      'core:cancel':     => @activeResultView().editSelected()
       'core:save':    => @activeResultView().applyChanges() if atom.config.get('quick-query.resultsInTab')
       'core:save-as': => @activeResultView().saveCSV() if atom.config.get('quick-query.resultsInTab')
 
@@ -490,15 +492,10 @@ module.exports = QuickQuery =
         resultView.stopLoop()
         @updateStatusBar(resultView)
       @modalSpinner.hide()
-    if atom.config.get('quick-query.resultsInTab')
-      resultView = atom.workspace.getActivePaneItem()
-      resultView.editSelected() if resultView.editing
-    else
+    if !atom.config.get('quick-query.resultsInTab')
       editor = atom.workspace.getCenter().getActiveTextEditor()
       for i in @queryEditors when i.editor == editor
         resultView = i.panel.getItem()
-        if resultView.editing
-          resultView.editSelected()
-        else
+        if !resultView.isTableFocused()
           i.panel.hide()
           resultView.hideResults()

@@ -81,6 +81,16 @@ class QuickQueryResultView extends View
       if cell.right > table.right
         @tableWrapper.scrollLeft(@tableWrapper.scrollLeft() + cell.right - table.right + 1.5 * $td2.width())
 
+  isTableFocused: -> @table.is(':focus')
+
+  focusNextCell: ->
+    $td1 = @find('td.selected')
+    $td2 = $td1.next()
+    if $td2.length == 1 && $td1.hasClass('editing')
+      $td1.removeClass('selected')
+      $td2.addClass('selected')
+      @editRecord($td2[0])
+
   focusTable: ->
     @table.focus() unless @hasClass('confirmation')
 
@@ -255,7 +265,6 @@ class QuickQueryResultView extends View
   editRecord: (td)->
     if td.getElementsByTagName("atom-text-editor").length == 0
       td.classList.add('editing')
-      @editing  = true
       editor = document.createElement('atom-text-editor')
       editor.setAttribute('mini','mini');
       editor.classList.add('editor')
@@ -282,7 +291,6 @@ class QuickQueryResultView extends View
       $(editor).focus()
 
   setCellVal: (td,text)->
-    @editing = false
     td.classList.remove('editing','null')
     tr = td.parentNode
     #$tr.hasClass('status-removed') return

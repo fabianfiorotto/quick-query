@@ -8,3 +8,4 @@
 'atom-workspace .quick-query-result-table':
   'ctrl-s': 'quick-query:apply-changes'
   'ctrl-shift-s': 'quick-query:save-csv'
+  'tab': 'core:focus-next'
