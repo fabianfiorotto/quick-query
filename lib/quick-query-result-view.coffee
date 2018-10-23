@@ -454,13 +454,7 @@ class QuickQueryResultView extends View
     help = "-- The following SQL is going to be executed to apply the changes.\n"
     editor.setText(help+changes.join("\n"), bypassReadOnly: true)
     atom.textEditors.setGrammarOverride(editor, 'source.sql')
-    if editor.cursorLineDecorations?
-      for cursorLineDecoration in editor.cursorLineDecorations
-        cursorLineDecoration.destroy()
-    else
-      editor.getDecorations(class: 'cursor-line', type: 'line')[0].destroy()
     @preview.find('.container').html(editorElement)
-    editorElement.removeAttribute('tabindex') # make read-only
     @preview.find('.container').width($('.horizontal-scrollbar > div',editorElement).width()) #HACK
 
   executeChange: (sentence,tr,index)->
