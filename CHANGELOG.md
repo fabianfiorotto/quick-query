@@ -1,3 +1,9 @@
+## 0.15.0 - Edit next cell
+  * Use <kbd>tab</kbd> to edit next cell.
+  * Fix dump loader layout
+  * Fix cancel editing in atom >= 1.27.0
+  * Drop support for atom < 1.27
+
 ## 0.14.0 - Dump Loader
   * Dump loader allows to execute dump files
   * Splits sentences and executes one by one
