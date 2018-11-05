@@ -89,7 +89,7 @@ class QuickQueryResultView extends View
     if $td2.length == 1 && $td1.hasClass('editing')
       $td1.removeClass('selected')
       $td2.addClass('selected')
-      @editRecord($td2[0])
+      @editRecord($td2[0], 0)
 
   focusTable: ->
     @table.focus() unless @hasClass('confirmation')
@@ -163,7 +163,9 @@ class QuickQueryResultView extends View
           @table.find('td').removeClass('selected')
           e.currentTarget.classList.add('selected')
         if @connection.allowEdition
-          td.addEventListener 'dblclick', (e)=> @editRecord(e.currentTarget)
+          td.addEventListener 'dblclick', (e)=>
+            col = e.pageX - $(e.currentTarget).offset().left - 8
+            @editRecord(e.currentTarget, col)
         tr.appendChild td
       tbody.appendChild(tr)
     @table.html(tbody)
@@ -262,7 +264,7 @@ class QuickQueryResultView extends View
               fs.writeFile filepath, csv, (err)->
                 if (err) then console.log(err) else console.log('file saved')
 
-  editRecord: (td)->
+  editRecord: (td, cursor)->
     if td.getElementsByTagName("atom-text-editor").length == 0
       td.classList.add('editing')
       editor = document.createElement('atom-text-editor')
@@ -272,6 +274,9 @@ class QuickQueryResultView extends View
       textEditor.setText(td.textContent) unless td.classList.contains('null')
       td.innerHTML = ''
       td.appendChild(editor)
+      if cursor? && textEditor.getLineCount() == 1
+        charWidth = textEditor.getDefaultCharWidth()
+        textEditor.setCursorBufferPosition([0, Math.floor(cursor/charWidth)])
       textEditor.onDidChangeCursorPosition (e) =>
         if editor.offsetWidth > @tableWrapper.width() #center cursor on screen
           td = editor.parentNode
@@ -324,7 +329,9 @@ class QuickQueryResultView extends View
         @table.find('td').removeClass('selected')
         e.currentTarget.classList.add('selected')
       td.classList.add('default')
-      td.addEventListener 'dblclick', (e) => @editRecord(e.currentTarget)
+      td.addEventListener 'dblclick', (e) =>
+        col = e.pageX - $(e.currentTarget).offset().left - 8
+        @editRecord(e.currentTarget, col)
       tr.appendChild(td)
     @table.find('tbody').append(tr)
     @fixSizes() if number == 1
