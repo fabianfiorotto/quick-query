@@ -150,7 +150,19 @@ atom-pane .quick-query-result .quick-query-result-resize-handler{
 					width: 100%;
 					height: @component-line-height + @component-padding - 2px;
 					td.editing{
-						padding: 2px 0 0 0;
+						padding: 3px 0 0 8px;
+						border: 1px solid @button-background-color-selected;
+						background-color: @input-background-color;
+						atom-text-editor[mini] {
+							&, &.is-foucs {
+								border: 0;
+								box-shadow: none;
+								background-color: @input-background-color;
+								font-size: @font-size;
+								padding: 0;
+								border-radius: 0;
+							}
+						}
 					}
 					td.null.status-modified{
 						.status-modified();
@@ -163,6 +175,7 @@ atom-pane .quick-query-result .quick-query-result-resize-handler{
 						overflow:ellipsis;
 						text-overflow: ellipsis;
 						white-space: pre;
+						font-size: @font-size;
 						.lf::before{
 							content: "↵";
 						}
