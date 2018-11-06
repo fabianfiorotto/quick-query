@@ -96,7 +96,7 @@ class QuickQueryMysqlConnection
         if err && err.code == 'PROTOCOL_CONNECTION_LOST'
           @fatal = true
       @fatal = false
-    @connection.query {sql: text , timeout: @timeout }, (err, rows, fields)=>
+    @connection.query {sql: text ,arrayRows: true,  timeout: @timeout }, (err, rows, fields)=>
       if (err)
         @fatal = err.fatal
         callback  type: 'error' , content: err.toString()
@@ -112,6 +112,12 @@ class QuickQueryMysqlConnection
           callback(null,rows[0],fields[0])
         else
           callback type: 'success', content:  affectedRows+" row(s) affected"
+
+  objRowsMap: (rows,fields,callback)->
+    rows.map (r,i) =>
+      row = {}
+      row[field.name] = r[j] for field,j in fields
+      if callback? then callback(row) else row
 
   setDefaultDatabase: (database)->
     @connection.changeUser database: database, =>
@@ -130,7 +136,7 @@ class QuickQueryMysqlConnection
     text = "SHOW DATABASES"
     @query text , (err, rows, fields) =>
       if !err
-        databases = rows.map (row) =>
+        databases = @objRowsMap rows,fields, (row) =>
           new QuickQueryMysqlDatabase(@,row)
         databases = databases.filter (database) => !@hiddenDatabase(database.name)
       callback(databases,err)
@@ -140,7 +146,7 @@ class QuickQueryMysqlConnection
     text = "SHOW TABLES IN #{database_name}"
     @query text , (err, rows, fields) =>
       if !err
-        tables = rows.map (row) =>
+        tables = @objRowsMap rows,fields, (row) =>
           new QuickQueryMysqlTable(database,row,fields)
         callback(tables)
 
@@ -150,7 +156,7 @@ class QuickQueryMysqlConnection
     text = "SHOW COLUMNS IN #{table_name} IN #{database_name}"
     @query text , (err, rows, fields) =>
       if !err
-        columns = rows.map (row) =>
+        columns = @objRowsMap rows,fields, (row) =>
           new QuickQueryMysqlColumn(table,row)
         callback(columns)
 
@@ -236,17 +242,17 @@ class QuickQueryMysqlConnection
       for name,table of tables
         new Promise (resolve, reject) =>
           @getColumns table, (columns)=>
-            keys = (key for key in columns when key.primary_key)
+            keys = ({ ix: i, key: key} for key,i in columns when key.primary_key)
             allkeys = true
-            allkeys &= row[key.name]? for key in keys
+            allkeys &= row[k.ix]? for k in keys
             if allkeys && keys.length > 0
               assings = fields.map (field) =>
                 column = (column for column in columns when column.name == field.orgName)[0]
                 "#{@connection.escapeId(field.orgName)} = #{@escape(values[field.name],column.datatype)}"
               database = @connection.escapeId(table.database.name)
-              table = @connection.escapeId(table.name)
-              where = keys.map (key)=> "#{@connection.escapeId(key.name)} = #{@escape(row[key.name],key.datatype)}"
-              update = "UPDATE #{database}.#{table}"+
+              tableName = @connection.escapeId(table.name)
+              where = keys.map (k)=> "#{@connection.escapeId(k.key.name)} = #{@escape(row[k.ix],k.key.datatype)}"
+              update = "UPDATE #{database}.#{tableName}"+
               " SET #{assings.join(',')}"+
               " WHERE "+where.join(' AND ')+";"
               resolve(update)
@@ -280,14 +286,14 @@ class QuickQueryMysqlConnection
       for name,table of tables
         new Promise (resolve, reject) =>
           @getColumns table, (columns)=>
-            keys = (key for key in columns when key.primary_key)
+            keys = ({ ix: i, key: key} for key,i in columns when key.primary_key)
             allkeys = true
-            allkeys &= row[key.name]? for key in keys
+            allkeys &= row[k.ix]? for k in keys
             if allkeys && keys.length > 0
               database = @connection.escapeId(table.database.name)
-              table = @connection.escapeId(table.name)
-              where = keys.map (key)=> "#{@connection.escapeId(key.name)} = #{@escape(row[key.name],key.datatype)}"
-              del = "DELETE FROM #{database}.#{table}"+
+              tableName = @connection.escapeId(table.name)
+              where = keys.map (k)=> "#{@connection.escapeId(key.name)} = #{@escape(row[k.ix],k.key.datatype)}"
+              del = "DELETE FROM #{database}.#{tableName}"+
               " WHERE "+where.join(' AND ')+";"
               resolve(del)
             else
