@@ -349,79 +349,83 @@ class QuickQueryPostgresConnection
     column = @defaultConnection.escapeIdentifier(model.name)
     "ALTER TABLE #{database}.#{schema}.#{table} DROP COLUMN #{column};"
 
-  prepareValues: (values,fields)-> values
-
-  updateRecord: (row,fields,values)->
-    tables = @_tableGroup(fields)
+  updateRecord: (changes)->
+    tables = @_tableGroup(changes)
     Promise.all(
-      for oid,t of tables
-        new Promise (resolve, reject) =>
-          @getTableByOID t.database,t.oid, (table) =>
-            table.children (columns) =>
-              keys = ({ ix: i, key: key} for key,i in columns when key.primary_key)
-              allkeys = true
-              allkeys &= row[k.ix]? for k in keys
-              if allkeys && keys.length > 0
-                @_matchColumns(t.fields,columns)
-                assings = t.fields.filter( (field)-> field.column? ).map (field) =>
-                  "#{@defaultConnection.escapeIdentifier(field.column.name)} = #{@escape(values[field.name],field.column.datatype)}"
-                database = @defaultConnection.escapeIdentifier(table.schema.database.name)
-                schema = @defaultConnection.escapeIdentifier(table.schema.name)
-                table = @defaultConnection.escapeIdentifier(table.name)
-                where = keys.map (k)=> "#{@defaultConnection.escapeIdentifier(k.key.name)} = #{@escape(row[k.ix],k.key.datatype)}"
-                update = "UPDATE #{database}.#{schema}.#{table}"+
-                " SET #{assings.join(',')}"+
-                " WHERE "+where.join(' AND ')+";"
-                resolve(update)
-              else
-                resolve('')
+      @_updateRecordByTable(changes, t) for oid,t of tables
     ).then (updates) -> (new Promise (resolve, reject) -> resolve(updates.join("\n")))
 
+  _updateRecordByTable: (changes, t)->
+    new Promise (resolve, reject) =>
+      @getTableByOID t.database,t.oid, (table) =>
+        table.children (columns) =>
+          @_matchColumns(changes,columns,table.id)
+          keys = @_allKeys(t.changes,columns)
+          if keys?
+            update_changes = t.changes.filter (change)->
+              change.column? && typeof change.newValue isnt 'undefined'
+            return resolve('') if update_changes.length == 0
+            assings = update_changes.map (change) =>
+              "#{@defaultConnection.escapeIdentifier(change.column.name)} = #{@escape(change.newValue,change.column.datatype)}"
+            database = @defaultConnection.escapeIdentifier(table.schema.database.name)
+            schema = @defaultConnection.escapeIdentifier(table.schema.name)
+            tableName = @defaultConnection.escapeIdentifier(table.name)
+            where = keys.map (k)=> "#{@defaultConnection.escapeIdentifier(k.column.name)} = #{@escape(k.value,k.column.datatype)}"
+            update = "UPDATE #{database}.#{schema}.#{tableName}"+
+            " SET #{assings.join(',')}"+
+            " WHERE "+where.join(' AND ')+";"
+            resolve(update)
+          else
+            resolve('')
 
-  insertRecord: (fields,values)->
-    tables = @_tableGroup(fields)
+  insertRecord: (changes)->
+    tables = @_tableGroup(changes)
     Promise.all(
-      for oid,t of tables
-        new Promise (resolve, reject) =>
-          @getTableByOID t.database,t.oid, (table) =>
-            table.children (columns) =>
-              @_matchColumns(t.fields,columns)
-              aryfields = t.fields.filter( (field)-> field.column? ).map (field) =>
-                @defaultConnection.escapeIdentifier(field.column.name)
-              strfields = aryfields.join(',')
-              aryvalues = t.fields.filter( (field)-> field.column? ).map (field) =>
-                @escape(values[field.column.name],field.column.datatype)
-              strvalues = aryvalues.join(',')
-              database = @defaultConnection.escapeIdentifier(table.schema.database.name)
-              schema = @defaultConnection.escapeIdentifier(table.schema.name)
-              table = @defaultConnection.escapeIdentifier(table.name)
-              insert = "INSERT INTO #{database}.#{schema}.#{table}"+
-              " (#{strfields}) VALUES (#{strvalues});"
-              resolve(insert)
+      @_insertRecordByTable(changes, t) for oid,t of tables
     ).then (inserts) -> (new Promise (resolve, reject) -> resolve(inserts.join("\n")))
 
-  deleteRecord: (row,fields)->
-    tables = @_tableGroup(fields)
+  _insertRecordByTable: (changes, t)->
+    new Promise (resolve, reject) =>
+      @getTableByOID t.database,t.oid, (table) =>
+        table.children (columns) =>
+          @_matchColumns(changes,columns,table.id)
+          insert_changes = t.changes.filter((change)-> change.column? && typeof change.value isnt 'undefined')
+          return resolve('') if insert_changes.length == 0
+          aryfields = insert_changes.map (change) =>
+            @defaultConnection.escapeIdentifier(change.column.name)
+          strfields = aryfields.join(',')
+          aryvalues = insert_changes.map (change) =>
+            @escape(change.value,change.column.datatype)
+          strvalues = aryvalues.join(',')
+          database = @defaultConnection.escapeIdentifier(table.schema.database.name)
+          schema = @defaultConnection.escapeIdentifier(table.schema.name)
+          tableName = @defaultConnection.escapeIdentifier(table.name)
+          insert = "INSERT INTO #{database}.#{schema}.#{tableName}"+
+          " (#{strfields}) VALUES (#{strvalues});"
+          resolve(insert)
+
+  deleteRecord: (changes)->
+    tables = @_tableGroup(changes)
     Promise.all(
-      for oid,t of tables
-        new Promise (resolve, reject) =>
-          @getTableByOID t.database,t.oid, (table) =>
-            table.children (columns) =>
-              keys = ({ ix: i, key: key} for key,i in columns when key.primary_key)
-              allkeys = true
-              allkeys &= row[k.ix]? for k in keys
-              if allkeys && keys.length > 0
-                database = @defaultConnection.escapeIdentifier(table.schema.database.name)
-                schema = @defaultConnection.escapeIdentifier(table.schema.name)
-                table = @defaultConnection.escapeIdentifier(table.name)
-                where = keys.map (k)=> "#{@defaultConnection.escapeIdentifier(k.key.name)} = #{@escape(row[k.ix],k.key.datatype)}"
-                del = "DELETE FROM #{database}.#{schema}.#{table}"+
-                " WHERE "+where.join(' AND ')+";"
-                resolve(del)
-              else
-                resolve('')
+      @_deleteRecordByTable(changes, t) for oid,t of tables
     ).then (deletes) -> (new Promise (resolve, reject) -> resolve(deletes.join("\n")))
 
+  _deleteRecordByTable: (changes, t)->
+    new Promise (resolve, reject) =>
+      @getTableByOID t.database,t.oid, (table) =>
+        table.children (columns) =>
+          @_matchColumns(changes,columns,table.id)
+          keys = @_allKeys(t.changes,columns)
+          if keys?
+            database = @defaultConnection.escapeIdentifier(table.schema.database.name)
+            schema = @defaultConnection.escapeIdentifier(table.schema.name)
+            tableName = @defaultConnection.escapeIdentifier(table.name)
+            where = keys.map (k)=> "#{@defaultConnection.escapeIdentifier(k.column.name)} = #{@escape(k.value,k.column.datatype)}"
+            del = "DELETE FROM #{database}.#{schema}.#{tableName}"+
+            " WHERE "+where.join(' AND ')+";"
+            resolve(del)
+          else
+            resolve('')
 
   getTableByOID: (database,oid,callback)->
     @getDatabaseConnection database, (connection) =>
@@ -436,24 +440,32 @@ class QuickQueryPostgresConnection
           row = @objRowsMap(rows,fields)[0]
           schema = new QuickQueryPostgresSchema(db,row,fields)
           table = new QuickQueryPostgresTable(schema,row)
+          table.id = oid
           callback(table)
 
-  _matchColumns: (fields,columns)->
-    for field in fields
+  _matchColumns: (changes,columns,oid)->
+    for change in changes when change.field.tableID == oid
       for column in columns
-        field.column = column if column.id == field.columnID
+        change.column = column if column.id == change.field.columnID
 
-  _tableGroup: (fields)->
+  _tableGroup: (changes)->
     tables = {}
-    for field in fields
-      if field.tableID?
+    for change in changes
+      field = change.field
+      if field.tableID? && field.tableID != 0
         oid = field.tableID.toString()
         tables[oid] ?=
           oid: field.tableID
           database: field.db
-          fields: []
-        tables[oid].fields.push(field)
+          changes: []
+        tables[oid].changes.push(change)
     tables
+
+  _allKeys: (changes,columns)->
+    key_columns = columns.filter (column)-> column.primary_key
+    keys = changes.filter (change)->  change.column?.primary_key
+    if keys.length > 0 && key_columns.length == keys.length then keys else null
+
 
   onDidChangeDefaultDatabase: (callback)->
     @emitter.on 'did-change-default-database', callback

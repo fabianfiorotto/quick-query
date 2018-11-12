@@ -389,25 +389,26 @@ class QuickQueryResultView extends View
   getSentences: ->
     sentences = []
     @table.find('tbody tr').each (i,tr)=>
-      values = {}
+      changes = []
       promise = if tr.classList.contains('modified')
         row = @rows[i]
         for td,j in tr.childNodes
+          change = { field: @fields[j],  value: row[j] }
           if td.classList.contains('status-modified')
-            value = if td.classList.contains('null') then null else td.textContent
-            values[@fields[j].name] = value
-        fields = @fields.filter (field) -> values.hasOwnProperty(field.name)
-        @connection.updateRecord(row,fields,values)
+            change.newValue = if td.classList.contains('null') then null else td.textContent
+          changes.push change
+        @connection.updateRecord(changes)
       else if tr.classList.contains('added')
         for td,j in tr.childNodes
+          change = { field: @fields[j] }
           unless td.classList.contains('default')
-            value = if td.classList.contains('null') then null else td.textContent
-            values[@fields[j].name] = value
-        fields = @fields.filter (field) -> values.hasOwnProperty(field.name)
-        @connection.insertRecord(fields,values)
+            change.value = if td.classList.contains('null') then null else td.textContent
+          changes.push change
+        @connection.insertRecord(changes)
       else if tr.classList.contains('status-removed')
         row = @rows[i]
-        @connection.deleteRecord(row,@fields)
+        changes = @fields.map (field,j)-> {field: field, value: row[j]}
+        @connection.deleteRecord(changes)
       else null
       if promise? then sentences.push promise.then (sentence) ->
         new Promise (resolve,reject) -> resolve({sentence,tr,index:i})
@@ -474,7 +475,6 @@ class QuickQueryResultView extends View
     tbody = tr.parentNode
     values = for td in tr.children
       if td.classList.contains('null') then null else td.textContent
-    values = @connection.prepareValues(values,@fields)
     if tr.classList.contains('status-removed')
       @rows.splice(index,1)
       tbody.removeChild(tr)

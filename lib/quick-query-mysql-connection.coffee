@@ -231,85 +231,102 @@ class QuickQueryMysqlConnection
     column = @connection.escapeId(model.name)
     "ALTER TABLE #{database}.#{table} DROP COLUMN #{column};"
 
-  prepareValues: (values,fields)->
-    obj = {}
-    obj[f.name] = values[i] for f,i in fields
-    return obj
-
-  updateRecord: (row,fields,values)->
-    tables = @_tableGroup(fields)
+  updateRecord: (changes)->
+    tables = @_tableGroup(changes)
     Promise.all(
-      for name,table of tables
-        new Promise (resolve, reject) =>
-          @getColumns table, (columns)=>
-            keys = ({ ix: i, key: key} for key,i in columns when key.primary_key)
-            allkeys = true
-            allkeys &= row[k.ix]? for k in keys
-            if allkeys && keys.length > 0
-              assings = fields.map (field) =>
-                column = (column for column in columns when column.name == field.orgName)[0]
-                "#{@connection.escapeId(field.orgName)} = #{@escape(values[field.name],column.datatype)}"
-              database = @connection.escapeId(table.database.name)
-              tableName = @connection.escapeId(table.name)
-              where = keys.map (k)=> "#{@connection.escapeId(k.key.name)} = #{@escape(row[k.ix],k.key.datatype)}"
-              update = "UPDATE #{database}.#{tableName}"+
-              " SET #{assings.join(',')}"+
-              " WHERE "+where.join(' AND ')+";"
-              resolve(update)
-            else
-              resolve('')
+      @_updateRecordByTable(changes,table) for name,table of tables
     ).then (updates) -> (new Promise (resolve, reject) -> resolve(updates.join("\n")))
 
-  insertRecord: (fields,values)->
-    tables = @_tableGroup(fields)
+  _updateRecordByTable: (changes,table)->
+    new Promise (resolve, reject) =>
+      @getColumns table, (columns)=>
+        @_matchColumns(changes,columns)
+        keys = @_allKeys(table.changes,columns)
+        if keys?
+          update_changes = table.changes.filter (change)->
+            change.column? && typeof change.newValue isnt 'undefined'
+          return resolve('') if update_changes.length == 0
+          assings = update_changes.map (change, i) =>
+            "#{@connection.escapeId(change.field.orgName)} = #{@escape(change.newValue,change.column.datatype)}"
+          database = @connection.escapeId(table.database.name)
+          tableName = @connection.escapeId(table.name)
+          where = keys.map (k)=>
+            "#{@connection.escapeId(k.column.name)} = #{@escape(k.value,k.column.datatype)}"
+          update = "UPDATE #{database}.#{tableName}"+
+          " SET #{assings.join(',')}"+
+          " WHERE "+where.join(' AND ')+";"
+          resolve(update)
+        else
+          resolve('')
+
+  insertRecord: (changes)->
+    tables = @_tableGroup(changes)
     Promise.all(
-      for name,table of tables
-        new Promise (resolve, reject) =>
-          @getColumns table, (columns)=>
-            aryfields = table.fields.map (field) =>
-              @connection.escapeId(field.orgName)
-            strfields = aryfields.join(',')
-            aryvalues = table.fields.map (field) =>
-              column = (column for column in columns when column.name == field.orgName)[0]
-              @escape(values[field.name],column.datatype)
-            strvalues = aryvalues.join(',')
-            database = @connection.escapeId(table.database.name)
-            table = @connection.escapeId(table.name)
-            insert = "INSERT INTO #{database}.#{table}"+
-            " (#{strfields}) VALUES (#{strvalues});"
-            resolve(insert)
+      @_insertRecordByTable(changes,table) for name,table of tables
     ).then (inserts) -> (new Promise (resolve, reject) -> resolve(inserts.join("\n")))
 
-  deleteRecord: (row,fields)->
-    tables = @_tableGroup(fields)
+  _insertRecordByTable: (changes,table)->
+    new Promise (resolve, reject) =>
+      @getColumns table, (columns)=>
+        @_matchColumns(changes,columns)
+        insert_changes = table.changes.filter (change)->
+          change.column? && typeof change.value isnt 'undefined'
+        return resolve('') if insert_changes.length == 0
+        aryfields = insert_changes.map (change) =>
+          @connection.escapeId(change.field.orgName)
+        strfields = aryfields.join(',')
+        aryvalues = insert_changes.map (change) =>
+          @escape(change.value,change.column.datatype)
+        strvalues = aryvalues.join(',')
+        database = @connection.escapeId(table.database.name)
+        tableName = @connection.escapeId(table.name)
+        insert = "INSERT INTO #{database}.#{tableName}"+
+        " (#{strfields}) VALUES (#{strvalues});"
+        resolve(insert)
+
+  deleteRecord: (changes)->
+    tables = @_tableGroup(changes)
     Promise.all(
-      for name,table of tables
-        new Promise (resolve, reject) =>
-          @getColumns table, (columns)=>
-            keys = ({ ix: i, key: key} for key,i in columns when key.primary_key)
-            allkeys = true
-            allkeys &= row[k.ix]? for k in keys
-            if allkeys && keys.length > 0
-              database = @connection.escapeId(table.database.name)
-              tableName = @connection.escapeId(table.name)
-              where = keys.map (k)=> "#{@connection.escapeId(key.name)} = #{@escape(row[k.ix],k.key.datatype)}"
-              del = "DELETE FROM #{database}.#{tableName}"+
-              " WHERE "+where.join(' AND ')+";"
-              resolve(del)
-            else
-              resolve('')
+      @_deleteRecordByTable(changes, table) for name,table of tables
     ).then (deletes) -> (new Promise (resolve, reject) -> resolve(deletes.join("\n")))
 
-  _tableGroup: (fields)->
+  _deleteRecordByTable: (changes,table)->
+    new Promise (resolve, reject) =>
+      @getColumns table, (columns)=>
+        @_matchColumns(changes,columns)
+        keys = @_allKeys(table.changes,columns)
+        if keys?
+          database = @connection.escapeId(table.database.name)
+          tableName = @connection.escapeId(table.name)
+          where = keys.map (k)=> "#{@connection.escapeId(k.column.name)} = #{@escape(k.value,k.column.datatype)}"
+          del = "DELETE FROM #{database}.#{tableName}"+
+          " WHERE "+where.join(' AND ')+";"
+          resolve(del)
+        else
+          resolve('')
+
+  _matchColumns: (changes,columns)->
+    for change in changes
+      for column in columns
+        change.column = column if column.name == change.field.orgName && change.field.orgTable == column.table.name
+
+  _tableGroup: (changes)->
     tables = {}
-    for field in fields
-      if field.orgTable?
+    for change in changes
+      field = change.field
+      if field.orgTable? and field.orgTable != ''
         tables[field.orgTable] ?=
           name: field.orgTable
           database: {name: field.db}
-          fields: []
-        tables[field.orgTable].fields.push(field)
+          changes: []
+        tables[field.orgTable].changes.push(change)
     tables
+
+  _allKeys: (changes,columns)->
+    key_columns = columns.filter (column)-> column.primary_key
+    keys = changes.filter (change)->  change.column?.primary_key
+    if keys.length > 0 && key_columns.length == keys.length then keys else null
+
 
   onDidChangeDefaultDatabase: (callback)->
     @emitter.on 'did-change-default-database', callback
