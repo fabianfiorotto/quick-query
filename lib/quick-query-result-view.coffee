@@ -42,6 +42,7 @@ class QuickQueryResultView extends View
         @table class: 'quick-query-result-table table', outlet: 'table', tabindex: -1 , ''
       @div class: 'preview', outlet: 'preview' , =>
         @div class: 'container', syle: 'position:relative;', =>
+      @div class: 'edit-long-text', outlet: 'editLongText' , ''
       @div class: 'buttons', =>
         @button class: 'btn btn-success icon icon-check',outlet:'acceptButton', ''
         @button class: 'btn btn-error icon icon-x',outlet:'cancelButton',''
@@ -82,6 +83,8 @@ class QuickQueryResultView extends View
         @tableWrapper.scrollLeft(@tableWrapper.scrollLeft() + cell.right - table.right + 1.5 * $td2.width())
 
   isTableFocused: -> @table.is(':focus')
+
+  isEditingLongText: ()-> @hasClass('editing-long-text')
 
   focusNextCell: ->
     $td1 = @find('td.selected')
@@ -268,31 +271,47 @@ class QuickQueryResultView extends View
     if td.getElementsByTagName("atom-text-editor").length == 0
       td.classList.add('editing')
       editor = document.createElement('atom-text-editor')
-      editor.setAttribute('mini','mini');
       editor.classList.add('editor')
+      editor.setAttribute('mini','mini');
       textEditor = editor.getModel()
       textEditor.setText(td.textContent) unless td.classList.contains('null')
-      td.innerHTML = ''
-      td.appendChild(editor)
-      if cursor? && textEditor.getLineCount() == 1
-        charWidth = textEditor.getDefaultCharWidth()
-        textEditor.setCursorBufferPosition([0, Math.floor(cursor/charWidth)])
-      textEditor.onDidChangeCursorPosition (e) =>
-        if editor.offsetWidth > @tableWrapper.width() #center cursor on screen
+      if textEditor.getLineCount() == 1
+        td.innerHTML = ''
+        td.appendChild(editor)
+        if cursor?
+          charWidth = textEditor.getDefaultCharWidth()
+          textEditor.setCursorBufferPosition([0, Math.floor(cursor/charWidth)])
+        textEditor.onDidChangeCursorPosition (e) =>
+          if editor.offsetWidth > @tableWrapper.width() #center cursor on screen
+            td = editor.parentNode
+            tr = td.parentNode
+            charWidth =  textEditor.getDefaultCharWidth()
+            column = e.newScreenPosition.column
+            trleft = -1 * $(tr).offset().left
+            tdleft =  $(td).offset().left
+            width = @tableWrapper.width() / 2
+            left = trleft + tdleft - width
+            if Math.abs(@tableWrapper.scrollLeft() - (left + column * charWidth)) > width
+              @tableWrapper.scrollLeft(left + column * charWidth)
+        editor.addEventListener 'blur', (e) =>
+          editor = e.currentTarget
           td = editor.parentNode
-          tr = td.parentNode
-          charWidth =  textEditor.getDefaultCharWidth()
-          column = e.newScreenPosition.column
-          trleft = -1 * $(tr).offset().left
-          tdleft =  $(td).offset().left
-          width = @tableWrapper.width() / 2
-          left = trleft + tdleft - width
-          if Math.abs(@tableWrapper.scrollLeft() - (left + column * charWidth)) > width
-            @tableWrapper.scrollLeft(left + column * charWidth)
-      editor.addEventListener 'blur', (e) =>
-        td = e.currentTarget.parentNode
-        val = e.currentTarget.getModel().getText()
-        @setCellVal(td,val)
+          val = editor.getModel().getText()
+          @setCellVal(td,val)
+      else
+        editor = document.createElement('atom-text-editor')
+        editor.classList.add('editor')
+        textEditor = editor.getModel()
+        textEditor.setText(td.textContent)
+        textEditor.update({autoHeight: false})
+        @addClass('editing-long-text')
+        @editLongText.html(editor)
+        editor.addEventListener 'blur', (e) =>
+          editor = e.currentTarget
+          @removeClass('editing-long-text')
+          td = $('.editing',@table)[0]
+          val = editor.getModel().getText()
+          @setCellVal(td,val)
       $(editor).focus()
 
   setCellVal: (td,text)->
