@@ -40,8 +40,7 @@ class QuickQueryResultView extends View
       @table class: 'table quick-query-result-header', outlet: 'header', =>
       @div class: 'quick-query-result-table-wrapper', outlet: 'tableWrapper' , =>
         @table class: 'quick-query-result-table table', outlet: 'table', tabindex: -1 , ''
-      @div class: 'preview', outlet: 'preview' , =>
-        @div class: 'container', syle: 'position:relative;', =>
+      @div class: 'preview', outlet: 'preview' , ''
       @div class: 'edit-long-text', outlet: 'editLongText' , ''
       @div class: 'buttons', =>
         @button class: 'btn btn-success icon icon-check',outlet:'acceptButton', ''
@@ -477,11 +476,12 @@ class QuickQueryResultView extends View
     editorElement.setAttributeNode(document.createAttribute('gutter-hidden'))
     editorElement.setAttributeNode(document.createAttribute('readonly'))
     editor = editorElement.getModel()
+    editor.update({autoHeight: false})
     help = "-- The following SQL is going to be executed to apply the changes.\n"
     editor.setText(help+changes.join("\n"), bypassReadOnly: true)
     atom.textEditors.setGrammarOverride(editor, 'source.sql')
-    @preview.find('.container').html(editorElement)
-    @preview.find('.container').width($('.horizontal-scrollbar > div',editorElement).width()) #HACK
+    @preview.html(editorElement)
+    # @preview.find('.container').width($('.horizontal-scrollbar > div',editorElement).width()) #HACK
 
   executeChange: (sentence,tr,index)->
     @connection.query sentence, (msg,_r,_f) =>
