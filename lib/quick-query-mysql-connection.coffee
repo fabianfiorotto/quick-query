@@ -60,6 +60,7 @@ class QuickQueryMysqlConnection
   s_types: 'CHAR VARCHAR TINYBLOB TINYTEXT MEDIUMBLOB MEDIUMTEXT LONGBLOB LONGTEXT BLOB TEXT DATETIME DATE TIME'.split /\s+/
 
   allowEdition: true
+  @sshSupport: true
   @defaultPort: 3306
 
   constructor: (@info)->
@@ -82,6 +83,7 @@ class QuickQueryMysqlConnection
     database: c.database,
     user: c.user,
     password: c.password
+    ssh: if @info.ssh? then @info.ssh else null
 
   dispose: ->
     @close()
