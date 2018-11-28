@@ -496,6 +496,8 @@ module.exports = QuickQuery =
       editor = atom.workspace.getCenter().getActiveTextEditor()
       for i in @queryEditors when i.editor == editor
         resultView = i.panel.getItem()
-        if !resultView.isTableFocused()
+        if resultView.isEditingLongText()
+          resultView.focusTable()
+        else if !resultView.isTableFocused()
           i.panel.hide()
           resultView.hideResults()

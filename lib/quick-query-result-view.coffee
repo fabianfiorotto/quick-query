@@ -40,8 +40,8 @@ class QuickQueryResultView extends View
       @table class: 'table quick-query-result-header', outlet: 'header', =>
       @div class: 'quick-query-result-table-wrapper', outlet: 'tableWrapper' , =>
         @table class: 'quick-query-result-table table', outlet: 'table', tabindex: -1 , ''
-      @div class: 'preview', outlet: 'preview' , =>
-        @div class: 'container', syle: 'position:relative;', =>
+      @div class: 'preview', outlet: 'preview' , ''
+      @div class: 'edit-long-text', outlet: 'editLongText' , ''
       @div class: 'buttons', =>
         @button class: 'btn btn-success icon icon-check',outlet:'acceptButton', ''
         @button class: 'btn btn-error icon icon-x',outlet:'cancelButton',''
@@ -83,13 +83,15 @@ class QuickQueryResultView extends View
 
   isTableFocused: -> @table.is(':focus')
 
+  isEditingLongText: ()-> @hasClass('editing-long-text')
+
   focusNextCell: ->
     $td1 = @find('td.selected')
     $td2 = $td1.next()
     if $td2.length == 1 && $td1.hasClass('editing')
       $td1.removeClass('selected')
       $td2.addClass('selected')
-      @editRecord($td2[0])
+      @editRecord($td2[0], 0)
 
   focusTable: ->
     @table.focus() unless @hasClass('confirmation')
@@ -163,7 +165,9 @@ class QuickQueryResultView extends View
           @table.find('td').removeClass('selected')
           e.currentTarget.classList.add('selected')
         if @connection.allowEdition
-          td.addEventListener 'dblclick', (e)=> @editRecord(e.currentTarget)
+          td.addEventListener 'dblclick', (e)=>
+            col = e.pageX - $(e.currentTarget).offset().left - 8
+            @editRecord(e.currentTarget, col)
         tr.appendChild td
       tbody.appendChild(tr)
     @table.html(tbody)
@@ -262,32 +266,51 @@ class QuickQueryResultView extends View
               fs.writeFile filepath, csv, (err)->
                 if (err) then console.log(err) else console.log('file saved')
 
-  editRecord: (td)->
+  editRecord: (td, cursor)->
     if td.getElementsByTagName("atom-text-editor").length == 0
       td.classList.add('editing')
       editor = document.createElement('atom-text-editor')
-      editor.setAttribute('mini','mini');
       editor.classList.add('editor')
+      editor.setAttribute('mini','mini');
       textEditor = editor.getModel()
       textEditor.setText(td.textContent) unless td.classList.contains('null')
-      td.innerHTML = ''
-      td.appendChild(editor)
-      textEditor.onDidChangeCursorPosition (e) =>
-        if editor.offsetWidth > @tableWrapper.width() #center cursor on screen
+      if textEditor.getLineCount() == 1
+        td.innerHTML = ''
+        td.appendChild(editor)
+        if cursor?
+          charWidth = textEditor.getDefaultCharWidth()
+          textEditor.setCursorBufferPosition([0, Math.floor(cursor/charWidth)])
+        textEditor.onDidChangeCursorPosition (e) =>
+          if editor.offsetWidth > @tableWrapper.width() #center cursor on screen
+            td = editor.parentNode
+            tr = td.parentNode
+            charWidth =  textEditor.getDefaultCharWidth()
+            column = e.newScreenPosition.column
+            trleft = -1 * $(tr).offset().left
+            tdleft =  $(td).offset().left
+            width = @tableWrapper.width() / 2
+            left = trleft + tdleft - width
+            if Math.abs(@tableWrapper.scrollLeft() - (left + column * charWidth)) > width
+              @tableWrapper.scrollLeft(left + column * charWidth)
+        editor.addEventListener 'blur', (e) =>
+          editor = e.currentTarget
           td = editor.parentNode
-          tr = td.parentNode
-          charWidth =  textEditor.getDefaultCharWidth()
-          column = e.newScreenPosition.column
-          trleft = -1 * $(tr).offset().left
-          tdleft =  $(td).offset().left
-          width = @tableWrapper.width() / 2
-          left = trleft + tdleft - width
-          if Math.abs(@tableWrapper.scrollLeft() - (left + column * charWidth)) > width
-            @tableWrapper.scrollLeft(left + column * charWidth)
-      editor.addEventListener 'blur', (e) =>
-        td = e.currentTarget.parentNode
-        val = e.currentTarget.getModel().getText()
-        @setCellVal(td,val)
+          val = editor.getModel().getText()
+          @setCellVal(td,val)
+      else
+        editor = document.createElement('atom-text-editor')
+        editor.classList.add('editor')
+        textEditor = editor.getModel()
+        textEditor.setText(td.textContent)
+        textEditor.update({autoHeight: false})
+        @addClass('editing-long-text')
+        @editLongText.html(editor)
+        editor.addEventListener 'blur', (e) =>
+          editor = e.currentTarget
+          @removeClass('editing-long-text')
+          td = $('.editing',@table)[0]
+          val = editor.getModel().getText()
+          @setCellVal(td,val)
       $(editor).focus()
 
   setCellVal: (td,text)->
@@ -324,7 +347,9 @@ class QuickQueryResultView extends View
         @table.find('td').removeClass('selected')
         e.currentTarget.classList.add('selected')
       td.classList.add('default')
-      td.addEventListener 'dblclick', (e) => @editRecord(e.currentTarget)
+      td.addEventListener 'dblclick', (e) =>
+        col = e.pageX - $(e.currentTarget).offset().left - 8
+        @editRecord(e.currentTarget, col)
       tr.appendChild(td)
     @table.find('tbody').append(tr)
     @fixSizes() if number == 1
@@ -452,11 +477,12 @@ class QuickQueryResultView extends View
     editorElement.setAttributeNode(document.createAttribute('gutter-hidden'))
     editorElement.setAttributeNode(document.createAttribute('readonly'))
     editor = editorElement.getModel()
+    editor.update({autoHeight: false})
     help = "-- The following SQL is going to be executed to apply the changes.\n"
     editor.setText(help+changes.join("\n"), bypassReadOnly: true)
     atom.textEditors.setGrammarOverride(editor, 'source.sql')
-    @preview.find('.container').html(editorElement)
-    @preview.find('.container').width($('.horizontal-scrollbar > div',editorElement).width()) #HACK
+    @preview.html(editorElement)
+    # @preview.find('.container').width($('.horizontal-scrollbar > div',editorElement).width()) #HACK
 
   executeChange: (sentence,tr,index)->
     @connection.query sentence, (msg,_r,_f) =>
