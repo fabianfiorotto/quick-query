@@ -482,7 +482,6 @@ class QuickQueryResultView extends View
     editor.setText(help+changes.join("\n"), bypassReadOnly: true)
     atom.textEditors.setGrammarOverride(editor, 'source.sql')
     @preview.html(editorElement)
-    # @preview.find('.container').width($('.horizontal-scrollbar > div',editorElement).width()) #HACK
 
   executeChange: (sentence,tr,index)->
     @connection.query sentence, (msg,_r,_f) =>
