@@ -2,6 +2,9 @@
 
 Do queries against your local databases quickly. By default it only supports MySQL and PostgreSQL.
 
+## Getting started
+After install go to View  »  Toggle Database Browser. [Read More ](https://github.com/fabianfiorotto/quick-query/wiki)
+
 ## Features
 - Visualize query results
 - Database browser

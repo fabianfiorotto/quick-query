@@ -1,3 +1,8 @@
+## 1.0.0 - SHH
+  * Array api for mysql #50
+  * SSH support for mysql #49
+  * Edit multiple lines cell.
+
 ## 0.15.0 - Edit next cell
   * Use <kbd>tab</kbd> to edit next cell.
   * Fix dump loader layout
