@@ -17,6 +17,11 @@ class QuickQueryConnectView extends View
     sshportEditor = @sshport[0].getModel()
     sshportEditor.setText('22')
 
+    @onWillConnect (promise) =>
+      @connect.prop('disabled',true)
+      fn = (=> @connect.prop('disabled',false))
+      promise.then(fn).catch(fn)
+
     @connect.keydown (e) ->
       $(this).click() if e.keyCode == 13
     @protocol
@@ -155,7 +160,7 @@ class QuickQueryConnectView extends View
     new Promise (resolve, reject)=>
       protocolClass = @protocols[connectionInfo.protocol]?.handler
       conn = new ssh2.Client()
-      conn.on 'error', (err) -> reject(err) 
+      conn.on 'error', (err) -> reject(err)
       conn.on 'ready', =>
         conn.forwardOut '127.0.0.1', 12345, '127.0.0.1' ,connectionInfo.port, (err, stream) =>
           conn.end?() if err?
