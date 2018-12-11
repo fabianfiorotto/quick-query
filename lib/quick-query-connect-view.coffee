@@ -14,6 +14,9 @@ class QuickQueryConnectView extends View
     portEditor = @port[0].getModel()
     portEditor.setText('3306')
 
+    sshportEditor = @sshport[0].getModel()
+    sshportEditor.setText('22')
+
     @connect.keydown (e) ->
       $(this).click() if e.keyCode == 13
     @protocol
@@ -93,6 +96,7 @@ class QuickQueryConnectView extends View
         connectionInfo.ssh =
           username: @sshuser[0].getModel().getText()
           password: @sshpass[0].getModel().getText()
+          port: @sshport[0].getModel().getText()
         connectionInfo.ssh.keyfile = @sshkey.data('file') if @sshkey.hasClass('selected')
       $(@element).trigger('quickQuery.connect',[@buildConnection(connectionInfo)])
     @advanced_toggle.click (e) =>
@@ -140,7 +144,7 @@ class QuickQueryConnectView extends View
     ssh = connectionInfo.ssh
     conf =
       host: connectionInfo.host,
-      port: '22',
+      port: ssh.port,
       username: ssh.username,
     if ssh.keyfile?
       conf.privateKey = require('fs').readFileSync(ssh.keyfile)
@@ -151,6 +155,7 @@ class QuickQueryConnectView extends View
     new Promise (resolve, reject)=>
       protocolClass = @protocols[connectionInfo.protocol]?.handler
       conn = new ssh2.Client()
+      conn.on 'error', (err) -> reject(err) 
       conn.on 'ready', =>
         conn.forwardOut '127.0.0.1', 12345, '127.0.0.1' ,connectionInfo.port, (err, stream) =>
           conn.end?() if err?
@@ -198,14 +203,17 @@ class QuickQueryConnectView extends View
           @label 'default database (optional)'
           @currentBuilder.tag 'atom-text-editor',outlet: "database", id: "quick-query-database", class: 'editor', mini: 'mini', type: 'string'
         @div class: "ssh-info col-sm-6" , =>
-          @label 'SSH Username'
+          @label 'SSH username'
           @currentBuilder.tag 'atom-text-editor',outlet: "sshuser", id: "quick-query-ssh-user", class: 'editor', mini: 'mini', type: 'string'
-        @div class: "ssh-info col-sm-6" , =>
-          @label outlet: 'sshpass_label', 'SSH Password'
+        @div class: "ssh-info col-sm-4" , =>
+          @label outlet: 'sshpass_label', 'SSH password'
           @div class:'flex-row', =>
             @div =>
-              @currentBuilder.tag 'atom-text-editor',outlet: "sshpass", id: "quick-query-ssh-user", class: 'editor', mini: 'mini', type: 'string'
-            @button outlet:"sshkey", id:"quick-query-key", class: "btn btn-default icon icon-key",  ""
+              @currentBuilder.tag 'atom-text-editor',outlet: "sshpass", id: "quick-query-ssh-pass", class: 'editor', mini: 'mini', type: 'string'
+            @button outlet:"sshkey", title: "Load SSH Key", id:"quick-query-key", class: "btn btn-default icon icon-key",  ""
+        @div class: "ssh-info col-sm-2" , =>
+          @label 'SSH port'
+          @currentBuilder.tag 'atom-text-editor',outlet: "sshport", id: "quick-query-ssh-port", class: 'editor', mini: 'mini', type: 'string'
 
       @div class: "col-sm-12" , =>
         @button outlet:"connect", id:"quick-query-connect", class: "btn btn-default icon icon-plug" , tabindex: "7" , "Connect"
