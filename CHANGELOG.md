@@ -1,3 +1,7 @@
+## 1.0.1 - SHH pt2
+  * Add the ability of change ssh port.
+  * Remove timeout in ssh.
+
 ## 1.0.0 - SHH
   * Array api for mysql #50
   * SSH support for mysql #49
