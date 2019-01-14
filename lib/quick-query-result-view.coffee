@@ -274,6 +274,7 @@ class QuickQueryResultView extends View
       editor.setAttribute('mini','mini');
       textEditor = editor.getModel()
       textEditor.setText(td.textContent) unless td.classList.contains('null')
+      textEditor.getBuffer().clearUndoStack()
       if textEditor.getLineCount() == 1
         td.innerHTML = ''
         td.appendChild(editor)

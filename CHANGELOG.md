@@ -1,5 +1,5 @@
 ## 1.0.1 - SHH pt2
-  * Add the ability of change ssh port.
+  * Add the ability to change ssh port.
   * Remove timeout in ssh.
 
 ## 1.0.0 - SHH

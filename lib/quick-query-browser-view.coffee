@@ -317,6 +317,7 @@ class QuickQueryBrowserView extends ScrollView
         atom.workspace.open().then (editor) =>
           atom.textEditors.setGrammarOverride(editor, 'source.sql')
           editor.insertText(text)
+          editor.getBuffer().clearUndoStack()
 
   importDump: ->
     $li = @find('li.selected')
