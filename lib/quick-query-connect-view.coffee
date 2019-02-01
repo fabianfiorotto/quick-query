@@ -11,16 +11,29 @@ class QuickQueryConnectView extends View
     super
 
   initialize: ->
-    portEditor = @port[0].getModel()
-    portEditor.setText('3306')
+    @port.val('3306')
 
-    sshportEditor = @sshport[0].getModel()
-    sshportEditor.setText('22')
+    @sshport.val('22')
 
     @onWillConnect (promise) =>
       @connect.prop('disabled',true)
       fn = (=> @connect.prop('disabled',false))
       promise.then(fn).catch(fn)
+
+    @pass.focus =>
+      @showpass.stop().show()
+    @pass.blur =>
+      @showpass.fadeOut()
+
+    @showpass.click =>
+      @showpass.toggleClass("on")
+      if @showpass.hasClass("on")
+        @pass.attr("type","text")
+        @sshpass.attr("type","text")
+      else
+        @pass.attr("type","password")
+        @sshpass.attr("type","password")
+      @pass.focus()
 
     @connect.keydown (e) ->
       $(this).click() if e.keyCode == 13
@@ -48,7 +61,7 @@ class QuickQueryConnectView extends View
               @browse_file.data('extensions',false)
           else
             @showRemoteInfo()
-            portEditor.setText(protocol.handler.defaultPort.toString())
+            @port.val(protocol.handler.defaultPort.toString())
 
     @browse_file.click (e) =>
         options =
@@ -83,38 +96,32 @@ class QuickQueryConnectView extends View
 
     @connect.click (e) =>
       connectionInfo = {
-        user: @user[0].getModel().getText(),
-        password: @pass[0].getModel().getText()
+        user: @user.val(),
+        password: @pass.val()
         protocol: @protocol.val()
       }
       if @protocols[connectionInfo.protocol]?.handler.fromFilesystem?
-        connectionInfo.file = @file[0].getModel().getText()
+        connectionInfo.file = @file.val()
       else
-        connectionInfo.host = @host[0].getModel().getText()
-        connectionInfo.port = @port[0].getModel().getText()
+        connectionInfo.host = @host.val()
+        connectionInfo.port = @port.val()
       if @protocols[connectionInfo.protocol]?.default?
         defaults = @protocols[connectionInfo.protocol].default
         connectionInfo[attr] = value for attr,value of defaults
-      if @database[0].getModel().getText() != ''
-        connectionInfo.database = @database[0].getModel().getText()
-      if @sshuser[0].getModel().getText() != ''
+      if @database.val() != ''
+        connectionInfo.database = @database.val()
+      if @sshuser.val() != ''
         connectionInfo.ssh =
-          username: @sshuser[0].getModel().getText()
-          password: @sshpass[0].getModel().getText()
-          port: @sshport[0].getModel().getText()
+          username: @sshuser.val()
+          password: @sshpass.val()
+          port: @sshport.val()
         connectionInfo.ssh.keyfile = @sshkey.data('file') if @sshkey.hasClass('selected')
       $(@element).trigger('quickQuery.connect',[@buildConnection(connectionInfo)])
     @advanced_toggle.click (e) =>
-      @find(".qq-advanced-info").slideToggle 400, =>
+      @advanced_info.slideToggle 400, =>
+        hidden = @advanced_info.is(":hidden")
+        @advanced_info.find('input').attr 'tabindex', (i,attr) -> if hidden then null else i + 6
         @advanced_toggle.children("i").toggleClass("icon-chevron-down icon-chevron-left")
-
-  fixTabindex: ->
-    @file.attr('tabindex',2)
-    @host.attr('tabindex',2)
-    @port.attr('tabindex',3)
-    @user.attr('tabindex',4)
-    @pass.attr('tabindex',5)
-    @database.attr('tabindex',6)
 
   addProtocol: (key,protocol)->
     @protocols[key] = protocol
@@ -177,56 +184,58 @@ class QuickQueryConnectView extends View
     @div class: 'dialog quick-query-connect', =>
       @div class: "col-sm-12" , =>
         @label 'protocol'
-        @select outlet: "protocol", class: "form-control input-select" , id: "quick-query-protocol", tabindex: "1"
+        @select outlet: "protocol", class: "form-control input-select" , id: "quick-query-protocol", tabindex: 1
       @div class: "qq-remote-info row", =>
         @div class: "col-sm-9" , =>
           @label 'host'
-          @currentBuilder.tag 'atom-text-editor', outlet: "host", id: "quick-query-host", class: 'editor', mini: 'mini', type: 'string'
+          @input outlet: "host", class: "input-text native-key-bindings", id: "quick-query-host", type: "text", tabindex: 2
         @div class:"col-sm-3" , =>
           @label 'port'
-          @currentBuilder.tag 'atom-text-editor', outlet: "port", id: "quick-query-port", class: 'editor', mini: 'mini', type: 'string'
+          @input outlet: "port", class: "input-number native-key-bindings", id: "quick-query-port", type: "number", min:0, max: 65536, tabindex: 3
       @div class: "qq-local-info row" , =>
         @div class: "col-sm-12", =>
           @label 'file'
         @div class: "col-sm-9", =>
-          @currentBuilder.tag 'atom-text-editor',outlet: "file", id: "quick-query-file", class: 'editor', mini: 'mini', type: 'string'
+          @input outlet: 'file', class: "input-text native-key-bindings", id: "quick-query-file", type: "text", tabindex: 2
         @div class: "col-sm-3", =>
           @button outlet: "browse_file", id:"quick-query-browse-file", class: "btn btn-default icon icon-file-directory", "Browse"
       @div class: "qq-auth-info row", =>
         @div class: "col-sm-6" , =>
           @label 'user'
-          @currentBuilder.tag 'atom-text-editor', outlet: "user", id: "quick-query-user", class: 'editor', mini: 'mini', type: 'string'
+          @input outlet: 'user', class: "input-text native-key-bindings", id: "quick-query-user", type: "text", tabindex: 4
         @div class: "col-sm-6" , =>
           @label 'password'
-          @currentBuilder.tag 'atom-text-editor', outlet: "pass", id: "quick-query-pass", class: 'editor', mini: 'mini'
+          @div class: "pass-wrapper", =>
+            @input outlet: 'pass' ,class: "input-text native-key-bindings", id: "quick-query-pass", type: "password", tabindex: 5
+            @button outlet:"showpass", class:"show-password", title:"Show password", tabindex: "-1", =>
+              @i class: "icon icon-eye"
       @div class: "qq-advanced-info-toggler row", =>
         @div class: "col-sm-12", =>
           @button outlet:"advanced_toggle", class: "advance-toggle", tabindex: "-1", title:"toggle advanced options",=>
             @i  class: "icon icon-chevron-left"
-      @div class: "qq-advanced-info row", =>
+      @div outlet: "advanced_info", class: "qq-advanced-info row", =>
         @div class: "col-sm-12" , =>
           @label 'default database (optional)'
-          @currentBuilder.tag 'atom-text-editor',outlet: "database", id: "quick-query-database", class: 'editor', mini: 'mini', type: 'string'
+          @input outlet: 'database' ,class: "input-text native-key-bindings", id: "quick-query-database", type: "text"
         @div class: "ssh-info col-sm-6" , =>
           @label 'SSH username'
-          @currentBuilder.tag 'atom-text-editor',outlet: "sshuser", id: "quick-query-ssh-user", class: 'editor', mini: 'mini', type: 'string'
+          @input outlet: 'sshuser' ,class: "input-text native-key-bindings", id: "quick-query-ssh-user", type: "text"
         @div class: "ssh-info col-sm-4" , =>
           @label outlet: 'sshpass_label', 'SSH password'
           @div class:'flex-row', =>
             @div =>
-              @currentBuilder.tag 'atom-text-editor',outlet: "sshpass", id: "quick-query-ssh-pass", class: 'editor', mini: 'mini', type: 'string'
+              @input outlet: 'sshpass', class: "input-text native-key-bindings", id: "quick-query-ssh-pass", type: "password"
             @button outlet:"sshkey", title: "Load SSH Key", id:"quick-query-key", class: "btn btn-default icon icon-key",  ""
         @div class: "ssh-info col-sm-2" , =>
-          @label 'SSH port'
-          @currentBuilder.tag 'atom-text-editor',outlet: "sshport", id: "quick-query-ssh-port", class: 'editor', mini: 'mini', type: 'string'
+          @label for: "quick-query-ssh-port",'SSH port'
+          @input outlet: 'sshport', class: "input-text native-key-bindings", id: "quick-query-ssh-port", type: "number", min:0, max: 65536
 
       @div class: "col-sm-12" , =>
-        @button outlet:"connect", id:"quick-query-connect", class: "btn btn-default icon icon-plug" , tabindex: "7" , "Connect"
+        @button outlet:"connect", id:"quick-query-connect", class: "btn btn-default icon icon-plug" , tabindex: "99" , "Connect"
 
   destroy: ->
     @element.remove()
   focusFirst: ->
-    @fixTabindex()
     @protocol.focus()
 
   showLocalInfo: ->

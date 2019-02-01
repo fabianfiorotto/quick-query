@@ -13,6 +13,48 @@
 		margin-bottom: @component-padding;
 	}
 
+	.input-number{
+		width: 100%;
+	}
+	.input-text, .input-number,.input-select{
+		font-size: @input-font-size;
+		line-height: @component-line-height;
+		padding: 0 0 0 @component-padding/2;
+		margin-bottom: @component-padding;
+	}
+
+	.input-text, .input-number,.input-select{
+		color: mix(@input-background-color,@text-color,15%);
+		border-color: mix(@tool-panel-background-color,@input-border-color,10%);
+		background-color: mix(@text-color,@input-background-color,3%);
+		&:focus{
+			color: @text-color;
+			background-color: @input-background-color;
+		}
+	}
+
+	.pass-wrapper{
+		position: relative;
+	}
+
+	.show-password{
+		height: @component-line-height;
+		position: absolute;
+		bottom: 2px;
+		right: 2px;
+		border: none;
+		background: none;
+		display:none;
+		color: mix(@text-color,@input-background-color,50%);
+		&.on{
+			color: @text-color;
+		}
+	}
+
+	#quick-query-key {
+		height: 100%;
+	}
+
 	#quick-query-browse-file{
 		width: 100%;
 	}
@@ -31,6 +73,10 @@
 
 	.qq-advanced-info{
 		display: none;
+	}
+
+	label[for=quick-query-ssh-port] {
+		white-space: nowrap;
 	}
 
 	.flex-row {
