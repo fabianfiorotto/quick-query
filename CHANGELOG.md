@@ -1,3 +1,6 @@
+## 1.1.0 - Connect view
+  * Replace all mini editors with html inputs in connect view #57.
+
 ## 1.0.1 - SHH pt2
   * Add the ability to change ssh port.
   * Remove timeout in ssh.
