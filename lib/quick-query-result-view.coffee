@@ -304,6 +304,7 @@ class QuickQueryResultView extends View
         textEditor = editor.getModel()
         textEditor.setText(td.textContent)
         textEditor.update({autoHeight: false})
+        textEditor.getBuffer().clearUndoStack()
         @addClass('editing-long-text')
         @editLongText.html(editor)
         editor.addEventListener 'blur', (e) =>

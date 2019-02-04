@@ -71,7 +71,7 @@ class QuickQueryConnectView extends View
         if $(e.currentTarget).data("extensions")
           options.filters = [{ name: 'Database', extensions: $(e.target).data("extensions") }]
         remote.dialog.showOpenDialog currentWindow, options, (files) =>
-          @file[0].getModel().setText(files[0]) if files?
+          @file.val(files[0]) if files?
 
     for key,protocol of @protocols
       option = $('<option/>')
