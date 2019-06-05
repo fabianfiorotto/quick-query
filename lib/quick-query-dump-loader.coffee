@@ -3,6 +3,7 @@
 fs = require 'fs'
 remote = require 'remote'
 path = require 'path'
+ssh2 = require 'ssh2'
 module.exports =
 class QuickQueryDumpLoader extends View
   initialize: (@browser, options = {} )->
@@ -292,14 +293,47 @@ class QuickQueryDumpLoader extends View
       connectionInfo = oldConnection.serialize()
       connectionInfo['database'] = @database.val()
       @progress.attr('max',statements.length)
-      connection = new oldConnection.constructor(connectionInfo)
-      connection.connect (err)=>
-        if (!err)
-          @executeStatementsIteration connection,statements, (err)->
-            connection.close()
+      if connectionInfo.ssh?
+        connectionPromise = @getConnectionSSH(oldConnection.constructor, connectionInfo)
+      else
+        connectionPromise = @getConnection(oldConnection.constructor, connectionInfo)
+      connectionPromise
+        .then (connection) =>
+          @executeStatementsIteration connection, statements, (err)->
             if err then reject(err) else resolve(true)
-        else
-          reject(err)
+        .catch (err) -> reject(err)
+
+  getConnection: (protocolClass, connectionInfo) ->
+    new Promise (resolve, reject) =>
+      connection = new protocolClass(connectionInfo)
+      connection.connect (err) => if (!err) then resolve(connection) else reject(err)
+
+  getConnectionSSH: (protocolClass, connectionInfo) ->
+    new Promise (resolve, reject) =>
+      ssh = connectionInfo.ssh
+      conf =
+        host: connectionInfo.host,
+        port: ssh.port,
+        username: ssh.username,
+      if ssh.keyfile?
+        conf.privateKey = fs.readFileSync(ssh.keyfile)
+        conf.passphrase = ssh.password if ssh.password != ''
+      else
+        conf.password = ssh.password
+
+      conn = new ssh2.Client()
+      conn.on 'error', (err) -> reject(err)
+      conn.on 'ready', =>
+        conn.forwardOut '127.0.0.1', 12345, '127.0.0.1' ,connectionInfo.port, (err, stream) =>
+          if err?
+            reject(err)
+            conn.end?()
+          else
+            stream.setTimeout = ((time, handler) -> @_client._sock.setTimeout(0, handler))
+            connectionInfo.stream = (->stream)
+            connection = new protocolClass(connectionInfo)
+            connection.connect (err) => if (!err) then resolve(connection) else reject(err)
+      conn.connect(conf)
 
   executeStatementsIteration: (connection,statements,fn,i = 0) ->
     if !@aborted && i < statements.length
