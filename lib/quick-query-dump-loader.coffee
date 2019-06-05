@@ -218,8 +218,8 @@ class QuickQueryDumpLoader extends View
     STATUS_TAG_DOLAR_OPEN = 65
     STATUS_TAG_DOLAR_CLOSE = 66
 
-    is_mysql = connection.protocol = 'mysql'
-    is_postgres = connection.protocol = 'postgres'
+    is_mysql = connection.protocol == 'mysql'
+    is_postgres = connection.protocol == 'postgres'
 
     dolar_open_tag = ''
     dolar_close_tag = ''
