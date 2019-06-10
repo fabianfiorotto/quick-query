@@ -1,3 +1,7 @@
+## 1.1.1 - Fix Dump loader
+  * Make dump loader work with SSH connections.
+  * Fix Can't force reconnect after user dump loader.
+
 ## 1.1.0 - Connect view
   * Replace all mini editors with html inputs in connect view #57.
 
