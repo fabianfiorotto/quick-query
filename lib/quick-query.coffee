@@ -10,7 +10,7 @@ QuickQueryDumpLoader = require './quick-query-dump-loader'
 
 path = require 'path'
 fs = require 'fs'
-remote = require 'remote'
+{remote} = require 'electron'
 
 {CompositeDisposable} = require 'atom'
 

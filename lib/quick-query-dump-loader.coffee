@@ -1,7 +1,7 @@
 {View, $} = require 'atom-space-pen-views'
 {TextBuffer} = require 'atom'
 fs = require 'fs'
-remote = require 'remote'
+{remote} = require 'electron'
 path = require 'path'
 ssh2 = require 'ssh2'
 module.exports =

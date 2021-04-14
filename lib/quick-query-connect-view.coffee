@@ -1,5 +1,6 @@
 {View, $} = require 'atom-space-pen-views'
-remote = require 'remote'
+{remote} = require 'electron'
+
 ssh2 = require 'ssh2'
 
 element: null
