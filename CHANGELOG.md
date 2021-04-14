@@ -1,3 +1,6 @@
+## 1.1.2 - Remote module
+  * Require remote from electron.
+
 ## 1.1.1 - Fix Dump loader
   * Make dump loader work with SSH connections.
   * Fix Can't force reconnect after user dump loader.
