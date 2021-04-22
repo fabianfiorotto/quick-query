@@ -1,3 +1,7 @@
+## 1.1.3 - Remote module
+  * Use new dialog api.
+  * Fix browser in SQLite
+
 ## 1.1.2 - Remote module
   * Require remote from electron.
 
