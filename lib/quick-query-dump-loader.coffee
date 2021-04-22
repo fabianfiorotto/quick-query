@@ -193,9 +193,9 @@ class QuickQueryDumpLoader extends View
       properties: ['openFile']
       title: 'Load Database Dump'
       filters: [{ name: 'Connections', extensions: ['mysql','sql','mysql.gz','sql.gz'] }]
-    remote.dialog.showOpenDialog currentWindow, options, (files) =>
-      if files?
-        @filename = files[0]
+    remote.dialog.showOpenDialog(currentWindow, options).then (dialog) =>
+      if dialog && !dialog.canceled
+        @filename = dialog.filePaths[0]
         @selectDesktop()
         @run.prop('disabled', @isNotReady())
 

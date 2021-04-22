@@ -71,8 +71,8 @@ class QuickQueryConnectView extends View
         currentWindow = atom.getCurrentWindow()
         if $(e.currentTarget).data("extensions")
           options.filters = [{ name: 'Database', extensions: $(e.target).data("extensions") }]
-        remote.dialog.showOpenDialog currentWindow, options, (files) =>
-          @file.val(files[0]) if files?
+        remote.dialog.showOpenDialog(currentWindow, options).then (dialog) =>
+          @file.val(dialog.filePaths[0]) if dialog && !dialog.canceled
 
     for key,protocol of @protocols
       option = $('<option/>')
@@ -90,9 +90,9 @@ class QuickQueryConnectView extends View
         options =
           properties: ['openFile']
           title: 'Load SSH Key'
-        remote.dialog.showOpenDialog currentWindow, options, (files) =>
-          if files?
-            @sshkey.data('file',files[0]).addClass('selected')
+        remote.dialog.showOpenDialog(currentWindow, options).then (dialog) =>
+          if dialog && !dialog.canceled
+            @sshkey.data('file', dialog.filePaths[0]).addClass('selected')
             @sshpass_label.text('Passphrase')
 
     @connect.click (e) =>

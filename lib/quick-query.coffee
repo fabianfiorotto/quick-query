@@ -310,9 +310,9 @@ module.exports = QuickQuery =
       properties: ['openFile']
       title: 'Import Connections'
       filters: [{ name: 'Connections', extensions: ['json'] }]
-    remote.dialog.showOpenDialog currentWindow, options, (files) =>
-      if files?
-        for connectionInfo in JSON.parse(fs.readFileSync(files[0]))
+    remote.dialog.showOpenDialog(currentWindow, options).then (dialog) =>
+      if dialog && !dialog.canceled
+        for connectionInfo in JSON.parse(fs.readFileSync(dialog.filePaths[0]))
           connectionPromise = @connectView.buildConnection(connectionInfo)
           @browser.addConnection(connectionPromise)
 
