@@ -252,8 +252,8 @@ class QuickQueryBrowserView extends ScrollView
         clearTimeout(t100)
         clearTimeout(t5000)
         time2 = Date.now()
+        $li.removeClass('busy')
         if time2 - time1 < 5000
-          $li.removeClass('busy')
           $loading.remove()
           $icon.css('display','')
           @showItems(model,children,$li)
