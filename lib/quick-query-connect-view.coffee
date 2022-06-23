@@ -173,7 +173,7 @@ class QuickQueryConnectView extends View
         conn.forwardOut '127.0.0.1', 12345, '127.0.0.1' ,connectionInfo.port, (err, stream) =>
           conn.end?() if err?
           stream.setTimeout = ((time, handler) -> @_client._sock.setTimeout(0, handler))
-          connectionInfo.stream = (->stream)
+          connectionInfo.stream = stream
           connection = new protocolClass(connectionInfo)
           connection.connect (err) =>
             console.log err if err?

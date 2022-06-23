@@ -1,4 +1,4 @@
-mysql = require 'mysql'
+mysql = require 'mysql2'
 
 {Emitter} = require 'atom'
 
@@ -98,7 +98,7 @@ class QuickQueryMysqlConnection
         if err && err.code == 'PROTOCOL_CONNECTION_LOST'
           @fatal = true
       @fatal = false
-    @connection.query {sql: text ,arrayRows: true,  timeout: @timeout }, (err, rows, fields)=>
+    @connection.query {sql: text ,rowsAsArray: true,  timeout: @timeout }, (err, rows, fields)=>
       if (err)
         @fatal = err.fatal
         callback  type: 'error' , content: err.toString()

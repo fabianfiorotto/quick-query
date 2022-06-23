@@ -51,9 +51,9 @@
   },
   "dependencies": {
     "atom-space-pen-views": "^2.0.3",
-    "ssh2": "0.6.1",
-    "mysql": "git+https://github.com/fabianfiorotto/mysql/#qq001",
+    "json2csv": "3.2.0",
+    "mysql2": "^2.3.3",
     "pg": "^7.6.1",
-    "json2csv": "3.2.0"
+    "ssh2": "0.6.1"
   }
 }
