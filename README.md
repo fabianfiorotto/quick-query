@@ -1,3 +1,5 @@
+> :warning: Atom is not dead! Go to the [atom-community](https://github.com/atom-community/atom) repository to see how you can help keep it alive.
+
 # Quick query
 
 Do queries against your local databases quickly. By default it only supports MySQL and PostgreSQL.
