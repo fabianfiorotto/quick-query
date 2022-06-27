@@ -1,3 +1,7 @@
+## 1.2.0 - Mysql2
+  * Replace mysql with mysql2
+  * Update ssh2 to version 1.4
+
 ## 1.1.3 - Remote module
   * Use new dialog api.
   * Fix browser in SQLite
