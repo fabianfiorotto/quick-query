@@ -1,6 +1,6 @@
-QuickQueryCachedConnection = require './quick-query-cached-connection'
+CachedConnection = require './connections/cached'
 
-module.exports = class QuickQueryAutocomplete
+module.exports = class Autocomplete
   selector: '.source.sql'
   disableForSelector: '.source.sql .comment, .source.sql .string.quoted.single'
   excludeLowerPriority: false
@@ -9,10 +9,10 @@ module.exports = class QuickQueryAutocomplete
     # @connection = browser.connection
     # browser.onConnectionSelected (@connection)=>
     if browser.connection?
-      @connection = new QuickQueryCachedConnection(connection: browser.connection)
+      @connection = new CachedConnection(connection: browser.connection)
     browser.onConnectionDeleted (connection)=> @connection = null
     browser.onConnectionSelected (connection)=>
-      @connection = new QuickQueryCachedConnection(connection:  connection)
+      @connection = new CachedConnection(connection:  connection)
 
 
   prepareSugestions: (suggestions,prefix)->

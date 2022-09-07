@@ -1,5 +1,5 @@
 
-class QuickQueryCachedTable
+class CachedTable
   type: 'table'
   child_type: 'column'
   childs: []
@@ -19,7 +19,7 @@ class QuickQueryCachedTable
     else
       callback(@childs)
 
-class QuickQueryCachedSchema
+class CachedSchema
   type: 'schema'
   child_type: 'table'
   childs: []
@@ -35,12 +35,12 @@ class QuickQueryCachedSchema
     if !@last? || time - @last >  @connection.timeout * 1000
       @last = time
       @real.children (childs)=>
-        @childs = childs.map (child)=> new QuickQueryCachedTable(@,child)
+        @childs = childs.map (child)=> new CachedTable(@,child)
         callback(@childs)
     else
       callback(@childs)
 
-class QuickQueryCachedDatabase
+class CachedDatabase
   type: 'database'
   childs: []
   constructor: (@connection,@real) ->
@@ -56,14 +56,14 @@ class QuickQueryCachedDatabase
       @last = time
       @real.children (childs)=>
         if @child_type == 'schema'
-          @childs = childs.map (child)=> new QuickQueryCachedSchema(@,child)
+          @childs = childs.map (child)=> new CachedSchema(@,child)
         else
-          @childs = childs.map (child)=> new QuickQueryCachedTable(@,child)
+          @childs = childs.map (child)=> new CachedTable(@,child)
         callback(@childs)
     else
       callback(@childs)
 
-module.exports = class QuickQueryCachedConnection
+module.exports = class CachedConnection
 
   type: 'connection'
   child_type: 'database'
@@ -82,7 +82,7 @@ module.exports = class QuickQueryCachedConnection
     if !@last? || time - @last >  @timeout * 1000
       @last = time
       @realConnection.children (childs) =>
-        @childs = childs.map (child)=> new QuickQueryCachedDatabase(@,child)
+        @childs = childs.map (child)=> new CachedDatabase(@,child)
         callback(@childs)
     else
       callback(@childs)

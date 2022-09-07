@@ -5,7 +5,7 @@ fs = require 'fs'
 path = require 'path'
 ssh2 = require 'ssh2'
 module.exports =
-class QuickQueryDumpLoader extends View
+class DumpLoader extends View
   initialize: (@browser, options = {} )->
 
     if @browser.selectedConnection?

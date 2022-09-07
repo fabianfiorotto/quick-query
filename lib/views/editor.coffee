@@ -19,7 +19,7 @@ class SelectDataType extends SelectListView
   cancel: ->
     #do nothing
 module.exports =
-class QuickQueryEditorView extends View
+class EditorView extends View
 
   editor: null
   action: null

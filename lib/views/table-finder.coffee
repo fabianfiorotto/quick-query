@@ -1,8 +1,7 @@
 {SelectListView  , $} = require 'atom-space-pen-views'
 
-# class QuickQuerySelectTableView extends SelectListView
 module.exports =
-class QuickQueryTableFinderView extends SelectListView
+class TableFinderView extends SelectListView
   initialize: ->
     @step = 1
     super

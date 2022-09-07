@@ -3,7 +3,7 @@ json2csv = require('json2csv')
 fs = require('fs')
 
 module.exports =
-class QuickQueryResultView extends View
+class ResultView extends View
   keepHidden: false
   rows: null,
   fields: null

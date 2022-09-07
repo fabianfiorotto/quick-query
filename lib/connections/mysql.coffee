@@ -2,7 +2,7 @@ mysql = require 'mysql2'
 
 {Emitter} = require 'atom'
 
-class QuickQueryMysqlColumn
+class MysqlColumn
   type: 'column'
   child_type: null
   constructor: (@table,row) ->
@@ -20,7 +20,7 @@ class QuickQueryMysqlColumn
   children: (callback)->
     callback([])
 
-class QuickQueryMysqlTable
+class MysqlTable
   type: 'table'
   child_type: 'column'
   constructor: (@database,row,fields) ->
@@ -33,7 +33,7 @@ class QuickQueryMysqlTable
     @database
   children: (callback)->
     @connection.getColumns(@,callback)
-class QuickQueryMysqlDatabase
+class MysqlDatabase
   type: 'database'
   child_type: 'table'
   constructor: (@connection,row) ->
@@ -47,7 +47,7 @@ class QuickQueryMysqlDatabase
     @connection.getTables(@,callback)
 
 module.exports =
-class QuickQueryMysqlConnection
+class MysqlConnection
 
   fatal: false
   connection: null
@@ -139,7 +139,7 @@ class QuickQueryMysqlConnection
     @query text , (err, rows, fields) =>
       if !err
         databases = @objRowsMap rows,fields, (row) =>
-          new QuickQueryMysqlDatabase(@,row)
+          new MysqlDatabase(@,row)
         databases = databases.filter (database) => !@hiddenDatabase(database.name)
       callback(databases,err)
 
@@ -149,7 +149,7 @@ class QuickQueryMysqlConnection
     @query text , (err, rows, fields) =>
       if !err
         tables = @objRowsMap rows,fields, (row) =>
-          new QuickQueryMysqlTable(database,row,fields)
+          new MysqlTable(database,row,fields)
         callback(tables)
 
   getColumns: (table,callback) ->
@@ -159,7 +159,7 @@ class QuickQueryMysqlConnection
     @query text , (err, rows, fields) =>
       if !err
         columns = @objRowsMap rows,fields, (row) =>
-          new QuickQueryMysqlColumn(table,row)
+          new MysqlColumn(table,row)
         callback(columns)
 
   hiddenDatabase: (database) ->

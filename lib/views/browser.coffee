@@ -1,7 +1,7 @@
 {ScrollView, $} = require 'atom-space-pen-views'
 
 module.exports =
-class QuickQueryBrowserView extends ScrollView
+class BrowserView extends ScrollView
 
   editor: null
   connection: null

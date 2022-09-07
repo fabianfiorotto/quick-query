@@ -1,12 +1,12 @@
-QuickQueryConnectView = require './quick-query-connect-view'
-QuickQueryResultView = require './quick-query-result-view'
-QuickQueryBrowserView = require './quick-query-browser-view'
-QuickQueryEditorView = require './quick-query-editor-view'
-QuickQueryTableFinderView = require './quick-query-table-finder-view'
-QuickQueryMysqlConnection = require './quick-query-mysql-connection'
-QuickQueryPostgresConnection = require './quick-query-postgres-connection'
-QuickQueryAutocomplete = require './quick-query-autocomplete'
-QuickQueryDumpLoader = require './quick-query-dump-loader'
+ConnectView = require './views/connect'
+ResultView = require './views/result'
+BrowserView = require './views/browser'
+EditorView = require './views/editor'
+TableFinderView = require './views/table-finder'
+DumpLoader = require './views/dump-loader'
+MysqlConnection = require './connections/mysql'
+PostgresConnection = require './connections/postgres'
+Autocomplete = require './autocomplete'
 
 path = require 'path'
 fs = require 'fs'
@@ -54,24 +54,24 @@ module.exports = QuickQuery =
     protocols =
       mysql:
         name: "MySql"
-        handler:QuickQueryMysqlConnection
+        handler:MysqlConnection
       postgres:
         name: "PostgreSQL"
-        handler: QuickQueryPostgresConnection
+        handler: PostgresConnection
       "ssl-postgres":
         name: "PostgreSQL (ssl)"
-        handler: QuickQueryPostgresConnection
+        handler: PostgresConnection
         default:
           protocol: 'postgres'
           ssl: true
 
     @connections = []
 
-    @tableFinder = new QuickQueryTableFinderView()
+    @tableFinder = new TableFinderView()
 
-    @browser = new QuickQueryBrowserView()
+    @browser = new BrowserView()
 
-    @connectView = new QuickQueryConnectView(protocols)
+    @connectView = new ConnectView(protocols)
     @modalConnect = atom.workspace.addModalPanel(item: @connectView , visible: false)
 
     @modalSpinner = atom.workspace.addModalPanel(item: @createSpinner() , visible: false)
@@ -99,7 +99,7 @@ module.exports = QuickQuery =
         @connection = null
 
     @browser.bind 'quickQuery.edit', (e,action,model) =>
-      @editorView = new QuickQueryEditorView(action,model)
+      @editorView = new EditorView(action,model)
       if action == 'drop'
         @editorView.openTextEditor()
       else
@@ -188,8 +188,8 @@ module.exports = QuickQuery =
       'core:confirm':    => @browser.expandSelected()
 
     @subscriptions.add atom.workspace.addOpener (uri,options) =>
-      return new QuickQueryDumpLoader(@browser, filename: uri) if @isSqlDump(uri)
-      return new QuickQueryDumpLoader(@browser,options) if (uri == 'quick-query://dump-loader')
+      return new DumpLoader(@browser, filename: uri) if @isSqlDump(uri)
+      return new DumpLoader(@browser,options) if (uri == 'quick-query://dump-loader')
       return @browser if (uri == 'quick-query://browser')
 
     atom.config.onDidChange 'quick-query.resultsInTab', ({newValue, oldValue}) =>
@@ -201,7 +201,7 @@ module.exports = QuickQuery =
       else
         pane = atom.workspace.getActivePane()
         for item in pane.getItems()
-          pane.destroyItem(item) if item instanceof QuickQueryResultView
+          pane.destroyItem(item) if item instanceof ResultView
 
     atom.config.onDidChange 'quick-query.storeGlobally', ({newValue, oldValue}) =>
       gloalStoragePath = path.join(process.env.ATOM_HOME, 'quick-query.json')
@@ -221,7 +221,7 @@ module.exports = QuickQuery =
           else
             i.panel.hide()
           @updateStatusBar(resultView) if i.editor == item
-      else if item instanceof QuickQueryResultView
+      else if item instanceof ResultView
         item.focusTable()
         @updateStatusBar(item)
 
@@ -241,7 +241,7 @@ module.exports = QuickQuery =
     @modalSpinner.destroy()
     @statusBarTile?.destroy()
     pane = atom.workspace.getActivePane()
-    for item in pane.getItems() when item instanceof QuickQueryResultView
+    for item in pane.getItems() when item instanceof ResultView
       pane.destroyItem(item)
 
   serialize: ->
@@ -396,9 +396,9 @@ module.exports = QuickQuery =
   showResultInTab: ->
     pane = atom.workspace.getCenter().getActivePane()
     filter = pane.getItems().filter (item) ->
-      item instanceof QuickQueryResultView
+      item instanceof ResultView
     if filter.length == 0
-      queryResult = new QuickQueryResultView()
+      queryResult = new ResultView()
       queryResult.onRowStatusChanged => @updateStatusBar(queryResult)
       pane.addItem queryResult
     else
@@ -424,7 +424,7 @@ module.exports = QuickQuery =
       e[0].panel.show()
       queryResult = e[0].panel.getItem()
     else
-      queryResult = new QuickQueryResultView()
+      queryResult = new ResultView()
       queryResult.onRowStatusChanged => @updateStatusBar(queryResult)
       bottomPanel = atom.workspace.addBottomPanel(item: queryResult, visible:true )
       @queryEditors.push({editor: queryEditor,  panel: bottomPanel})
@@ -433,7 +433,7 @@ module.exports = QuickQuery =
   activeResultView: ->
     if atom.config.get('quick-query.resultsInTab')
       item = atom.workspace.getActivePaneItem()
-      if item instanceof QuickQueryResultView
+      if item instanceof ResultView
         return item
       else
         return null
@@ -447,7 +447,7 @@ module.exports = QuickQuery =
 
   provideConnectView: -> @connectView
 
-  provideAutocomplete: -> new QuickQueryAutocomplete(@browser)
+  provideAutocomplete: -> new Autocomplete(@browser)
 
   consumeStatusBar: (statusBar) ->
     element = document.createElement('a')

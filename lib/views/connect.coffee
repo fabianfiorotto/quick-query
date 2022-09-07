@@ -6,7 +6,7 @@ ssh2 = require 'ssh2'
 element: null
 
 module.exports =
-class QuickQueryConnectView extends View
+class ConnectView extends View
   constructor: (@protocols) ->
     @connectionsStates = []
     super

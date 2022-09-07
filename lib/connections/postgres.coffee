@@ -10,7 +10,7 @@ pg.types.setTypeParser  1184 , (x) -> x
 pg.types.setTypeParser  3802 , (x) -> x
 pg.types.setTypeParser  114  , (x) -> x
 
-class QuickQueryPostgresColumn
+class PostgresColumn
   type: 'column'
   child_type: null
   constructor: (@table,row) ->
@@ -36,7 +36,7 @@ class QuickQueryPostgresColumn
   children: (callback)->
     callback([])
 
-class QuickQueryPostgresTable
+class PostgresTable
   type: 'table'
   child_type: 'column'
   constructor: (@schema,row,fields) ->
@@ -49,7 +49,7 @@ class QuickQueryPostgresTable
   children: (callback)->
     @connection.getColumns(@,callback)
 
-class QuickQueryPostgresSchema
+class PostgresSchema
   type: 'schema'
   child_type: 'table'
   constructor: (@database,row,fields) ->
@@ -62,7 +62,7 @@ class QuickQueryPostgresSchema
   children: (callback)->
     @connection.getTables(@,callback)
 
-class QuickQueryPostgresDatabase
+class PostgresDatabase
   type: 'database'
   child_type: 'schema'
   constructor: (@connection,row) ->
@@ -76,7 +76,7 @@ class QuickQueryPostgresDatabase
     #@connection.getTables(@,callback)
 
 module.exports =
-class QuickQueryPostgresConnection
+class PostgresConnection
 
   fatal: false
   connection: null
@@ -195,7 +195,7 @@ class QuickQueryPostgresConnection
     @query text , (err, rows, fields) =>
       if !err
         databases = @objRowsMap rows,fields, (row) =>
-           new QuickQueryPostgresDatabase(@,row)
+           new PostgresDatabase(@,row)
         databases = databases.filter (database) => !@hiddenDatabase(database.name)
       callback(databases,err)
 
@@ -208,7 +208,7 @@ class QuickQueryPostgresConnection
       @queryDatabaseConnection text, connection , (err, rows, fields) =>
         if !err
           schemas = @objRowsMap rows, fields , (row) ->
-            new QuickQueryPostgresSchema(database,row)
+            new PostgresSchema(database,row)
           callback(schemas)
 
 
@@ -222,7 +222,7 @@ class QuickQueryPostgresConnection
       @queryDatabaseConnection text, connection , (err, rows, fields) =>
         if !err
           tables = @objRowsMap rows,fields, (row) ->
-            new QuickQueryPostgresTable(schema,row)
+            new PostgresTable(schema,row)
           callback(tables)
 
   getColumns: (table,callback) ->
@@ -253,7 +253,7 @@ class QuickQueryPostgresConnection
       @queryDatabaseConnection text, connection , (err, rows, fields) =>
         if !err
           columns = @objRowsMap rows, fields, (row) =>
-            new QuickQueryPostgresColumn(table,row)
+            new PostgresColumn(table,row)
           callback(columns)
 
   hiddenDatabase: (database) ->
@@ -438,8 +438,8 @@ class QuickQueryPostgresConnection
         db = {name: database, connection: @ }
         if !err && rows.length == 1
           row = @objRowsMap(rows,fields)[0]
-          schema = new QuickQueryPostgresSchema(db,row,fields)
-          table = new QuickQueryPostgresTable(schema,row)
+          schema = new PostgresSchema(db,row,fields)
+          table = new PostgresTable(schema,row)
           table.id = oid
           callback(table)
 
