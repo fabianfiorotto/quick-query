@@ -1,4 +1,4 @@
-> :warning: Atom is not dead! Go to the [atom-community](https://github.com/atom-community/atom) repository to see how you can help keep it alive.
+> :warning: Atom is not dead! Go to the [atom-community](https://github.com/atom-community/atom) or [pulsar](https://github.com/pulsar-edit/pulsar) repository to see how you can help keep it alive.
 
 # Quick query
 
