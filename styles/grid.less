@@ -1,0 +1,286 @@
+@import "ui-variables";
+@import (optional) "ui-mixins";
+@import (optional) "git";
+
+
+/* Make sure that the mixins exist */
+.status-added{
+}
+.status-modified{
+}
+.status-removed{
+}
+
+/*
+*	Query Result
+*/
+
+.quick-query-grid {
+	overflow: hidden;
+	position: relative;
+
+	@qq_handler_size: 5px;
+
+	.quick-query-grid-resize-handler{
+		background-color: @tool-panel-background-color;
+		height: @qq_handler_size;
+		cursor: ns-resize;
+		position: absolute;
+		width: 100%;
+		z-index: 3;
+		top: 0;
+	}
+
+	table.table.quick-query-grid-corner{
+		width: auto;
+		background-color: @tool-panel-background-color;
+		overflow: hidden;
+		margin-left: 0;
+		position: absolute;
+		left: 0;
+		z-index: 3;
+		top: @qq_handler_size;
+		th{
+			text-align: center;
+		}
+	}
+
+	table.table.quick-query-grid-header{
+		background-color: @tool-panel-background-color;
+		overflow: hidden;
+		margin-left: 0;
+		position: absolute;
+		width: auto;
+		left: 0;
+		top: @qq_handler_size;
+	}
+
+	table.table.quick-query-grid-numbers{
+		overflow: hidden;
+		margin-left: 0;
+		position: absolute;
+		width: auto;
+		left: 0;
+		top: @qq_handler_size;
+
+		tbody{
+			overflow: hidden;
+			text-align: center;
+			tr:nth-child(even){
+				font-weight: bold;
+				background-color: darken(@tool-panel-background-color, 8%);
+			}
+			tr:nth-child(odd){
+				font-weight: bold;
+				background-color: darken(@tool-panel-background-color, 16%);
+			}
+		}
+	}
+
+	.quick-query-grid-table-wrapper{
+		position: absolute;
+		top: @qq_handler_size;
+		left:0;
+		bottom: 0;
+		right: 0;
+		height: auto;
+		width: inherit;
+		overflow: auto;
+	}
+
+	table.table.quick-query-grid-table{
+		min-height: 1px;
+		thead{
+			z-index: 1;
+			background-color: @tool-panel-background-color;
+			position:absolute;
+			top: 4px;
+		}
+		tbody{
+			font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+		}
+	}
+
+	table.table{
+			color: @text-color;
+			margin-bottom: 0;
+			user-select: none;
+			cursor: default;
+			&:focus{
+				td.selected{
+					border: 1px solid @button-background-color-selected;
+				}
+				tr:nth-child(even) td.selected{
+					background-color: mix(@background-color-selected,@tool-panel-background-color, 30%);
+				}
+				tr:nth-child(odd) td.selected{
+					background-color: darken(mix(@background-color-selected,@tool-panel-background-color, 30%), 3%);
+				}
+			}
+			tbody , thead{
+				display: block;
+			}
+			tbody{
+				height: 100%;
+				overflow-y: hidden;
+				overflow-x: hidden;
+
+				tr:nth-child(even){
+					background-color: @tool-panel-background-color;
+				}
+				tr:nth-child(odd){
+					background-color: darken(@tool-panel-background-color, 3%);
+				}
+				tr.added{
+					height: @component-line-height + @component-padding - 2px;
+					td,td.null{
+						.status-added();
+					}
+				}
+				tr.removed{
+					td{
+						.status-removed();
+					}
+				}
+				tr{
+					width: 100%;
+					height: @component-line-height + @component-padding - 2px;
+					td.editing{
+						padding: 3px 0 0 8px;
+						border: 1px solid @button-background-color-selected;
+						background-color: @input-background-color;
+						atom-text-editor[mini] {
+							&, &.is-foucs {
+								border: 0;
+								box-shadow: none;
+								background-color: @input-background-color;
+								font-size: @font-size;
+								padding: 0;
+								border-radius: 0;
+							}
+						}
+					}
+					td.null.status-modified{
+						.status-modified();
+					}
+					td.null{
+						color: mix( @text-color , @tool-panel-background-color, 20%);
+						font-style:italic;
+					}
+					td{
+						overflow:ellipsis;
+						text-overflow: ellipsis;
+						white-space: pre;
+						font-size: @font-size;
+						.lf::before{
+							content: "↵";
+						}
+						.cr::before{
+							content:"␍";
+						}
+						.crlf::before{
+							content: "⏎";
+						}
+						.lf,.cr,.crlf{
+							&::before{
+								font-family: initial;
+								color: mix( @text-color , @tool-panel-background-color, 20%);
+							}
+							white-space: nowrap;
+						}
+					}
+				}
+		}
+	}
+	.btn.icon-pencil{
+		display: none;
+		border-radius: 1em;
+		font-weight: bolder;
+		&.tight{
+			padding-left: 7px;
+			padding-right: 7px;
+			&.x2{
+				padding-left: 5px;
+				padding-right: 5px;
+			}
+		}
+	}
+	&.changed{
+		.hash{
+			visibility: hidden;
+		}
+		.btn.icon-pencil{
+			display: inline;
+			position: absolute;
+			top: 1px;
+			left: 0;
+		}
+	}
+	.preview{
+		overflow: auto;
+		padding-top: @component-line-height;
+		display: none;
+		position: absolute;
+		width: 100%;
+		height: auto;
+		top: @component-icon-padding;
+		left: 0;
+		bottom:0;
+		z-index: 4;
+		background-color: @base-background-color;
+		atom-text-editor{
+			width: 100%;
+			height: 100%;
+			background-color: @base-background-color;
+		}
+	}
+	.edit-long-text{
+		overflow: auto;
+		display: none;
+		position: absolute;
+		top: @component-icon-padding;
+		right: 0;
+		left: 0;
+		bottom:0;
+		z-index: 4;
+		atom-text-editor{
+			width: 100%;
+			height: 100%;
+		}
+	}
+	.buttons{
+		display: none;
+		position: absolute;
+		top: @component-icon-padding;
+		left: 1px;
+		z-index: 5;
+		.btn{
+			display: none;
+			border-radius: 1em;
+			margin-right: @component-icon-padding;
+			padding-top: 3px;
+		}
+	}
+	&.confirmation{
+		.buttons{
+			display: block;
+			.btn.icon-x,.btn.icon-check{
+				display: inline;
+			}
+		}
+		.preview{
+			display: block;
+		}
+	}
+	&.editing-long-text{
+		.edit-long-text {
+			display: block;
+		}
+	}
+}
+
+atom-panel.bottom{
+	.quick-query-grid {
+		height: @component-line-height * 11;
+	}
+}

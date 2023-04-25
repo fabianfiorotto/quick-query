@@ -141,34 +141,34 @@ module.exports = QuickQuery =
       'quick-query:find-table-to-select': => @findTable()
       'quick-query:open-dump-loader': => @openDumpLoader()
 
-    @subscriptions.add atom.commands.add '.quick-query-result',
-      'quick-query:copy': => @activeResultView().copy()
-      'quick-query:copy-all': => @activeResultView().copyAll()
-      'quick-query:save-csv': => @activeResultView().saveCSV()
-      'quick-query:insert': => @activeResultView().insertRecord()
-      'quick-query:null': => @activeResultView().setNull()
-      'quick-query:undo': => @activeResultView().undo()
-      'quick-query:delete': => @activeResultView().deleteRecord()
-      'quick-query:copy-changes': => @activeResultView().copyChanges()
-      'quick-query:apply-changes': => @activeResultView().applyChanges()
+    @subscriptions.add atom.commands.add '.quick-query-grid',
+      'quick-query:copy': => @activeResultGrid().copy()
+      'quick-query:copy-all': => @activeResultGrid().copyAll()
+      'quick-query:save-csv': => @activeResultGrid().saveCSV()
+      'quick-query:insert': => @activeResultGrid().insertRecord()
+      'quick-query:null': => @activeResultGrid().setNull()
+      'quick-query:undo': => @activeResultGrid().undo()
+      'quick-query:delete': => @activeResultGrid().deleteRecord()
+      'quick-query:copy-changes': => @activeResultGrid().copyChanges()
+      'quick-query:apply-changes': => @activeResultGrid().applyChanges()
 
-    @subscriptions.add atom.commands.add '.quick-query-result-table',
-      'core:move-left':  => @activeResultView().moveSelection('left')
-      'core:move-right': => @activeResultView().moveSelection('right')
-      'core:move-up':    => @activeResultView().moveSelection('up')
-      'core:move-down':  => @activeResultView().moveSelection('down')
-      'core:undo':       => @activeResultView().undo()
-      'core:confirm':    => @activeResultView().editSelected()
-      'core:copy':       => @activeResultView().copy()
-      'core:paste':      => @activeResultView().paste()
-      'core:backspace':  => @activeResultView().setNull()
-      'core:delete':     => @activeResultView().deleteRecord()
-      'core:page-up':    => @activeResultView().moveSelection('page-up')
-      'core:page-down':  => @activeResultView().moveSelection('page-down')
-      'core:focus-next': => @activeResultView().focusNextCell()
-      'core:cancel':     => @activeResultView().editSelected()
-      'core:save':    => @activeResultView().applyChanges() if atom.config.get('quick-query.resultsInTab')
-      'core:save-as': => @activeResultView().saveCSV() if atom.config.get('quick-query.resultsInTab')
+    @subscriptions.add atom.commands.add '.quick-query-grid-table',
+      'core:move-left':  => @activeResultGrid().moveSelection('left')
+      'core:move-right': => @activeResultGrid().moveSelection('right')
+      'core:move-up':    => @activeResultGrid().moveSelection('up')
+      'core:move-down':  => @activeResultGrid().moveSelection('down')
+      'core:undo':       => @activeResultGrid().undo()
+      'core:confirm':    => @activeResultGrid().editSelected()
+      'core:copy':       => @activeResultGrid().copy()
+      'core:paste':      => @activeResultGrid().paste()
+      'core:backspace':  => @activeResultGrid().setNull()
+      'core:delete':     => @activeResultGrid().deleteRecord()
+      'core:page-up':    => @activeResultGrid().moveSelection('page-up')
+      'core:page-down':  => @activeResultGrid().moveSelection('page-down')
+      'core:focus-next': => @activeResultGrid().focusNextCell()
+      'core:cancel':     => @activeResultGrid().editSelected()
+      'core:save':    => @activeResultPane().applyChanges() if atom.config.get('quick-query.resultsInTab')
+      'core:save-as': => @activeResultGrid().saveCSV() if atom.config.get('quick-query.resultsInTab')
 
     @subscriptions.add atom.commands.add '#quick-query-connections',
       'quick-query:export-connections': => @exportConnections()
@@ -253,6 +253,7 @@ module.exports = QuickQuery =
   newConnection: ->
     @modalConnect.show()
     @connectView.focusFirst()
+
   run: ->
     @queryEditor = atom.workspace.getCenter().getActiveTextEditor()
     unless @queryEditor
@@ -278,12 +279,8 @@ module.exports = QuickQuery =
             queryResult = @showResultInTab()
           else
             queryResult = @showResultView(@queryEditor)
-          cursor = queryResult.getCursor()
           queryResult.showRows rows, fields, @connection , =>
             @modalSpinner.hide()
-            queryResult.fixSizes() if rows.length > 100
-            queryResult.setCursor(cursor...) if cursor?
-          queryResult.fixSizes()
           @updateStatusBar(queryResult)
 
     else
@@ -425,10 +422,17 @@ module.exports = QuickQuery =
       queryResult = e[0].panel.getItem()
     else
       queryResult = new ResultView()
-      queryResult.onRowStatusChanged => @updateStatusBar(queryResult)
+      queryResult.grid.onRowStatusChanged => @updateStatusBar(queryResult)
       bottomPanel = atom.workspace.addBottomPanel(item: queryResult, visible:true )
+      queryResult.panel = bottomPanel
       @queryEditors.push({editor: queryEditor,  panel: bottomPanel})
     queryResult
+
+  activeResultPane: ->
+    return null if atom.config.get('quick-query.resultsInTab')
+    editor = atom.workspace.getCenter().getActiveTextEditor()
+    for i in @queryEditors
+      return i.panel if i.editor == editor
 
   activeResultView: ->
     if atom.config.get('quick-query.resultsInTab')
@@ -438,10 +442,10 @@ module.exports = QuickQuery =
       else
         return null
     else
-      editor = atom.workspace.getCenter().getActiveTextEditor()
-      for i in @queryEditors
-        return i.panel.getItem() if i.editor == editor
-      return null
+      @activeResultPane()?.getItem()
+
+  activeResultGrid: ->
+    @activeResultView()?.grid
 
   provideBrowserView: -> @browser
 
@@ -462,42 +466,25 @@ module.exports = QuickQuery =
       span.classList.add('hide')
 
   updateStatusBar: (queryResult) ->
-    return unless @statusBarTile? && queryResult?.rows?
+    return unless @statusBarTile? && queryResult?.grid?.rows?
     return unless atom.config.get('quick-query.canUseStatusBar')
     element = @statusBarTile.getItem()
     element.classList.remove('hide')
     if atom.config.get('quick-query.resultsInTab')
       element.textContent = "(#{queryResult.rowsStatus()})"
     else
-      element.textContent = "#{queryResult.getTitle()} (#{queryResult.rowsStatus()})"
+      element.textContent = "#{queryResult.getTitle()} (#{queryResult.grid.rowsStatus()})"
 
   toggleResults: ->
-    if !atom.config.get('quick-query.resultsInTab')
-      editor = atom.workspace.getCenter().getActiveTextEditor()
-      for i in @queryEditors when i.editor == editor
-        resultView = i.panel.getItem()
-        if resultView.is(':visible')
-         i.panel.hide()
-         resultView.hideResults()
-        else
-         i.panel.show()
-         resultView.showResults()
+    return if atom.config.get('quick-query.resultsInTab')
+    resultView = @activeResultView()
+    resultView?.toggleResults();
 
   cancel: ->
     @modalPanel.destroy() if @modalPanel
     @modalConnect.hide()
-    if @modalSpinner.isVisible()
-      resultView = @activeResultView()
-      if resultView?
-        resultView.stopLoop()
-        @updateStatusBar(resultView)
-      @modalSpinner.hide()
-    if !atom.config.get('quick-query.resultsInTab')
-      editor = atom.workspace.getCenter().getActiveTextEditor()
-      for i in @queryEditors when i.editor == editor
-        resultView = i.panel.getItem()
-        if resultView.isEditingLongText()
-          resultView.focusTable()
-        else if !resultView.isTableFocused()
-          i.panel.hide()
-          resultView.hideResults()
+    resultView = @activeResultView()
+    if resultView?
+      resultView.cancel()
+      @updateStatusBar(resultView)
+    @modalSpinner.hide()
