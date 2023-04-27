@@ -155,12 +155,10 @@ class GridView extends View
 
   setCursor: (x,y)->
     td1 = @selectedTd()
-    td2 = @element.querySelector(".quick-query-grid-table tr:nth-child(#{y}) td:nth-child(#{x})")
-    $td1 = @table.find('td.selected')
-    $td2 = @table.find('tbody').children().eq(y).children().eq(x)
-    if $td2.length > 0 && $td1[0] != $td2[0]
-      $td1.removeClass('selected')
-      $td2.addClass('selected')
+    td2 = @getTd(x, y)
+    if td && td1 != td2
+      td1.classList.remove('selected')
+      td2.classList.add('selected')
 
   stopLoop: ->
     if @loop?
@@ -169,16 +167,17 @@ class GridView extends View
       @canceled = true
 
   rowsStatus: ->
-    added = @table.find('tr.added').length
+    table = @element.querySelector('.quick-query-grid-table')
+    added = table.querySelectorAll('tr.added').length
     status = (@rows.length + added).toString()
     status += if status == '1' then ' row' else ' rows'
     if @canceled
-      tr_count = @table.find('tr').length
+      tr_count = table.querySelectorAll('tr').length
       status = "#{tr_count} of #{status}"
     status += ",#{added} added" if added > 0
-    modified = @table.find('tr.modified').length
+    modified = table.querySelectorAll('tr.modified').length
     status += ",#{modified} modified" if modified > 0
-    removed = @table.find('tr.removed').length
+    removed = table.querySelectorAll('tr.removed').length
     status += ",#{removed} deleted" if removed > 0
     @toggleClass('changed',added+modified+removed>0)
     status
@@ -195,40 +194,40 @@ class GridView extends View
 
   moveSelection: (direction)->
     td1 = @selectedTd()
+    return if td1.classList.contains('editing')
     tr = td1.parentNode
-    $td1 = $(td1)
-    $tr = $td1.parent()
-    index = $td1.index()
-    $td2 = switch direction
-      when 'right' then $td1.next()
-      when 'left'  then $td1.prev()
-      when 'up'    then $tr.prev().children().eq(index)
-      when 'down'  then $tr.next().children().eq(index)
+    [x, y] = @getCursor()
+    td2 = switch direction
+      when 'right' then td1.nextElementSibling
+      when 'left'  then td1.previousElementSibling
+      when 'up'    then tr.previousElementSibling?.children[x]
+      when 'down'  then tr.nextElementSibling?.children[x]
       when 'page-up', 'page-down'
-        $trs = $tr.parent().children()
-        page_size = Math.floor(@tableWrapper.height()/$td1.outerHeight())
+        trs = tr.parentNode.children
+        page_size = Math.floor(@tableWrapper.height()/td1.offsetHeight)
         tr_index = if direction == 'page-up'
-          Math.max(0,$tr.index() - page_size)
+          Math.max(0, y - page_size)
         else
-          Math.min($trs.length-1,$tr.index() + page_size)
-        $trs.eq(tr_index).children().eq(index)
-    if !$td1.hasClass('editing') && $td2.length > 0
-      $td1.removeClass('selected')
-      $td2.addClass('selected')
-      table = @tableWrapper.offset()
-      table.bottom = table.top + @tableWrapper.height()
-      table.right = table.left + @tableWrapper.width()
-      cell = $td2.offset()
-      cell.bottom = cell.top + $td2.height()
-      cell.right = cell.left + $td2.width()
-      if cell.top < table.top
-        @tableWrapper.scrollTop(@tableWrapper.scrollTop() - table.top + cell.top)
-      if cell.bottom > table.bottom
-        @tableWrapper.scrollTop(@tableWrapper.scrollTop() + cell.bottom - table.bottom + 1.5 * $td2.height())
-      if cell.left < table.left
-        @tableWrapper.scrollLeft(@tableWrapper.scrollLeft() - table.left + cell.left)
-      if cell.right > table.right
-        @tableWrapper.scrollLeft(@tableWrapper.scrollLeft() + cell.right - table.right + 1.5 * $td2.width())
+          Math.min(trs.length-1, y + page_size)
+        trs[tr_index].children[cursor.x]
+    if td2
+      td1.classList.remove('selected')
+      td2.classList.add('selected')
+      @scrollToTd(td2)
+
+  scrollToTd: (td)->
+    table = @tableWrapper.offset()
+    table.bottom = table.top + @tableWrapper.height()
+    table.right = table.left + @tableWrapper.width()
+    cell = td.getBoundingClientRect()
+    if cell.top < table.top
+      @tableWrapper.scrollTop(@tableWrapper.scrollTop() - table.top + cell.top)
+    if cell.bottom > table.bottom
+      @tableWrapper.scrollTop(@tableWrapper.scrollTop() + cell.bottom - table.bottom + 1.5 * cell.height)
+    if cell.left < table.left
+      @tableWrapper.scrollLeft(@tableWrapper.scrollLeft() - table.left + cell.left)
+    if cell.right > table.right
+      @tableWrapper.scrollLeft(@tableWrapper.scrollLeft() + cell.right - table.right + 1.5 * cell.width)
 
   editRecord: (td, cursor)->
     if td.getElementsByTagName("atom-text-editor").length == 0
@@ -335,6 +334,7 @@ class GridView extends View
     @trigger('quickQuery.rowStatusChanged',[tr])
 
   selectedTd: -> @element.querySelector('td.selected')
+  getTd: (x,y) -> @element.querySelector(".quick-query-grid-table tr:nth-child(#{y}) td:nth-child(#{x})")
 
   deleteRecord: ->
     td = @selectedTd()
