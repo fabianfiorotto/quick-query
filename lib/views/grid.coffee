@@ -8,7 +8,8 @@ class GridView extends View
     super
 
   initialize: ->
-    $(window).resize => @fixSizes() # Memory leak!!!
+    @windowResizeBk = (=> @fixSizes())
+    window.addEventListener 'resize', @windowResizeBk
     @handleScrollEvent()
 
   getTitle: -> @title ? 'untitled'
@@ -68,7 +69,8 @@ class GridView extends View
           e.currentTarget.classList.add('selected')
         if not @readonly
           td.addEventListener 'dblclick', (e)=>
-            col = e.pageX - $(e.currentTarget).offset().left - 8
+            rect = e.currentTarget.getBoundingClientRect()
+            col = e.pageX - rect.left - 8
             @editRecord(e.currentTarget, col)
         tr.appendChild td
       tbody.appendChild(tr)
@@ -250,8 +252,8 @@ class GridView extends View
             tr = td.parentNode
             charWidth =  textEditor.getDefaultCharWidth()
             column = e.newScreenPosition.column
-            trleft = -1 * $(tr).offset().left
-            tdleft =  $(td).offset().left
+            trleft = -1 * tr.getBoundingClientRect().left
+            tdleft = td.getBoundingClientRect().left
             width = @tableWrapper.width() / 2
             left = trleft + tdleft - width
             if Math.abs(@tableWrapper.scrollLeft() - (left + column * charWidth)) > width
@@ -276,7 +278,7 @@ class GridView extends View
           td = $('.editing',@table)[0]
           val = editor.getModel().getText()
           @setCellVal(td,val)
-      $(editor).focus()
+      editor.focus()
 
 
   editSelected: ->
@@ -325,7 +327,8 @@ class GridView extends View
         e.currentTarget.classList.add('selected')
       td.classList.add('default')
       td.addEventListener 'dblclick', (e) =>
-        col = e.pageX - $(e.currentTarget).offset().left - 8
+        rect = e.currentTarget.getBoundingClientRect()
+        col = e.pageX - rect.left - 8
         @editRecord(e.currentTarget, col)
       tr.appendChild(td)
     @table.find('tbody').append(tr)
@@ -477,9 +480,9 @@ class GridView extends View
   handleScrollEvent: ->
     @tableWrapper.scroll (e) =>
       handlerHeight = 5
-      scroll = $(e.target).scrollTop() - handlerHeight - @header.height()
+      scroll = e.target.pageYOffset - handlerHeight - @header.height()
       @numbers.css top: (-1*scroll)
-      scroll = $(e.target).scrollLeft() - @numbers.width()
+      scroll = e.target.pageXOffset - @numbers.width()
       @header.css left: -1*scroll
 
   onRowStatusChanged: (callback)->
@@ -487,4 +490,5 @@ class GridView extends View
 
   # Tear down any state and detach
   destroy: ->
+    window.removeEventListener 'resize', @windowResizeBk
     # @element.remove()
