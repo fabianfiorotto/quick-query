@@ -232,54 +232,50 @@ class GridView extends View
       @tableWrapper.scrollLeft(@tableWrapper.scrollLeft() + cell.right - table.right + 1.5 * cell.width)
 
   editRecord: (td, cursor)->
-    if td.getElementsByTagName("atom-text-editor").length == 0
-      td.classList.add('editing')
+    return if td.getElementsByTagName("atom-text-editor").length > 0
+    td.classList.add('editing')
+    editor = document.createElement('atom-text-editor')
+    editor.classList.add('editor')
+    editor.setAttribute('mini','mini');
+    textEditor = editor.getModel()
+    textEditor.setText(td.textContent) unless td.classList.contains('null')
+    if textEditor.getLineCount() == 1
+      td.innerHTML = ''
+      td.appendChild(editor)
+      if cursor?
+        charWidth = textEditor.getDefaultCharWidth()
+        textEditor.setCursorBufferPosition([0, Math.floor(cursor/charWidth)])
+      textEditor.onDidChangeCursorPosition (e) => @miniEditorScroll(editor)
+    else
       editor = document.createElement('atom-text-editor')
       editor.classList.add('editor')
-      editor.setAttribute('mini','mini');
       textEditor = editor.getModel()
-      textEditor.setText(td.textContent) unless td.classList.contains('null')
-      textEditor.getBuffer().clearUndoStack()
-      if textEditor.getLineCount() == 1
-        td.innerHTML = ''
-        td.appendChild(editor)
-        if cursor?
-          charWidth = textEditor.getDefaultCharWidth()
-          textEditor.setCursorBufferPosition([0, Math.floor(cursor/charWidth)])
-        textEditor.onDidChangeCursorPosition (e) =>
-          if editor.offsetWidth > @tableWrapper.width() #center cursor on screen
-            td = editor.parentNode
-            tr = td.parentNode
-            charWidth =  textEditor.getDefaultCharWidth()
-            column = e.newScreenPosition.column
-            trleft = -1 * tr.getBoundingClientRect().left
-            tdleft = td.getBoundingClientRect().left
-            width = @tableWrapper.width() / 2
-            left = trleft + tdleft - width
-            if Math.abs(@tableWrapper.scrollLeft() - (left + column * charWidth)) > width
-              @tableWrapper.scrollLeft(left + column * charWidth)
-        editor.addEventListener 'blur', (e) =>
-          editor = e.currentTarget
-          td = editor.parentNode
-          val = editor.getModel().getText()
-          @setCellVal(td,val)
-      else
-        editor = document.createElement('atom-text-editor')
-        editor.classList.add('editor')
-        textEditor = editor.getModel()
-        textEditor.setText(td.textContent)
-        textEditor.update({autoHeight: false})
-        textEditor.getBuffer().clearUndoStack()
-        @addClass('editing-long-text')
-        @editLongText.html(editor)
-        editor.addEventListener 'blur', (e) =>
-          editor = e.currentTarget
-          @removeClass('editing-long-text')
-          td = $('.editing',@table)[0]
-          val = editor.getModel().getText()
-          @setCellVal(td,val)
-      editor.focus()
+      textEditor.setText(td.textContent)
+      textEditor.update({autoHeight: false})
+      @addClass('editing-long-text')
+      @editLongText.html(editor)
+    textEditor.getBuffer().clearUndoStack()
+    editor.addEventListener 'blur', (e) =>
+      editor = e.currentTarget
+      @removeClass('editing-long-text')
+      td = $('.editing',@table)[0]
+      val = editor.getModel().getText()
+      @setCellVal(td,val)
+    editor.focus()
 
+  miniEditorScroll: (editor)->
+    return if editor.offsetWidth <= @tableWrapper.width()
+    # center cursor on screen
+    td = editor.parentNode
+    tr = td.parentNode
+    charWidth =  textEditor.getDefaultCharWidth()
+    column = e.newScreenPosition.column
+    trleft = -1 * tr.getBoundingClientRect().left
+    tdleft = td.getBoundingClientRect().left
+    width = @tableWrapper.width() / 2
+    left = trleft + tdleft - width
+    if Math.abs(@tableWrapper.scrollLeft() - (left + column * charWidth)) > width
+      @tableWrapper.scrollLeft(left + column * charWidth)
 
   editSelected: ->
     td = @selectedTd()
