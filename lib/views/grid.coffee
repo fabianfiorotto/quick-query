@@ -1,4 +1,5 @@
 {View, $} = require 'atom-space-pen-views'
+{Emitter} = require 'atom'
 
 module.exports =
 class GridView extends View
@@ -6,6 +7,7 @@ class GridView extends View
 
   constructor:  ()->
     super
+    @emitter = new Emitter()
 
   initialize: ->
     @windowResizeBk = (=> @fixSizes())
@@ -77,7 +79,26 @@ class GridView extends View
     @table.html(tbody)
 
   copyAll: ->
-    if @rows? && @fields?
+    return unless @rows? && @fields?
+    if Array.isArray(@rows[0])
+      fields = @fields.map (field,i) ->
+        label: field.name
+        value: (row)-> row[i]
+    else
+      fields = @fields.map (field) -> field.name
+    rows = @rows.map (row) ->
+      simpleRow = JSON.parse(JSON.stringify(row))
+      simpleRow
+    json2csv del: "\t", data: rows , fields: fields , defaultValue: '' , (err, csv)->
+      if (err)
+        console.log(err)
+      else
+        atom.clipboard.write(csv)
+
+  saveCSV: ->
+    return unless @rows? && @fields?
+    atom.getCurrentWindow().showSaveDialog title: 'Save Query Result as CSV', defaultPath: process.cwd(), (filepath) =>
+      return unless filepath?
       if Array.isArray(@rows[0])
         fields = @fields.map (field,i) ->
           label: field.name
@@ -86,33 +107,14 @@ class GridView extends View
         fields = @fields.map (field) -> field.name
       rows = @rows.map (row) ->
         simpleRow = JSON.parse(JSON.stringify(row))
+        simpleRow[field] ?= '' for field in fields
         simpleRow
-      json2csv del: "\t", data: rows , fields: fields , defaultValue: '' , (err, csv)->
+      json2csv  data: rows , fields: fields , defaultValue: '' , (err, csv)->
         if (err)
           console.log(err)
         else
-          atom.clipboard.write(csv)
-
-  saveCSV: ->
-    if @rows? && @fields?
-      atom.getCurrentWindow().showSaveDialog title: 'Save Query Result as CSV', defaultPath: process.cwd(), (filepath) =>
-        if filepath?
-          if Array.isArray(@rows[0])
-            fields = @fields.map (field,i) ->
-              label: field.name
-              value: (row)-> row[i]
-          else
-            fields = @fields.map (field) -> field.name
-          rows = @rows.map (row) ->
-            simpleRow = JSON.parse(JSON.stringify(row))
-            simpleRow[field] ?= '' for field in fields
-            simpleRow
-          json2csv  data: rows , fields: fields , defaultValue: '' , (err, csv)->
-            if (err)
-              console.log(err)
-            else
-              fs.writeFile filepath, csv, (err)->
-                if (err) then console.log(err) else console.log('file saved')
+          fs.writeFile filepath, csv, (err)->
+            if (err) then console.log(err) else console.log('file saved')
 
 
   showInvisibles: (td)->
@@ -158,9 +160,9 @@ class GridView extends View
   setCursor: (x,y)->
     td1 = @selectedTd()
     td2 = @getTd(x, y)
-    if td && td1 != td2
-      td1.classList.remove('selected')
-      td2.classList.add('selected')
+    return unless td1 && td2 && td1 != td2
+    td1.classList.remove('selected')
+    td2.classList.add('selected')
 
   stopLoop: ->
     if @loop?
@@ -189,10 +191,10 @@ class GridView extends View
     atom.clipboard.write(td.textContent) if td
 
   paste: ->
-    if not @readonly
-      td = @selectedTd()
-      val = atom.clipboard.read()
-      @setCellVal(td,val)
+    return if @readonly
+    td = @selectedTd()
+    val = atom.clipboard.read()
+    @setCellVal(td,val)
 
   moveSelection: (direction)->
     td1 = @selectedTd()
@@ -279,14 +281,14 @@ class GridView extends View
 
   editSelected: ->
     td = @selectedTd()
-    if td? && !@readonly
-      editors = td.getElementsByTagName("atom-text-editor")
-      if editors.length == 0
-        @editRecord(td)
-      else
-        val = editors[0].getModel().getText()
-        @setCellVal(td,val)
-        @table.focus()
+    return unless td? && !@readonly
+    editors = td.getElementsByTagName("atom-text-editor")
+    if editors.length == 0
+      @editRecord(td)
+    else
+      val = editors[0].getModel().getText()
+      @setCellVal(td,val)
+      @table.focus()
 
   setCellVal: (td,text)->
     td.classList.remove('editing','null')
@@ -305,7 +307,7 @@ class GridView extends View
       td.classList.remove('status-modified')
       if tr.querySelector('td.status-modified') == null
         tr.classList.remove('modified')
-    @trigger('quickQuery.rowStatusChanged',[tr])
+    @emitter.emit 'did-change-row-status', tr
 
   insertRecord: ->
     td = document.createElement 'td'
@@ -330,63 +332,63 @@ class GridView extends View
     @table.find('tbody').append(tr)
     @fixSizes() if number == 1
     @tableWrapper.scrollTop -> this.scrollHeight
-    @trigger('quickQuery.rowStatusChanged',[tr])
+    @emitter.emit 'did-change-row-status', tr
 
   selectedTd: -> @element.querySelector('td.selected')
   getTd: (x,y) -> @element.querySelector(".quick-query-grid-table tr:nth-child(#{y}) td:nth-child(#{x})")
 
   deleteRecord: ->
     td = @selectedTd()
-    if not @readonly && td?
-      tr = td.parentNode
-      tr.classList.remove('modified')
-      for td1 in tr.children
-        td1.classList.remove('status-modified')
-      tr.classList.add('status-removed','removed')
-      @trigger('quickQuery.rowStatusChanged',[tr])
+    return unless not @readonly && td?
+    tr = td.parentNode
+    tr.classList.remove('modified')
+    for td1 in tr.children
+      td1.classList.remove('status-modified')
+    tr.classList.add('status-removed','removed')
+    @emitter.emit 'did-change-row-status', tr
 
   undo: ->
     td = @selectedTd()
-    if td?
-      tr = td.parentNode
-      if tr.classList.contains('removed')
-        tr.classList.remove('status-removed','removed')
-      else if tr.classList.contains('added')
-        td.classList.remove('null')
-        td.classList.add('default')
-        td.textContent = ''
+    return unless td?
+    tr = td.parentNode
+    if tr.classList.contains('removed')
+      tr.classList.remove('status-removed','removed')
+    else if tr.classList.contains('added')
+      td.classList.remove('null')
+      td.classList.add('default')
+      td.textContent = ''
+    else
+      if td.dataset.originalValueNull
+        td.classList.add('null')
+        td.textContent = 'NULL'
       else
-        if td.dataset.originalValueNull
-          td.classList.add('null')
-          td.textContent = 'NULL'
-        else
-          value = td.getAttribute('data-original-value')
-          td.classList.remove('null')
-          td.textContent = value
-          @showInvisibles(td)
-        td.classList.remove('status-modified')
-        if tr.querySelector('td.status-modified') == null
-          tr.classList.remove('modified')
-      @trigger('quickQuery.rowStatusChanged',[tr])
+        value = td.getAttribute('data-original-value')
+        td.classList.remove('null')
+        td.textContent = value
+        @showInvisibles(td)
+      td.classList.remove('status-modified')
+      if tr.querySelector('td.status-modified') == null
+        tr.classList.remove('modified')
+      @emitter.emit 'did-change-row-status', tr
 
   setNull: ->
     td = @selectedTd()
-    if not @readonly && td? && !td.classList.contains('null')
-      tr = td.parentNode
-      #$tr.hasClass('status-removed') return
-      td.textContent = 'NULL'
-      td.classList.add('null')
-      if tr.classList.contains('added')
-        td.classList.remove('default')
-        td.classList.add('status-added')
-      else if td.dataset.originalValueNull
-        td.classList.remove('status-modified')
-        if tr.querySelector('td.status-modified') == null
-          tr.classList.remove('modified')
-      else
-        tr.classList.add('modified')
-        td.classList.add('status-modified')
-      @trigger('quickQuery.rowStatusChanged',[tr])
+    return unless not @readonly && td? && !td.classList.contains('null')
+    tr = td.parentNode
+    #$tr.hasClass('status-removed') return
+    td.textContent = 'NULL'
+    td.classList.add('null')
+    if tr.classList.contains('added')
+      td.classList.remove('default')
+      td.classList.add('status-added')
+    else if td.dataset.originalValueNull
+      td.classList.remove('status-modified')
+      if tr.querySelector('td.status-modified') == null
+        tr.classList.remove('modified')
+    else
+      tr.classList.add('modified')
+      td.classList.add('status-modified')
+    @emitter.emit 'did-change-row-status', tr
 
   getChanges: ->
     allChanges = []
@@ -439,7 +441,7 @@ class GridView extends View
         td.classList.remove('status-modified')
         td.setAttribute 'data-original-value', td.textContent
         td.dataset.originalValueNull = td.classList.contains('null')
-    @trigger('quickQuery.rowStatusChanged',[tr])
+    @emitter.emit 'did-change-row-status', tr
 
   fixSizes: ->
     row_count = @table.find('tbody tr').length
@@ -482,7 +484,7 @@ class GridView extends View
       @header.css left: -1*scroll
 
   onRowStatusChanged: (callback)->
-    @bind 'quickQuery.rowStatusChanged', (e,row)-> callback(row)
+    @emitter.on 'did-change-row-status', callback
 
   # Tear down any state and detach
   destroy: ->
