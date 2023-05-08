@@ -1,17 +1,46 @@
 {View, $} = require 'atom-space-pen-views'
-{Emitter} = require 'atom'
+{Emitter, CompositeDisposable, Disposable} = require 'atom'
 
 module.exports =
 class GridView extends View
   readonly: false
 
   constructor:  ()->
-    super
+    @subscriptions = new CompositeDisposable()
     @emitter = new Emitter()
+    super
 
   initialize: ->
-    @windowResizeBk = (=> @fixSizes())
-    window.addEventListener 'resize', @windowResizeBk
+    @subscriptions.add atom.commands.add @table[0],
+      'core:move-left':  => @moveSelection('left')
+      'core:move-right': => @moveSelection('right')
+      'core:move-up':    => @moveSelection('up')
+      'core:move-down':  => @moveSelection('down')
+      'core:undo':       => @undo()
+      'core:confirm':    => @editSelected()
+      'core:copy':       => @copy()
+      'core:paste':      => @paste()
+      'core:backspace':  => @setNull()
+      'core:delete':     => @deleteRecord()
+      'core:page-up':    => @moveSelection('page-up')
+      'core:page-down':  => @moveSelection('page-down')
+      'core:focus-next': => @focusNextCell()
+      'core:cancel':     => @editSelected()
+    @subscriptions.add atom.commands.add @element,
+      'quick-query:copy': => @copy()
+      'quick-query:copy-all': => @copyAll()
+      'quick-query:save-csv': => @saveCSV()
+      'quick-query:insert': => @insertRecord()
+      'quick-query:null': => @setNull()
+      'quick-query:undo': => @undo()
+      'quick-query:delete': => @deleteRecord()
+      'quick-query:copy-changes': => @copyChanges()
+      'quick-query:apply-changes': => @applyChanges()
+    windowResizeBk = (=> @fixSizes())
+    window.addEventListener 'resize', windowResizeBk
+    @subscriptions.add(new Disposable(->
+      window.removeEventListener 'resize', windowResizeBk
+    ))
     @handleScrollEvent()
 
   getTitle: -> @title ? 'untitled'
@@ -296,6 +325,7 @@ class GridView extends View
       @table.focus()
 
   setCellVal: (td,text)->
+    return unless td
     td.classList.remove('editing','null')
     tr = td.parentNode
     #$tr.hasClass('status-removed') return
@@ -483,9 +513,9 @@ class GridView extends View
   handleScrollEvent: ->
     @tableWrapper.scroll (e) =>
       handlerHeight = 5
-      scroll = e.target.pageYOffset - handlerHeight - @header.height()
+      scroll = e.target.scrollTop - handlerHeight - @header.height()
       @numbers.css top: (-1*scroll)
-      scroll = e.target.pageXOffset - @numbers.width()
+      scroll = e.target.scrollLeft - @numbers.width()
       @header.css left: -1*scroll
 
   onRowStatusChanged: (callback)->
@@ -493,6 +523,6 @@ class GridView extends View
 
   # Tear down any state and detach
   destroy: ->
-    window.removeEventListener 'resize', @windowResizeBk
+    @subscriptions.dispose()
     @emitter.dispose()
     # @element.remove()

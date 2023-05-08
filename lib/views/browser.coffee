@@ -1,5 +1,5 @@
-{View, $} = require 'atom-space-pen-views'
-{Emitter} = require 'atom'
+{View, $, $$} = require 'atom-space-pen-views'
+{Emitter, CompositeDisposable} = require 'atom'
 
 module.exports =
 class BrowserView extends View
@@ -11,9 +11,23 @@ class BrowserView extends View
 
   constructor: ->
     @emitter = new Emitter()
+    @subscriptions = new CompositeDisposable()
     super
 
   initialize: ->
+    @subscriptions.add atom.commands.add @element,
+      'quick-query:import-dump': => @importDump()
+      'quick-query:select-1000': => @simpleSelect()
+      'quick-query:set-default': => @setDefault()
+      'quick-query:alter':  => @alter()
+      'quick-query:drop':   => @drop()
+      'quick-query:create': => @create()
+      'quick-query:copy':   => @copy()
+      'core:copy':       => @copy()
+      'core:delete':     => @delete()
+      'core:move-up':    => @moveUp()
+      'core:move-down':  => @moveDown()
+      'core:confirm':    => @expandSelected()
     if !atom.config.get('quick-query.browserButtons')
       @element.classList.add('no-buttons')
     atom.config.onDidChange 'quick-query.browserButtons', ({newValue, oldValue}) =>
@@ -37,10 +51,10 @@ class BrowserView extends View
         @button outlet: 'newConnection', class: 'btn icon icon-plus' , title: 'New connection' , style: 'width:50%'
       @ol id:'quick-query-connections' , class: 'list-tree has-collapsable-children focusable-panel', tabindex: -1, outlet: 'list'
 
-
   # Tear down any state and detach
   destroy: ->
     @element.remove()
+    @subscriptions.disponse()
     @emitter.dispose()
 
   delete: ->
@@ -132,18 +146,13 @@ class BrowserView extends View
         $(e).find(".quick-query-database[data-name=\"#{database}\"]").addClass('default')
 
   newItem: (item)->
-    li = document.createElement 'li'
-    li.classList.add('entry')
-    li.setAttribute('data-name',item.name)
-    div = document.createElement 'div'
-    div.classList.add('header','list-item')
-    li.appendChild div
-    icon = document.createElement 'span'
-    icon.classList.add('icon')
-    div.textContent = item.toString()
-    div.insertBefore icon, div.firstChild
-    @setItemClasses(item,li,div,icon)
-    return $(li)
+    nested = if item.type != 'column' then 'list-nested-item collapsed' else ''
+    [liClass, divClass, icon] = @getItemClasses(item)
+    $$ ->
+      @li class: "entry #{liClass} #{nested}", 'data-name': item.name, =>
+        @div class: "header list-item #{divClass}", =>
+          @span class: "icon #{icon}"
+          @text item.toString()
 
   showConnections: ()->
     $ol = @list
@@ -201,35 +210,20 @@ class BrowserView extends View
       $li.data('item',childItem)
       $ol.append($li)
 
-  setItemClasses: (item,li,div,icon)->
+  getItemClasses: (item)->
     switch item.type
       when 'connection'
-        li.classList.add('quick-query-connection')
-        div.classList.add("qq-connection-item")
-        icon.classList.add('icon-plug')
+        ['quick-query-connection', 'qq-connection-item', 'icon-plug']
       when 'database'
-        li.classList.add('quick-query-database')
-        div.classList.add("qq-database-item")
-        icon.classList.add('icon-database')
-        if item.name == @selectedConnection.getDefaultDatabase()
-          li.classList.add('default')
+        liClass = if item.name == @selectedConnection.getDefaultDatabase() then 'default' else ''
+        ["quick-query-database #{liClass}",'qq-database-item','icon-database']
       when 'schema'
-        li.classList.add('quick-query-schema')
-        div.classList.add("qq-schema-item")
-        icon.classList.add('icon-book')
+        ['quick-query-schema','qq-schema-item','icon-book']
       when 'table'
-        li.classList.add('quick-query-table')
-        div.classList.add("qq-table-item")
-        icon.classList.add('icon-browser')
+        [ 'quick-query-table', 'qq-table-item', 'icon-browser']
       when 'column'
-        li.classList.add('quick-query-column')
-        div.classList.add("qq-column-item")
-        if item.primary_key
-          icon.classList.add('icon-key')
-        else
-          icon.classList.add('icon-tag')
-    if item.type != 'column'
-      li.classList.add('list-nested-item','collapsed')
+        icon = if item.primary_key then 'icon-key' else 'icon-tag'
+        ['quick-query-column','qq-column-item', icon]
 
   timeout: (t,bk) -> setTimeout(bk,t)
 
