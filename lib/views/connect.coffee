@@ -1,5 +1,6 @@
 {View, $} = require 'atom-space-pen-views'
 {remote} = require 'electron'
+{Emitter} = require 'atom'
 
 ssh2 = require 'ssh2'
 
@@ -9,6 +10,7 @@ module.exports =
 class ConnectView extends View
   constructor: (@protocols) ->
     @connectionsStates = []
+    @emitter = new Emitter()
     super
 
   initialize: ->
@@ -53,7 +55,7 @@ class ConnectView extends View
       .on 'change blur', (e) =>
         if $(e.target).find('option:selected').length > 0
           protocol = $(e.target).find('option:selected').data('protocol')
-          @find('.ssh-info').toggle(protocol.handler.sshSupport? && protocol.handler.sshSupport)
+          @sshInfo.toggle(protocol.handler.sshSupport? && protocol.handler.sshSupport)
           if protocol.handler.fromFilesystem?
             @showLocalInfo()
             if protocol.handler.fileExtencions?
@@ -117,7 +119,7 @@ class ConnectView extends View
           password: @sshpass.val()
           port: @sshport.val()
         connectionInfo.ssh.keyfile = @sshkey.data('file') if @sshkey.hasClass('selected')
-      $(@element).trigger('quickQuery.connect',[@buildConnection(connectionInfo)])
+      @emitter.emit('will-connect', @buildConnection(connectionInfo)) unless err?
     @advanced_toggle.click (e) =>
       @advanced_info.slideToggle 400, =>
         hidden = @advanced_info.is(":hidden")
@@ -142,7 +144,7 @@ class ConnectView extends View
         connection = new protocolClass(connectionInfo)
         connection.connect (err) =>
           if err then reject(err) else resolve(connection)
-          @trigger('quickQuery.connected',connection)  unless err?
+          @emitter.emit('did-connection-stablished', connection) unless err?
       else #whait until the package is loaded
         @connectionsStates.push
           info: connectionInfo
@@ -151,7 +153,7 @@ class ConnectView extends View
             connection = new protocolClass(connectionInfo)
             connection.connect (err) =>
               if err then reject(err) else resolve(connection)
-              @trigger('quickQuery.connected',connection)  unless err?
+              @emitter.emit('did-connection-stablished', connection) unless err?
 
   buildConnectionSSH: (connectionInfo) ->
     ssh = connectionInfo.ssh
@@ -178,7 +180,7 @@ class ConnectView extends View
           connection.connect (err) =>
             console.log err if err?
             if err then reject(err) else resolve(connection)
-            @trigger('quickQuery.connected',connection)  unless err?
+            @emitter.emit('did-connection-stablished', connection) unless err?
       conn.connect(conf)
 
   @content: ->
@@ -186,14 +188,14 @@ class ConnectView extends View
       @div class: "col-sm-12" , =>
         @label 'protocol'
         @select outlet: "protocol", class: "form-control input-select" , id: "quick-query-protocol", tabindex: 1
-      @div class: "qq-remote-info row", =>
+      @div class: "qq-remote-info row", outlet: 'remoteInfo' , =>
         @div class: "col-sm-9" , =>
           @label 'host'
           @input outlet: "host", class: "input-text native-key-bindings", id: "quick-query-host", type: "text", tabindex: 2
         @div class:"col-sm-3" , =>
           @label 'port'
           @input outlet: "port", class: "input-number native-key-bindings", id: "quick-query-port", type: "number", min:0, max: 65536, tabindex: 3
-      @div class: "qq-local-info row" , =>
+      @div class: "qq-local-info row" , outlet: 'localInfo', =>
         @div class: "col-sm-12", =>
           @label 'file'
         @div class: "col-sm-9", =>
@@ -218,39 +220,39 @@ class ConnectView extends View
         @div class: "col-sm-12" , =>
           @label 'default database (optional)'
           @input outlet: 'database' ,class: "input-text native-key-bindings", id: "quick-query-database", type: "text"
-        @div class: "ssh-info col-sm-6" , =>
-          @label 'SSH username'
-          @input outlet: 'sshuser' ,class: "input-text native-key-bindings", id: "quick-query-ssh-user", type: "text"
-        @div class: "ssh-info col-sm-4" , =>
-          @label outlet: 'sshpass_label', 'SSH password'
-          @div class:'flex-row', =>
-            @div =>
-              @input outlet: 'sshpass', class: "input-text native-key-bindings", id: "quick-query-ssh-pass", type: "password"
-            @button outlet:"sshkey", title: "Load SSH Key", id:"quick-query-key", class: "btn btn-default icon icon-key",  ""
-        @div class: "ssh-info col-sm-2" , =>
-          @label for: "quick-query-ssh-port",'SSH port'
-          @input outlet: 'sshport', class: "input-text native-key-bindings", id: "quick-query-ssh-port", type: "number", min:0, max: 65536
+        @div outlet: 'sshInfo', =>
+          @div class: "ssh-info col-sm-6" , =>
+            @label 'SSH username'
+            @input outlet: 'sshuser' ,class: "input-text native-key-bindings", id: "quick-query-ssh-user", type: "text"
+          @div class: "ssh-info col-sm-4" , =>
+            @label outlet: 'sshpass_label', 'SSH password'
+            @div class:'flex-row', =>
+              @div =>
+                @input outlet: 'sshpass', class: "input-text native-key-bindings", id: "quick-query-ssh-pass", type: "password"
+              @button outlet:"sshkey", title: "Load SSH Key", id:"quick-query-key", class: "btn btn-default icon icon-key",  ""
+          @div class: "ssh-info col-sm-2" , =>
+            @label for: "quick-query-ssh-port",'SSH port'
+            @input outlet: 'sshport', class: "input-text native-key-bindings", id: "quick-query-ssh-port", type: "number", min:0, max: 65536
 
       @div class: "col-sm-12" , =>
         @button outlet:"connect", id:"quick-query-connect", class: "btn btn-default icon icon-plug" , tabindex: "99" , "Connect"
 
   destroy: ->
     @element.remove()
+    @emitter.dispose()
   focusFirst: ->
     @protocol.focus()
 
   showLocalInfo: ->
-    @find(".qq-local-info").show()
-    @find(".qq-remote-info").hide()
+    @localInfo.show()
+    @remoteInfo.hide()
 
   showRemoteInfo: ->
-    @find(".qq-remote-info").show()
-    @find(".qq-local-info").hide()
+    @remoteInfo.show()
+    @localInfo.hide()
 
   onWillConnect: (callback)->
-    @bind 'quickQuery.connect', (e,connectionPromise) ->
-      callback(connectionPromise)
+    @emitter.on 'will-connect', callback
 
   onConnectionStablished: (callback)->
-    @bind 'quickQuery.connected', (e,connection) ->
-      callback(connection)
+    @emitter.on 'did-connection-stablished', callback

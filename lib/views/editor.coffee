@@ -38,48 +38,48 @@ class EditorView extends View
     connection = if @model.type == 'connection' then @model else @model.connection
     @selectDataType.setItems(connection.getDataTypes())
 
-    @nameEditor = @find('#quick-query-editor-name')[0].getModel()
+    @nameValueEditor = @nameEditor[0].getModel()
     # @datatypeEditor = @find('#quick-query-datatype')[0].getModel()
     @datatypeEditor = @selectDataType.filterEditorView.getModel();
-    @defaultValueEditor = @find('#quick-query-default')[0].getModel()
+    @defaultValueEditor = @defaultEditor[0].getModel()
 
-    @find('#quick-query-nullable').click (e) ->
+    @nullableBtn.click (e) ->
           $(this).toggleClass('selected')
           $(this).html(if $(this).hasClass('selected') then 'YES' else 'NO')
 
-    @find('#quick-query-null').change (e) =>
+    @nullInput.change (e) =>
       $null = $(e.currentTarget)
       if $null.is(':checked')
-        @find('#quick-query-default').addClass('hide')
-        @find('#quick-query-default-is-null').removeClass('hide')
+        @defaultEditor.addClass('hide')
+        @defaultIsNull.removeClass('hide')
       else
-        @find('#quick-query-default').removeClass('hide')
-        @find('#quick-query-default-is-null').addClass('hide')
+        @defaultEditor.removeClass('hide')
+        @defaultIsNull.addClass('hide')
 
-    @find('#quick-query-editor-done, #quick-query-nullable').keydown (e) ->
+    @doneBtn.add(@nullableBtn).keydown (e) ->
       $(this).click() if e.keyCode == 13
-    @find('#quick-query-editor-done').click (e) =>
+    @doneBtn.click (e) =>
       @openTextEditor()
-      @closest('atom-panel.modal').hide()
+      $(@element).closest('atom-panel.modal').hide()
 
     if @action != 'create'
-      @nameEditor.insertText(@model.name)
+      @nameValueEditor.insertText(@model.name)
 
     if @model_type == 'column'
-      @find('.quick-query-column-editor').removeClass('hide')
+      $(@element).find('.quick-query-column-editor').removeClass('hide')
     if @model_type == 'column' && @action == 'alter'
       @datatypeEditor.setText(@model.datatype)
       @defaultValueEditor.setText(@model.default || "")
-      @find('#quick-query-null').prop('checked', !@model.default?).change()
+      @nullInput.prop('checked', !@model.default?).change()
       if @model.nullable
-        @find('#quick-query-nullable').click()
+        @nullableBtn.click()
 
   @content: ->
     @div class: 'quick-query-editor' , =>
       @div class: 'row', =>
         @div class: 'col-sm-12' , =>
           @label 'name'
-          @currentBuilder.tag 'atom-text-editor', id: 'quick-query-editor-name' , class: 'editor', mini: 'mini'
+          @currentBuilder.tag 'atom-text-editor', id: 'quick-query-editor-name', outlet: 'nameEditor', class: 'editor', mini: 'mini'
       @div class: 'row quick-query-column-editor hide', =>
         @div class: 'col-sm-6' , =>
           @label 'type'
@@ -87,16 +87,16 @@ class EditorView extends View
           @subview 'selectDataType', new SelectDataType()
         @div class: 'col-sm-2' , =>
           @label 'nullable'
-          @button id:'quick-query-nullable',class: 'btn' ,'NO'
+          @button id:'quick-query-nullable', outlet: 'nullableBtn' ,class: 'btn' ,'NO'
         @div class: 'col-sm-3' , =>
           @label 'default'
-          @currentBuilder.tag 'atom-text-editor', id: 'quick-query-default' , class: 'editor', mini: 'mini'
-          @div id: 'quick-query-default-is-null' ,class:'hide' , "Null"
+          @currentBuilder.tag 'atom-text-editor', id: 'quick-query-default', outlet: 'defaultEditor', class: 'editor', mini: 'mini'
+          @div id: 'quick-query-default-is-null', outlet: 'defaultIsNull' ,class:'hide' , "Null"
         @div class: 'col-sm-1' , =>
-          @input  id: 'quick-query-null', type: 'checkbox' , style: "margin-top:24px;"
+          @input  id: 'quick-query-null', outlet: 'nullInput' ,type: 'checkbox' , style: "margin-top:24px;"
       @div class: 'row', =>
         @div class: 'col-sm-12', =>
-          @button 'Done', id: 'quick-query-editor-done' , class: 'btn btn-default icon icon-check'
+          @button 'Done', id: 'quick-query-editor-done', outlet: 'doneBtn', class: 'btn btn-default icon icon-check'
 
 
   openTextEditor: ()->
@@ -116,7 +116,7 @@ class EditorView extends View
         @editor = editor
 
   getCreateText: ()->
-    newName= @nameEditor.getText()
+    newName= @nameValueEditor.getText()
     switch @model_type
       when 'database'
         info = {name: newName }
@@ -129,8 +129,8 @@ class EditorView extends View
         @model.connection.createSchema(@model,info)
       when 'column'
         datatype = @datatypeEditor.getText()
-        nullable = @find('#quick-query-nullable').hasClass('selected')
-        defaultValue = if @find('#quick-query-null').is(':checked')
+        nullable = @nullableBtn.hasClass('selected')
+        defaultValue = if @nullInput.is(':checked')
           null
         else
           @defaultValueEditor.getText()
@@ -142,15 +142,15 @@ class EditorView extends View
         @model.connection.createColumn(@model,info)
 
   getAlterText: ()->
-    newName= @nameEditor.getText()
+    newName= @nameValueEditor.getText()
     switch @model_type
       when 'table'
         delta = { old_name: @model.name , new_name: newName }
         @model.connection.alterTable(@model,delta)
       when 'column'
         datatype = @datatypeEditor.getText()
-        nullable = @find('#quick-query-nullable').hasClass('selected')
-        defaultValue = if @find('#quick-query-null').is(':checked')
+        nullable = @nullableBtn.hasClass('selected')
+        defaultValue = if @nullInput.is(':checked')
           null
         else
           @defaultValueEditor.getText()
@@ -176,4 +176,4 @@ class EditorView extends View
   getColumnInfo: ->
 
   focusFirst: ->
-    setTimeout((=> @find('#quick-query-editor-name').focus()) ,10)
+    setTimeout((=> @nameEditor.focus()) ,10)

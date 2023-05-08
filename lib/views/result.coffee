@@ -30,7 +30,7 @@ class ResultView extends View
 
   @content: ->
     @div class: 'quick-query-result' , =>
-      @div class: 'quick-query-result-resize-handler', ''
+      @div class: 'quick-query-result-resize-handler', outlet: 'handler', ''
       @subview 'grid', new GridView()
       @div class: 'preview', outlet: 'preview' , ''
       @div class: 'buttons', =>
@@ -38,7 +38,7 @@ class ResultView extends View
         @button class: 'btn btn-error icon icon-x',outlet:'cancelButton',''
 
   focusTable: ->
-    @grid.focusTable() unless @hasClass('confirmation')
+    @grid.focusTable() unless @element.classList.contains('confirmation')
 
   # Tear down any state and detach
   destroy: ->
@@ -91,10 +91,10 @@ class ResultView extends View
         """
         atom.notifications.addWarning(wr, dismissable: true)
         return
-      @addClass('confirmation')
+      @element.classList.add('confirmation')
       @loadPreview(sentences)
       @confirm().then (accept) =>
-        @removeClass('confirmation')
+        @element.classList.remove('confirmation')
         if accept then @executeChange(sentence) for sentence in sentences
         @grid.focusTable()
     .catch (err) -> console.log(err)
@@ -141,7 +141,7 @@ class ResultView extends View
     @keepHidden = true
 
   handleResizeEvents: ->
-    @on 'mousedown', '.quick-query-result-resize-handler', (e) => @resizeStarted(e)
+    @handler.on 'mousedown', (e) => @resizeStarted(e)
 
   resizeStarted: ->
     $(document).on('mousemove', @resizeResultView)
@@ -152,6 +152,6 @@ class ResultView extends View
 
   resizeResultView: ({pageY, which}) =>
     return @resizeStopped() unless which is 1
-    height = @outerHeight() + @offset().top - pageY
-    @height(height)
+    height = @element.offsetHeight + @element.getBoundingClientRect().top - pageY
+    @element.style.height = height + 'px'
     @grid.fixScrolls()

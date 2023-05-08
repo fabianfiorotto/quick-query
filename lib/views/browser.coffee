@@ -1,7 +1,8 @@
-{ScrollView, $} = require 'atom-space-pen-views'
+{View, $} = require 'atom-space-pen-views'
+{Emitter} = require 'atom'
 
 module.exports =
-class BrowserView extends ScrollView
+class BrowserView extends View
 
   editor: null
   connection: null
@@ -9,17 +10,18 @@ class BrowserView extends ScrollView
   selectedConnection: null
 
   constructor: ->
+    @emitter = new Emitter()
     super
 
   initialize: ->
     if !atom.config.get('quick-query.browserButtons')
-      @addClass('no-buttons')
+      @element.classList.add('no-buttons')
     atom.config.onDidChange 'quick-query.browserButtons', ({newValue, oldValue}) =>
-      @toggleClass('no-buttons',!newValue)
-    @find('#quick-query-new-connection').click (e) =>
+      if newValue then @element.classList.remove('no-buttons') else @element.classList.add('no-buttons')
+    @newConnection.click (e) =>
       workspaceElement = atom.views.getView(atom.workspace)
       atom.commands.dispatch(workspaceElement, 'quick-query:new-connection')
-    @find('#quick-query-run').click (e) =>
+    @runButton.click (e) =>
       workspaceElement = atom.views.getView(atom.workspace)
       atom.commands.dispatch(workspaceElement, 'quick-query:run')
 
@@ -31,29 +33,30 @@ class BrowserView extends ScrollView
   @content: ->
     @div class: 'quick-query-browser tool-panel', =>
       @div class: 'btn-group', outlet: 'buttons', =>
-        @button id: 'quick-query-run', class: 'btn icon icon-playback-play' , title: 'Run' , style: 'width:50%'
-        @button id: 'quick-query-new-connection', class: 'btn icon icon-plus' , title: 'New connection' , style: 'width:50%'
+        @button outlet: 'runButton', class: 'btn icon icon-playback-play' , title: 'Run' , style: 'width:50%'
+        @button outlet: 'newConnection', class: 'btn icon icon-plus' , title: 'New connection' , style: 'width:50%'
       @ol id:'quick-query-connections' , class: 'list-tree has-collapsable-children focusable-panel', tabindex: -1, outlet: 'list'
 
 
   # Tear down any state and detach
   destroy: ->
     @element.remove()
+    @emitter.dispose()
 
   delete: ->
     connection = null
-    $li = @find('ol:focus li.selected')
+    $li = $(@element).find('ol:focus li.selected')
     model = $li.data('item')
     if $li.hasClass('quick-query-connection')
       @removeConnection(model)
     else
-      @trigger('quickQuery.edit',['drop',model])
+      @emitter.emit('did-item-edit', ['drop',model])
 
   removeConnection: (connection)->
     i = @connections.indexOf(connection)
     @connections.splice(i,1)
     @showConnections()
-    @trigger('quickQuery.connectionDeleted',[connection])
+    @emitter.emit('did-connection-deleted', connection)
 
   getURI: -> 'quick-query://browser'
   getDefaultLocation: ->
@@ -64,14 +67,17 @@ class BrowserView extends ScrollView
   getAllowedLocations: -> ['left', 'right']
   isPermanentDockItem: -> true
 
+  getSelected: ->
+    $(@element).find('li.selected')
+
   setDefault: ->
-    $li = @find('li.selected')
+    $li = @getSelected()
     unless $li.hasClass('default')
       model = $li.data('item')
       model.connection.setDefaultDatabase model.name
 
   moveUp: ->
-    $li = @find('li.selected')
+    $li = @getSelected()
     $prev = $li.prev()
     while $prev.hasClass('expanded') && $prev.find('>ol>li').length > 0
       $prev = $prev.find('>ol>li:last')
@@ -83,7 +89,7 @@ class BrowserView extends ScrollView
       @scrollToItem($prev)
 
   moveDown: ->
-    $i = $li = @find('li.selected')
+    $i = $li = @getSelected()
     if $li.hasClass('expanded') && $li.find('>ol>li').length > 0
       $next = $li.find('>ol>li:first')
     else
@@ -114,7 +120,7 @@ class BrowserView extends ScrollView
         @connections.splice(pos, 0, connection)
       else
         @connections.push(connection)
-      @trigger('quickQuery.connectionSelected',[connection])
+      @emitter.emit('did-connection-selected', connection)
       @showConnections()
       connection.onDidChangeDefaultDatabase (database) =>
         @defaultDatabaseChanged(connection,database)
@@ -161,7 +167,7 @@ class BrowserView extends ScrollView
     connection = $li.data('item')
     if connection != @selectedConnection
       @selectedConnection = connection
-      @trigger('quickQuery.connectionSelected',[connection])
+      @emitter.emit('did-connection-selected', connection)
     @expandItem($li,callback)
 
   showItems: (parentItem,childrenItems,$e)->
@@ -228,7 +234,7 @@ class BrowserView extends ScrollView
   timeout: (t,bk) -> setTimeout(bk,t)
 
   expandSelected: (callback)->
-    $li = @find('li.selected')
+    $li = @getSelected()
     @expandItem($li,callback)
 
   expandItem: ($li,callback) ->
@@ -266,7 +272,7 @@ class BrowserView extends ScrollView
       when 'schema' then 'li.quick-query-schema'
       when 'table' then 'li.quick-query-table'
       else 'li'
-    $li = @find(selector).filter (i,e)-> $(e).data('item') == model
+    $li = $(@element).find(selector).filter (i,e)-> $(e).data('item') == model
     $li.removeClass('collapsed')
     $li.addClass('expanded')
     $li.find('ol').empty();
@@ -309,7 +315,7 @@ class BrowserView extends ScrollView
       return 0
 
   simpleSelect: ->
-    $li = @find('li.selected.quick-query-table')
+    $li = $(@element).find('li.selected.quick-query-table')
     if $li.length > 0
       model = $li.data('item')
       model.connection.getColumns model ,(columns) =>
@@ -320,34 +326,33 @@ class BrowserView extends ScrollView
           editor.getBuffer().clearUndoStack()
 
   importDump: ->
-    $li = @find('li.selected')
+    $li = @getSelected()
     model = $li.data('item')
     atom.workspace.open('quick-query://dump-loader', database: model.name )
 
   copy: ->
-    $li = @find('li.selected')
+    $li = @getSelected()
     $header = $li.children('div.header')
     if $header.length > 0
       atom.clipboard.write($header.text())
 
   create: ->
-    $li = @find('li.selected')
+    $li = @getSelected()
     if $li.length > 0
       model = $li.data('item')
-      @trigger('quickQuery.edit',['create',model])
-
+      @emitter.emit('did-item-edit', ['create',model])
 
   alter: ->
-    $li = @find('li.selected')
+    $li = @getSelected()
     if $li.length > 0
       model = $li.data('item')
-      @trigger('quickQuery.edit',['alter',model])
+      @emitter.emit('did-item-edit', ['alter',model])
 
   drop: ->
-    $li = @find('li.selected')
+    $li = @getSelected()
     if $li.length > 0
       model = $li.data('item')
-      @trigger('quickQuery.edit',['drop',model])
+      @emitter.emit('did-item-edit', ['drop',model])
 
   selectConnection: (connection)->
     return unless connection != @selectedConnection
@@ -356,13 +361,14 @@ class BrowserView extends ScrollView
         @list.children().removeClass('default')
         $(li).addClass('default')
         @selectedConnection = connection
-        @trigger('quickQuery.connectionSelected',[connection])
+        @emitter.emit('did-connection-selected', connection)
 
   #events
+  onItemEdit: (callback)->
+    @emitter.on('did-item-edit', callback)
+
   onConnectionSelected: (callback)->
-    @bind 'quickQuery.connectionSelected', (e,connection) =>
-      callback(connection)
+    @emitter.on('did-connection-selected', callback)
 
   onConnectionDeleted: (callback)->
-    @bind 'quickQuery.connectionDeleted', (e,connection) =>
-      callback(connection)
+    @emitter.on('did-connection-deleted', callback)

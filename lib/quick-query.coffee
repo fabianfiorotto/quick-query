@@ -98,7 +98,7 @@ module.exports = QuickQuery =
       else
         @connection = null
 
-    @browser.bind 'quickQuery.edit', (e,action,model) =>
+    @browser.onItemEdit ([action,model]) =>
       @editorView = new EditorView(action,model)
       if action == 'drop'
         @editorView.openTextEditor()

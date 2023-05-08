@@ -30,9 +30,11 @@ class GridView extends View
       @div class: 'edit-long-text', outlet: 'editLongText' , ''
 
   showRows: (@rows, @fields, @readonly, done)->
-    @removeClass('changed confirmation')
-    @attr 'data-allow-edition' , =>
-      if not @readonly then 'yes' else null
+    @element.classList.remove('changed', 'confirmation')
+    if @readonly
+      @element.removeAttribute('data-allow-edition')
+    else
+      @element.setAttribute('data-allow-edition', 'yes')
     @keepHidden = false
     thead = document.createElement('thead')
     tr = document.createElement('tr')
@@ -144,7 +146,7 @@ class GridView extends View
     doChunk()
 
   isTableFocused: -> @table.is(':focus')
-  isEditingLongText: ()-> @hasClass('editing-long-text')
+  isEditingLongText: -> @element.classList.contains('editing-long-text')
 
   focusTable: ->
     @table.focus()
@@ -183,7 +185,10 @@ class GridView extends View
     status += ",#{modified} modified" if modified > 0
     removed = table.querySelectorAll('tr.removed').length
     status += ",#{removed} deleted" if removed > 0
-    @toggleClass('changed',added+modified+removed>0)
+    if added+modified+removed>0
+      @element.classList.add('changed')
+    else
+      @element.classList.remove('changed')
     status
 
   copy: ->
@@ -254,12 +259,12 @@ class GridView extends View
       textEditor = editor.getModel()
       textEditor.setText(td.textContent)
       textEditor.update({autoHeight: false})
-      @addClass('editing-long-text')
+      @element.classList.add('editing-long-text')
       @editLongText.html(editor)
     textEditor.getBuffer().clearUndoStack()
     editor.addEventListener 'blur', (e) =>
       editor = e.currentTarget
-      @removeClass('editing-long-text')
+      @element.classList.remove('editing-long-text')
       td = $('.editing',@table)[0]
       val = editor.getModel().getText()
       @setCellVal(td,val)
@@ -489,4 +494,5 @@ class GridView extends View
   # Tear down any state and detach
   destroy: ->
     window.removeEventListener 'resize', @windowResizeBk
+    @emitter.dispose()
     # @element.remove()

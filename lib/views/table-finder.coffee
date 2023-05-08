@@ -1,9 +1,11 @@
 {SelectListView  , $} = require 'atom-space-pen-views'
+{Emitter} = require 'atom'
 
 module.exports =
 class TableFinderView extends SelectListView
   initialize: ->
     @step = 1
+    @emitter = new Emitter()
     super
   getFilterKey: ->
     'name'
@@ -23,14 +25,14 @@ class TableFinderView extends SelectListView
     if @step == 1
       @step2(item)
     else
-      @trigger('quickQuery.found',[item])
+      @emitter.emit('found', item)
 
   cancel: ->
     super
     if @step == 2
       @step1()
     else
-      @trigger('quickQuery.canceled')
+      @emitter.emit('cancelled', item)
 
   searchTable: (@connection)->
     @step1()
@@ -62,10 +64,12 @@ class TableFinderView extends SelectListView
               @filterEditorView.getModel().setText('')
               @setItems(alltables)
 
+  destroy: ->
+    super
+    @emiter.dispose()
+
   onFound: (callback)->
-    @bind 'quickQuery.found', (e,connection) =>
-      callback(connection)
+    @emitter.on('found', callback)
 
   onCanceled: (callback)->
-    @bind 'quickQuery.canceled', (e,connection) =>
-      callback(connection)
+    @emitter.on('canceled', callback)
