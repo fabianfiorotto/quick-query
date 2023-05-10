@@ -32,7 +32,7 @@ class TableFinderView extends SelectListView
     if @step == 2
       @step1()
     else
-      @emitter.emit('cancelled', item)
+      @emitter.emit('canceled')
 
   searchTable: (@connection)->
     @step1()
