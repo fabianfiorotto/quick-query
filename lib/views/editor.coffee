@@ -43,24 +43,8 @@ class EditorView extends View
     @datatypeEditor = @selectDataType.filterEditorView.getModel();
     @defaultValueEditor = @defaultEditor[0].getModel()
 
-    @nullableBtn.click (e) ->
-          $(this).toggleClass('selected')
-          $(this).html(if $(this).hasClass('selected') then 'YES' else 'NO')
-
-    @nullInput.change (e) =>
-      $null = $(e.currentTarget)
-      if $null.is(':checked')
-        @defaultEditor.addClass('hide')
-        @defaultIsNull.removeClass('hide')
-      else
-        @defaultEditor.removeClass('hide')
-        @defaultIsNull.addClass('hide')
-
     @doneBtn.add(@nullableBtn).keydown (e) ->
       $(this).click() if e.keyCode == 13
-    @doneBtn.click (e) =>
-      @openTextEditor()
-      $(@element).closest('atom-panel.modal').hide()
 
     if @action != 'create'
       @nameValueEditor.insertText(@model.name)
@@ -79,25 +63,40 @@ class EditorView extends View
       @div class: 'row', =>
         @div class: 'col-sm-12' , =>
           @label 'name'
-          @currentBuilder.tag 'atom-text-editor', id: 'quick-query-editor-name', outlet: 'nameEditor', class: 'editor', mini: 'mini'
+          @tag 'atom-text-editor', id: 'quick-query-editor-name', outlet: 'nameEditor', class: 'editor', mini: 'mini'
       @div class: 'row quick-query-column-editor hide', =>
         @div class: 'col-sm-6' , =>
           @label 'type'
-          # @currentBuilder.tag 'atom-text-editor', id: 'quick-query-datatype' , class: 'editor', mini: 'mini'
+          # @tag 'atom-text-editor', id: 'quick-query-datatype' , class: 'editor', mini: 'mini'
           @subview 'selectDataType', new SelectDataType()
         @div class: 'col-sm-2' , =>
           @label 'nullable'
-          @button id:'quick-query-nullable', outlet: 'nullableBtn' ,class: 'btn' ,'NO'
+          @button id:'quick-query-nullable', outlet: 'nullableBtn', click: 'toggleNullable' ,class: 'btn' ,'NO'
         @div class: 'col-sm-3' , =>
           @label 'default'
-          @currentBuilder.tag 'atom-text-editor', id: 'quick-query-default', outlet: 'defaultEditor', class: 'editor', mini: 'mini'
+          @tag 'atom-text-editor', id: 'quick-query-default', outlet: 'defaultEditor', class: 'editor', mini: 'mini'
           @div id: 'quick-query-default-is-null', outlet: 'defaultIsNull' ,class:'hide' , "Null"
         @div class: 'col-sm-1' , =>
-          @input  id: 'quick-query-null', outlet: 'nullInput' ,type: 'checkbox' , style: "margin-top:24px;"
+          @input  id: 'quick-query-null', outlet: 'nullInput', change: 'nullInputChanged', type: 'checkbox' , style: "margin-top:24px;"
       @div class: 'row', =>
         @div class: 'col-sm-12', =>
-          @button 'Done', id: 'quick-query-editor-done', outlet: 'doneBtn', class: 'btn btn-default icon icon-check'
+          @button 'Done', id: 'quick-query-editor-done', outlet: 'doneBtn',click: 'doneBtnClicked', class: 'btn btn-default icon icon-check'
 
+  doneBtnClicked: ->
+    @openTextEditor()
+    $(@element).closest('atom-panel.modal').hide()
+
+  nullInputChanged: ->
+    if @nullInput.is(':checked')
+      @defaultEditor.addClass('hide')
+      @defaultIsNull.removeClass('hide')
+    else
+      @defaultEditor.removeClass('hide')
+      @defaultIsNull.addClass('hide')
+
+  toggleNullable: ->
+    @nullableBtn.toggleClass('selected')
+    @nullableBtn.html(if @nullableBtn.hasClass('selected') then 'YES' else 'NO')
 
   openTextEditor: ()->
     comment  = "-- Check the sentence before execute it\n"+

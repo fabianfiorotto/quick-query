@@ -28,16 +28,6 @@ class ConnectView extends View
     @pass.blur =>
       @showpass.fadeOut()
 
-    @showpass.click =>
-      @showpass.toggleClass("on")
-      if @showpass.hasClass("on")
-        @pass.attr("type","text")
-        @sshpass.attr("type","text")
-      else
-        @pass.attr("type","password")
-        @sshpass.attr("type","password")
-      @pass.focus()
-
     @connect.keydown (e) ->
       $(this).click() if e.keyCode == 13
     @protocol
@@ -66,65 +56,12 @@ class ConnectView extends View
             @showRemoteInfo()
             @port.val(protocol.handler.defaultPort.toString())
 
-    @browse_file.click (e) =>
-        options =
-          properties: ['openFile']
-          title: 'Open Database'
-        currentWindow = atom.getCurrentWindow()
-        if $(e.currentTarget).data("extensions")
-          options.filters = [{ name: 'Database', extensions: $(e.target).data("extensions") }]
-        remote.dialog.showOpenDialog(currentWindow, options).then (dialog) =>
-          @file.val(dialog.filePaths[0]) if dialog && !dialog.canceled
-
     for key,protocol of @protocols
       option = $('<option/>')
         .text(protocol.name)
         .val(key)
         .data('protocol',protocol)
       @protocol.append(option)
-
-    @sshkey.click (e) =>
-      if @sshkey.hasClass('selected')
-        @sshpass_label.text('SSH Password')
-        @sshkey.removeClass('selected')
-      else
-        currentWindow = atom.getCurrentWindow()
-        options =
-          properties: ['openFile']
-          title: 'Load SSH Key'
-        remote.dialog.showOpenDialog(currentWindow, options).then (dialog) =>
-          if dialog && !dialog.canceled
-            @sshkey.data('file', dialog.filePaths[0]).addClass('selected')
-            @sshpass_label.text('Passphrase')
-
-    @connect.click (e) =>
-      connectionInfo = {
-        user: @user.val(),
-        password: @pass.val()
-        protocol: @protocol.val()
-      }
-      if @protocols[connectionInfo.protocol]?.handler.fromFilesystem?
-        connectionInfo.file = @file.val()
-      else
-        connectionInfo.host = @host.val()
-        connectionInfo.port = @port.val()
-      if @protocols[connectionInfo.protocol]?.default?
-        defaults = @protocols[connectionInfo.protocol].default
-        connectionInfo[attr] = value for attr,value of defaults
-      if @database.val() != ''
-        connectionInfo.database = @database.val()
-      if @sshuser.val() != ''
-        connectionInfo.ssh =
-          username: @sshuser.val()
-          password: @sshpass.val()
-          port: @sshport.val()
-        connectionInfo.ssh.keyfile = @sshkey.data('file') if @sshkey.hasClass('selected')
-      @emitter.emit('will-connect', @buildConnection(connectionInfo)) unless err?
-    @advanced_toggle.click (e) =>
-      @advanced_info.slideToggle 400, =>
-        hidden = @advanced_info.is(":hidden")
-        @advanced_info.find('input').attr 'tabindex', (i,attr) -> if hidden then null else i + 6
-        @advanced_toggle.children("i").toggleClass("icon-chevron-down icon-chevron-left")
 
   addProtocol: (key,protocol)->
     @protocols[key] = protocol
@@ -201,7 +138,7 @@ class ConnectView extends View
         @div class: "col-sm-9", =>
           @input outlet: 'file', class: "input-text native-key-bindings", id: "quick-query-file", type: "text", tabindex: 2
         @div class: "col-sm-3", =>
-          @button outlet: "browse_file", id:"quick-query-browse-file", class: "btn btn-default icon icon-file-directory", "Browse"
+          @button outlet: "browse_file", click: 'browseClick', id:"quick-query-browse-file", class: "btn btn-default icon icon-file-directory", "Browse"
       @div class: "qq-auth-info row", =>
         @div class: "col-sm-6" , =>
           @label 'user'
@@ -210,11 +147,11 @@ class ConnectView extends View
           @label 'password'
           @div class: "pass-wrapper", =>
             @input outlet: 'pass' ,class: "input-text native-key-bindings", id: "quick-query-pass", type: "password", tabindex: 5
-            @button outlet:"showpass", class:"show-password", title:"Show password", tabindex: "-1", =>
+            @button outlet:"showpass", click: 'toggleShowpass', class:"show-password", title:"Show password", tabindex: "-1", =>
               @i class: "icon icon-eye"
       @div class: "qq-advanced-info-toggler row", =>
         @div class: "col-sm-12", =>
-          @button outlet:"advanced_toggle", class: "advance-toggle", tabindex: "-1", title:"toggle advanced options",=>
+          @button outlet:"advanced_toggle", click: 'toggleAdvanced', class: "advance-toggle", tabindex: "-1", title:"toggle advanced options",=>
             @i  class: "icon icon-chevron-left"
       @div outlet: "advanced_info", class: "qq-advanced-info row", =>
         @div class: "col-sm-12" , =>
@@ -229,19 +166,83 @@ class ConnectView extends View
             @div class:'flex-row', =>
               @div =>
                 @input outlet: 'sshpass', class: "input-text native-key-bindings", id: "quick-query-ssh-pass", type: "password"
-              @button outlet:"sshkey", title: "Load SSH Key", id:"quick-query-key", class: "btn btn-default icon icon-key",  ""
+              @button outlet:"sshkey", click: 'sshkeyClick', title: "Load SSH Key", id:"quick-query-key", class: "btn btn-default icon icon-key",  ""
           @div class: "ssh-info col-sm-2" , =>
             @label for: "quick-query-ssh-port",'SSH port'
             @input outlet: 'sshport', class: "input-text native-key-bindings", id: "quick-query-ssh-port", type: "number", min:0, max: 65536
 
       @div class: "col-sm-12" , =>
-        @button outlet:"connect", id:"quick-query-connect", class: "btn btn-default icon icon-plug" , tabindex: "99" , "Connect"
+        @button outlet:"connect", click: 'connectClick', id:"quick-query-connect", class: "btn btn-default icon icon-plug" , tabindex: "99" , "Connect"
 
   destroy: ->
     @element.remove()
     @emitter.dispose()
   focusFirst: ->
     @protocol.focus()
+
+  browseClick: ->
+    options =
+      properties: ['openFile']
+      title: 'Open Database'
+    currentWindow = atom.getCurrentWindow()
+    if $(e.currentTarget).data("extensions")
+      options.filters = [{ name: 'Database', extensions: $(e.target).data("extensions") }]
+    remote.dialog.showOpenDialog(currentWindow, options).then (dialog) =>
+      @file.val(dialog.filePaths[0]) if dialog && !dialog.canceled
+
+  sshkeyClick: ->
+    if @sshkey.hasClass('selected')
+      @sshpass_label.text('SSH Password')
+      @sshkey.removeClass('selected')
+    else
+      currentWindow = atom.getCurrentWindow()
+      options =
+        properties: ['openFile']
+        title: 'Load SSH Key'
+      remote.dialog.showOpenDialog(currentWindow, options).then (dialog) =>
+        if dialog && !dialog.canceled
+          @sshkey.data('file', dialog.filePaths[0]).addClass('selected')
+          @sshpass_label.text('Passphrase')
+
+  connectClick: ->
+    connectionInfo = {
+      user: @user.val(),
+      password: @pass.val()
+      protocol: @protocol.val()
+    }
+    if @protocols[connectionInfo.protocol]?.handler.fromFilesystem?
+      connectionInfo.file = @file.val()
+    else
+      connectionInfo.host = @host.val()
+      connectionInfo.port = @port.val()
+    if @protocols[connectionInfo.protocol]?.default?
+      defaults = @protocols[connectionInfo.protocol].default
+      connectionInfo[attr] = value for attr,value of defaults
+    if @database.val() != ''
+      connectionInfo.database = @database.val()
+    if @sshuser.val() != ''
+      connectionInfo.ssh =
+        username: @sshuser.val()
+        password: @sshpass.val()
+        port: @sshport.val()
+      connectionInfo.ssh.keyfile = @sshkey.data('file') if @sshkey.hasClass('selected')
+    @emitter.emit('will-connect', @buildConnection(connectionInfo)) unless err?
+
+  toggleAdvanced: ->
+    @advanced_info.slideToggle 400, =>
+      hidden = @advanced_info.is(":hidden")
+      @advanced_info.find('input').attr 'tabindex', (i,attr) -> if hidden then null else i + 6
+      @advanced_toggle.children("i").toggleClass("icon-chevron-down icon-chevron-left")
+
+  toggleShowpass: ->
+    @showpass.toggleClass("on")
+    if @showpass.hasClass("on")
+      @pass.attr("type","text")
+      @sshpass.attr("type","text")
+    else
+      @pass.attr("type","password")
+      @sshpass.attr("type","password")
+    @pass.focus()
 
   showLocalInfo: ->
     @localInfo.show()
