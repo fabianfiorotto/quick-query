@@ -1,4 +1,4 @@
-{View, $} = require 'atom-space-pen-views'
+{View, $} = require './space-pen'
 GridView = require './grid'
 json2csv = require('json2csv')
 fs = require('fs')

@@ -1,4 +1,4 @@
-{View, $, $$} = require 'atom-space-pen-views'
+{View, $, $$} = require './space-pen'
 {Emitter, CompositeDisposable} = require 'atom'
 
 module.exports =

@@ -1,18 +1,20 @@
-{View, SelectListView  , $} = require 'atom-space-pen-views'
+{View, SelectListView  , $} = require './space-pen'
 
 
 class SelectDataType extends SelectListView
   initialize: ->
     super
     @list.hide()
-    @filterEditorView.focus (e)=>
+    @filterEditor.addEventListener 'focus', (e)=>
       @list.show()
-    @filterEditorView.blur (e)=>
+    @filterEditor.addEventListener 'blur', (e)=>
       @list.hide()
+
   viewForItem: (item) ->
      "<li> #{item} </li>"
+
   confirmed: (item) ->
-    @filterEditorView.getModel().setText(item)
+    @filterEditor.getModel().setText(item)
     @list.hide()
   setError: (message='') ->
     #do nothing
@@ -40,7 +42,7 @@ class EditorView extends View
 
     @nameValueEditor = @nameEditor[0].getModel()
     # @datatypeEditor = @find('#quick-query-datatype')[0].getModel()
-    @datatypeEditor = @selectDataType.filterEditorView.getModel();
+    @datatypeEditor = @selectDataType.filterEditor.getModel();
     @defaultValueEditor = @defaultEditor[0].getModel()
 
     @doneBtn.add(@nullableBtn).keydown (e) ->

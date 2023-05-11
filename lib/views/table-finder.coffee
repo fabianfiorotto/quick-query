@@ -1,4 +1,4 @@
-{SelectListView  , $} = require 'atom-space-pen-views'
+{SelectListView  , $} = require './space-pen'
 {Emitter} = require 'atom'
 
 module.exports =
