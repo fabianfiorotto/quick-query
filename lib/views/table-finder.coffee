@@ -50,7 +50,7 @@ class TableFinderView extends SelectListView
     @step = 2
     if database.child_type == 'table'
       database.children (tables) =>
-        @filterEditorView.getModel().setText('')
+        @filterEditor.getModel().setText('')
         @setItems(tables)
     else
       database.children (schemas) =>

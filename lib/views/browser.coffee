@@ -298,8 +298,8 @@ class BrowserView extends View
       $li.addClass('selected')
       top = $li.position().top
       bottom = top + $li.outerHeight()
-      if bottom > @list.scrollBottom()
-        @list.scrollBottom(bottom)
+      if bottom > @list.scrollTop() + @list.height()
+        @list.scrollTop(bottom - @list.height())
       if top < @list.scrollTop()
         @list.scrollTop(top)
       callback() if callback

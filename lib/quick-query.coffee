@@ -360,7 +360,7 @@ module.exports = QuickQuery =
       item instanceof ResultView
     if filter.length == 0
       queryResult = new ResultView()
-      queryResult.onRowStatusChanged => @updateStatusBar(queryResult)
+      queryResult.grid.onRowStatusChanged => @updateStatusBar(queryResult)
       pane.addItem queryResult
     else
       queryResult = filter[0]
@@ -435,7 +435,7 @@ module.exports = QuickQuery =
     element = @statusBarTile.getItem()
     element.classList.remove('hide')
     if atom.config.get('quick-query.resultsInTab')
-      element.textContent = "(#{queryResult.rowsStatus()})"
+      element.textContent = "(#{queryResult.grid.rowsStatus()})"
     else
       element.textContent = "#{queryResult.getTitle()} (#{queryResult.grid.rowsStatus()})"
 
