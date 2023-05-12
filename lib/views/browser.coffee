@@ -35,6 +35,9 @@ class BrowserView extends View
     @newConnection.click (e) =>
       workspaceElement = atom.views.getView(atom.workspace)
       atom.commands.dispatch(workspaceElement, 'quick-query:new-connection')
+    @searchButton.click (e) =>
+      workspaceElement = atom.views.getView(atom.workspace)
+      atom.commands.dispatch(workspaceElement, 'quick-query:find-table-to-select')
     @runButton.click (e) =>
       workspaceElement = atom.views.getView(atom.workspace)
       atom.commands.dispatch(workspaceElement, 'quick-query:run')
@@ -47,8 +50,9 @@ class BrowserView extends View
   @content: ->
     @div class: 'quick-query-browser tool-panel', =>
       @div class: 'btn-group', outlet: 'buttons', =>
-        @button outlet: 'runButton', class: 'btn icon icon-playback-play' , title: 'Run' , style: 'width:50%'
-        @button outlet: 'newConnection', class: 'btn icon icon-plus' , title: 'New connection' , style: 'width:50%'
+        @button outlet: 'runButton', class: 'btn icon icon-playback-play' , title: 'Run'
+        @button outlet: 'searchButton', class: 'btn icon icon-search-save' , title: 'New connection'
+        @button outlet: 'newConnection', class: 'btn icon icon-plus' , title: 'New connection'
       @ol id:'quick-query-connections' , class: 'list-tree has-collapsable-children focusable-panel', tabindex: -1, outlet: 'list'
 
   # Tear down any state and detach
