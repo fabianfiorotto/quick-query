@@ -46,7 +46,7 @@
   '.quick-query-result .quick-query-grid[data-allow-edition] .quick-query-grid-table-wrapper':[
     {'label': 'New record', 'command': 'quick-query:insert'}
   ]
-  '.quick-query-result.changed':[
+  '.quick-query-result .quick-query-grid.changed':[
     {'label': 'Copy changes\' SQL', 'command': 'quick-query:copy-changes'}
     {'label': 'Apply changes', 'command': 'quick-query:apply-changes'}
   ]

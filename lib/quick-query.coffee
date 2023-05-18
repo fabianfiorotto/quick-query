@@ -145,6 +145,8 @@ module.exports = QuickQuery =
     @subscriptions.add atom.commands.add '.quick-query-grid-table',
       'core:save':    => @activeResultPane().applyChanges() if atom.config.get('quick-query.resultsInTab')
       'core:save-as': => @activeResultGrid().saveCSV() if atom.config.get('quick-query.resultsInTab')
+      'quick-query:copy-changes': => @activeResultView().copyChanges()
+      'quick-query:apply-changes': => @activeResultView().applyChanges()
 
     @subscriptions.add atom.commands.add '#quick-query-connections',
       'quick-query:export-connections': => @exportConnections()

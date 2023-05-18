@@ -60,16 +60,22 @@ class ResultView extends View
       @panel?.hide()
       @hideResults()
 
-  getSentences: ->
-    promises = for rowChanges in @grid.getChanges()
+  getSentences: ()->
+    allChanges = @grid.getChanges()
+    promises = for rowChanges in allChanges
       switch rowChanges.type
         when 'modified' then @connection.updateRecord(rowChanges.changes)
         when 'added'    then @connection.insertRecord(rowChanges.changes)
         when 'delete'   then @connection.deleteRecord(rowChanges.changes)
-    Promise.all(promises)
+    Promise.all(promises).then (sentences) =>
+      for rowChanges, i in allChanges
+        changes: rowChanges.changes
+        type: rowChanges.type
+        sentence: sentences[i]
 
   copyChanges: ->
-    @getSentences().then (sentences)->
+    @getSentences().then (allSentences)->
+      sentences = allSentences.map (g)-> g.sentence
       atom.clipboard.write(sentences.join("\n"))
     .catch (err)-> console.log err
 
@@ -80,7 +86,8 @@ class ResultView extends View
       @cancelButton.off('click.confirm').one 'click.confirm', (e) -> resolve(false)
 
   applyChanges: ->
-    @getSentences().then (sentences) =>
+    @getSentences().then (allSentences) =>
+      sentences = allSentences.map (g)-> g.sentence
       return if sentences.length == 0
       if sentences.every( (sentence)-> !/\S/.test(sentence) )
         wr = """
@@ -95,7 +102,7 @@ class ResultView extends View
       @loadPreview(sentences)
       @confirm().then (accept) =>
         @element.classList.remove('confirmation')
-        if accept then @executeChange(sentence) for sentence in sentences
+        if accept then @executeChanges(changeGroup) for changeGroup in allSentences
         @grid.focusTable()
     .catch (err) -> console.log(err)
 
@@ -110,8 +117,8 @@ class ResultView extends View
     atom.textEditors.setGrammarOverride(editor, 'source.sql')
     @preview.html(editorElement)
 
-  executeChange: (sentence)->
-    @connection.query sentence, (msg,_r,_f) =>
+  executeChanges: (changeGroup)->
+    @connection.query changeGroup.sentence, (msg,_r,_f) =>
       if msg && msg.type == 'error'
         e = msg.content.replace(/`/g,'\\`')
         err = """
@@ -121,7 +128,7 @@ class ResultView extends View
         """
         atom.notifications.addError err, detail:sentence ,dismissable: true
       else
-        sentence.apply()
+        change.apply() for change in changeGroup.changes
 
   toggleResults: ->
     if @keepHidden

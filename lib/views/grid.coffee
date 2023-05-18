@@ -34,8 +34,6 @@ class GridView extends View
       'quick-query:null': => @setNull()
       'quick-query:undo': => @undo()
       'quick-query:delete': => @deleteRecord()
-      'quick-query:copy-changes': => @copyChanges()
-      'quick-query:apply-changes': => @applyChanges()
     windowResizeBk = (=> @fixSizes())
     window.addEventListener 'resize', windowResizeBk
     @subscriptions.add(new Disposable(->
