@@ -281,7 +281,7 @@ class GridView extends View
       if cursor?
         charWidth = textEditor.getDefaultCharWidth()
         textEditor.setCursorBufferPosition([0, Math.floor(cursor/charWidth)])
-      textEditor.onDidChangeCursorPosition (e) => @miniEditorScroll(editor)
+      textEditor.onDidChangeCursorPosition (e) => @miniEditorScroll(e, editor)
     else
       editor = document.createElement('atom-text-editor')
       editor.classList.add('editor')
@@ -299,12 +299,13 @@ class GridView extends View
       @setCellVal(td,val)
     editor.focus()
 
-  miniEditorScroll: (editor)->
+  miniEditorScroll: (e, editor)->
     return if editor.offsetWidth <= @tableWrapper.width()
+    textEditor = editor.getModel()
     # center cursor on screen
     td = editor.parentNode
     tr = td.parentNode
-    charWidth =  textEditor.getDefaultCharWidth()
+    charWidth = textEditor.getDefaultCharWidth()
     column = e.newScreenPosition.column
     trleft = -1 * tr.getBoundingClientRect().left
     tdleft = td.getBoundingClientRect().left
