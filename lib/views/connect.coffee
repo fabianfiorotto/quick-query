@@ -180,7 +180,7 @@ class ConnectView extends View
   focusFirst: ->
     @protocol.focus()
 
-  browseClick: ->
+  browseClick: (e)->
     options =
       properties: ['openFile']
       title: 'Open Database'
