@@ -1,4 +1,4 @@
-{View, $} = require './space-pen'
+{View, $, $$_} = require './space-pen'
 {Emitter, CompositeDisposable, Disposable} = require 'atom'
 
 module.exports =
@@ -6,6 +6,7 @@ class GridView extends View
   readonly: false
 
   constructor:  ()->
+    @chuncksize = 100
     @subscriptions = new CompositeDisposable()
     @emitter = new Emitter()
     super
@@ -46,43 +47,52 @@ class GridView extends View
   @content: ->
     @div class: 'quick-query-grid' , =>
       @table class: 'table quick-query-grid-corner', =>
-        @thead => (@tr => (@th outlet: 'corner', =>
+        @thead => (@tr => (@th class: 'corner', outlet: 'corner', =>
           @span class: 'hash', '#'
+          @span class: 'loading-spinner', ''
           @button class: 'btn icon icon-pencil',title: 'Apply changes' , outlet: 'applyButton' , ''
         ))
-      @table class: 'table quick-query-grid-numbers', outlet: 'numbers' ,=>
+      @table class: 'table quick-query-grid-numbers', outlet: 'numbers', =>
+        @tbody bind: 'numbersBody', ''
       @table class: 'table quick-query-grid-header', outlet: 'header', =>
+        @thead outlet: 'thead', ''
       @div class: 'quick-query-grid-table-wrapper', outlet: 'tableWrapper' , =>
-        @table class: 'quick-query-grid-table table', outlet: 'table', tabindex: -1 , ''
+        @table class: 'quick-query-grid-table table', outlet: 'table', tabindex: -1 , =>
+          @tbody bind: 'tbody', ''
       @div class: 'edit-long-text', outlet: 'editLongText' , ''
 
-  showRows: (@rows, @fields, @readonly, done)->
+  showRows: (@rows, @fields, @readonly)->
+    @canceled = false
+    @rowLoadded = 0
     @element.classList.remove('changed', 'confirmation')
     if @readonly
       @element.removeAttribute('data-allow-edition')
     else
       @element.setAttribute('data-allow-edition', 'yes')
     @keepHidden = false
-    thead = document.createElement('thead')
-    tr = document.createElement('tr')
-    for field in @fields
-      th = document.createElement('th')
-      th.textContent = field.name
-      tr.appendChild(th)
-    thead.appendChild(tr)
-    @header.html(thead)
-    numbersBody = document.createElement('tbody')
-    @numbers.html(numbersBody)
-    tbody = document.createElement('tbody')
+    fields = @fields
+    @thead.html( $$_ ->
+      @tr =>
+        @th field.name for field in fields
+    )
+    @tbody.innerHTML = ''
+    @numbersBody.innerHTML = '';
+    @tableWrapper.scrollTop(0);
+    @showRowsChunk()
     # for row,i in @rows
-    @canceled = false
-    @forEachChunk @rows , done , (row,i) =>
+    @rowHeight = @table.find('tbody tr:first-child').height()
+    @table.find('tbody').height(@rows.length * @rowHeight)
+
+  showRowsChunk: () ->
+    @element.classList.add('loading')
+    chunk = @rows.slice(@rowLoadded, @rowLoadded + @chuncksize);
+    for row,i in chunk
       array_row = Array.isArray(row)
-      tr = document.createElement('tr')
-      td = document.createElement('td')
-      td.textContent = i+1
-      tr.appendChild td
-      numbersBody.appendChild(tr)
+
+      number = @rowLoadded + i + 1
+      @numbersBody.appendChild($$_ ->
+        @tr => @td(number)
+      )
       tr = document.createElement('tr')
       for field,j in @fields
         td = document.createElement('td')
@@ -104,8 +114,17 @@ class GridView extends View
             col = e.pageX - rect.left - 8
             @editRecord(e.currentTarget, col)
         tr.appendChild td
-      tbody.appendChild(tr)
-    @table.html(tbody)
+      @tbody.appendChild(tr)
+    @rowLoadded += @chuncksize
+    @emitter.emit 'did-change-row-status', null
+    if @tableWrapper.scrollTop() > @rowHeight * @rowLoadded && !@canceled
+      setTimeout((=> @showRowsChunk()) , 1)
+    else
+      @fixSizes()
+      @element.classList.remove('loading')
+    if @rowLoadded >= @rows.length
+      @table.find('tbody').height('')
+
 
   copyAll: ->
     return unless @rows? && @fields?
@@ -155,23 +174,6 @@ class GridView extends View
     s.textContent = "\n" for s in td.getElementsByClassName("lf")
     s.textContent = "\r" for s in td.getElementsByClassName("cr")
 
-
-  forEachChunk: (array,done,fn)->
-    chuncksize = 100
-    index = 0
-    doChunk = ()=>
-      cnt = chuncksize
-      while cnt > 0 && index < array.length
-        fn.call(@,array[index], index, array)
-        ++index
-        cnt--
-      if index < array.length
-        @loop = setTimeout(doChunk, 1)
-      else
-        @loop = null
-        done?()
-    doChunk()
-
   isTableFocused: -> @table.is(':focus')
   isEditingLongText: -> @element.classList.contains('editing-long-text')
 
@@ -194,17 +196,14 @@ class GridView extends View
     td2.classList.add('selected')
 
   stopLoop: ->
-    if @loop?
-      clearTimeout(@loop)
-      @loop = null
-      @canceled = true
+    @canceled = true
 
   rowsStatus: ->
     table = @element.querySelector('.quick-query-grid-table')
     added = table.querySelectorAll('tr.added').length
     status = (@rows.length + added).toString()
     status += if status == '1' then ' row' else ' rows'
-    if @canceled
+    if @rowLoadded < @rows.length
       tr_count = table.querySelectorAll('tr').length
       status = "#{tr_count} of #{status}"
     status += ",#{added} added" if added > 0
@@ -344,12 +343,19 @@ class GridView extends View
     @emitter.emit 'did-change-row-status', tr
 
   insertRecord: ->
-    td = document.createElement 'td'
-    tr = document.createElement 'tr'
+    @tableWrapper.scrollTop -> this.scrollHeight
+    checkFn = () =>
+      if @rowLoadded >= @rows.length
+        @insertNewNow()
+      else
+        setTimeout(checkFn ,10)
+    checkFn()
+
+  insertNewNow: ->
     number = @numbers.find('tr').length + 1
-    td.textContent = number
-    tr.appendChild(td)
-    @numbers.children('tbody').append(tr)
+    @numbers.children('tbody').append( $$_ ->
+      @tr => @td number
+    )
     tr = document.createElement 'tr'
     tr.classList.add 'added'
     @header.find("th").each =>
@@ -511,6 +517,10 @@ class GridView extends View
 
   handleScrollEvent: ->
     @tableWrapper.scroll (e) =>
+
+      if e.target.scrollTop > @rowHeight * @rowLoadded
+        @showRowsChunk()
+
       handlerHeight = 5
       scroll = e.target.scrollTop - handlerHeight - @header.height()
       @numbers.css top: (-1*scroll)

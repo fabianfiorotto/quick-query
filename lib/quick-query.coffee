@@ -240,13 +240,12 @@ module.exports = QuickQuery =
           if message.type == 'success'
             @afterExecute(@queryEditor)
         else
-          @showModalSpinner content:"Loading results..."
+          @modalSpinner.hide()
           if atom.config.get('quick-query.resultsInTab')
             queryResult = @showResultInTab()
           else
             queryResult = @showResultView(@queryEditor)
-          queryResult.showRows rows, fields, @connection , =>
-            @modalSpinner.hide()
+          queryResult.showRows rows, fields, @connection
           @updateStatusBar(queryResult)
 
     else
