@@ -501,15 +501,14 @@ class GridView extends View
     @fixScrolls()
 
   fixScrolls: ->
-    handlerHeight = 5
     headerHeght = @header.height()
     if @numbers.find('tr').length > 0
       numbersWidth = @numbers.width()
       @corner.css width: numbersWidth
     else
       numbersWidth = @corner.outerWidth()
-    @tableWrapper.css left: numbersWidth , top: (headerHeght + handlerHeight)
-    scroll = handlerHeight + headerHeght  - @tableWrapper.scrollTop()
+    @tableWrapper.css left: numbersWidth , top: (headerHeght)
+    scroll = headerHeght  - @tableWrapper.scrollTop()
     @numbers.css top: scroll
     scroll = numbersWidth - @tableWrapper.scrollLeft()
     @header.css left: scroll
@@ -518,11 +517,10 @@ class GridView extends View
   handleScrollEvent: ->
     @tableWrapper.scroll (e) =>
 
-      if e.target.scrollTop > @rowHeight * @rowLoadded
+      if e.target.scrollTop > @rowHeight * @rowLoadded - @tableWrapper.height()
         @showRowsChunk()
 
-      handlerHeight = 5
-      scroll = e.target.scrollTop - handlerHeight - @header.height()
+      scroll = e.target.scrollTop - @header.height()
       @numbers.css top: (-1*scroll)
       scroll = e.target.scrollLeft - @numbers.width()
       @header.css left: -1*scroll

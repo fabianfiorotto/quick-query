@@ -22,6 +22,10 @@
 
 	@qq_handler_size: 5px;
 
+	.panel-bottom & {
+		margin-top: @qq_handler_size;
+	}
+
 	.corner .loading-spinner {
 		display: none;
 		width: @font-size;
@@ -51,16 +55,6 @@
 		}
 	}
 
-	.quick-query-grid-resize-handler{
-		background-color: @tool-panel-background-color;
-		height: @qq_handler_size;
-		cursor: ns-resize;
-		position: absolute;
-		width: 100%;
-		z-index: 3;
-		top: 0;
-	}
-
 	table.table.quick-query-grid-corner{
 		width: auto;
 		background-color: @tool-panel-background-color;
@@ -69,7 +63,7 @@
 		position: absolute;
 		left: 0;
 		z-index: 3;
-		top: @qq_handler_size;
+		top: 0;
 		th{
 			text-align: center;
 		}
@@ -82,7 +76,7 @@
 		position: absolute;
 		width: auto;
 		left: 0;
-		top: @qq_handler_size;
+		top: 0;
 	}
 
 	table.table.quick-query-grid-numbers{
@@ -91,7 +85,7 @@
 		position: absolute;
 		width: auto;
 		left: 0;
-		top: @qq_handler_size;
+		top: 0;
 
 		tbody{
 			overflow: hidden;
@@ -109,7 +103,7 @@
 
 	.quick-query-grid-table-wrapper{
 		position: absolute;
-		top: @qq_handler_size;
+		top: 0;
 		left:0;
 		bottom: 0;
 		right: 0;
