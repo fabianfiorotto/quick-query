@@ -30,7 +30,10 @@ class Builder
     @parent.appendChild(subview.element) if @parent?
 
   raw: (html) ->
-    @parent.innerHTML = @parent.innerHTML + html if @parent
+    div = document.createElement('div')
+    div.innerHTML = html
+    for child in div.childNodes
+      @parent.appendChild(child) if @parent?
 
   text: (text)->
     node = document.createTextNode(text)

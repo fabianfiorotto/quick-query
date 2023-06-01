@@ -79,9 +79,8 @@ class GridView extends View
     @numbersBody.innerHTML = '';
     @tableWrapper.scrollTop(0);
     @showRowsChunk()
-    # for row,i in @rows
     @rowHeight = @table.find('tbody tr:first-child').height()
-    @table.find('tbody').height(@rows.length * @rowHeight)
+    @table.find('tbody').height(@rows.length * @rowHeight) if @rowHeight != 0
 
   showRowsChunk: () ->
     @element.classList.add('loading')
@@ -516,6 +515,10 @@ class GridView extends View
 
   handleScrollEvent: ->
     @tableWrapper.scroll (e) =>
+
+      if (!@rowHeight || @rowHeight == 0) && @rowLoadded < @rows.length
+        @rowHeight = @table.find('tbody tr:first-child').height()
+        @table.find('tbody').height(@rows.length * @rowHeight)
 
       if e.target.scrollTop > @rowHeight * @rowLoadded - @tableWrapper.height()
         @showRowsChunk()

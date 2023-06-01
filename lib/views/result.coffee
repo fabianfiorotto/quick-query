@@ -44,13 +44,8 @@ class ResultView extends View
   destroy: ->
     # @element.remove()
 
-  showRows: (rows, fields,@connection,done)->
-    cursor = @grid.getCursor()
-    @grid.showRows rows, fields, !@connection.allowEdition , =>
-      @grid.fixSizes() if rows.length > 100
-      @grid.setCursor(cursor...) if cursor?
-      done?()
-    @grid.fixSizes()
+  showRows: (rows, fields,@connection)->
+    @grid.showRows rows, fields, !@connection.allowEdition
 
   cancel: ->
     @grid.stopLoop()
