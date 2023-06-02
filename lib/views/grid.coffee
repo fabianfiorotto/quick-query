@@ -293,6 +293,8 @@ class GridView extends View
       td = $('.editing',@table)[0]
       val = editor.getModel().getText()
       @setCellVal(td,val)
+      # HACK that brings resize handler back after edit long text
+      @element.style.marginTop = 0; setTimeout((=> @element.style.marginTop = ''), 50)
     editor.focus()
 
   miniEditorScroll: (e, editor)->
