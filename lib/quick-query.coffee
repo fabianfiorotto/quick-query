@@ -7,6 +7,7 @@ DumpLoader = require './views/dump-loader'
 MysqlConnection = require './connections/mysql'
 PostgresConnection = require './connections/postgres'
 Autocomplete = require './autocomplete'
+CsvEditor = require './views/csv-editor'
 
 path = require 'path'
 fs = require 'fs'
@@ -156,6 +157,7 @@ module.exports = QuickQuery =
     @subscriptions.add atom.workspace.addOpener (uri,options) =>
       return new DumpLoader(@browser, filename: uri) if @isSqlDump(uri)
       return new DumpLoader(@browser,options) if (uri == 'quick-query://dump-loader')
+      return new CsvEditor({filepath: uri, text: options.text}) if options.qqCsv
       return @browser if (uri == 'quick-query://browser')
 
     atom.config.onDidChange 'quick-query.resultsInTab', ({newValue, oldValue}) =>
@@ -314,6 +316,16 @@ module.exports = QuickQuery =
     notification = atom.notifications.addInfo(message);
     view = atom.views.getView(notification)
     view?.element.addEventListener 'click', (e) -> view.removeNotification()
+
+  openCSV: ->
+    editor = atom.workspace.getCenter().getActiveTextEditor()
+    unless editor
+      @setModalPanel content:"This tab is not an editor", type:'error'
+      return
+    text = editor.getText()
+    filepath = editor.getPath()
+    editor.destroy()
+    atom.workspace.open(filepath, qqCsv: true, text: text)
 
   setModalPanel: (message)->
     item = document.createElement('div')
