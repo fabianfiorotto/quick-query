@@ -1,7 +1,5 @@
 {View, $} = require './space-pen'
 GridView = require './grid'
-json2csv = require('json2csv')
-fs = require('fs')
 
 module.exports =
 class ResultView extends View

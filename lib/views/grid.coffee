@@ -1,5 +1,7 @@
 {View, $, $$_} = require './space-pen'
 {Emitter, CompositeDisposable, Disposable} = require 'atom'
+json2csv = require('json2csv')
+fs = require('fs')
 
 module.exports =
 class GridView extends View
@@ -136,11 +138,9 @@ class GridView extends View
     rows = @rows.map (row) ->
       simpleRow = JSON.parse(JSON.stringify(row))
       simpleRow
-    json2csv del: "\t", data: rows , fields: fields , defaultValue: '' , (err, csv)->
-      if (err)
-        console.log(err)
-      else
-        atom.clipboard.write(csv)
+     parser = new json2csv.Parser(del: "\t", fields: fields , defaultValue: '')
+     csv = parser.parse(rows)
+     atom.clipboard.write(csv)
 
   saveCSV: ->
     return unless @rows? && @fields?
@@ -156,12 +156,10 @@ class GridView extends View
         simpleRow = JSON.parse(JSON.stringify(row))
         simpleRow[field] ?= '' for field in fields
         simpleRow
-      json2csv  data: rows , fields: fields , defaultValue: '' , (err, csv)->
-        if (err)
-          console.log(err)
-        else
-          fs.writeFile filepath, csv, (err)->
-            if (err) then console.log(err) else console.log('file saved')
+      parser = new json2csv.Parser(del: "\t", fields: fields , defaultValue: '')
+      csv = parser.parse(rows)
+      fs.writeFile filepath, csv, (err)->
+        if (err) then console.log(err) else console.log('file saved')
 
 
   showInvisibles: (td)->
