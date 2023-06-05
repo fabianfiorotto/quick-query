@@ -1,3 +1,12 @@
+## 1.3.0 - Hello Pulsar!
+
+ * Bump up mysql2 and pg and json2csv versions
+ * Split result view in two classes
+ * Replace atom's space-pen with a custom class
+ * Lazy loading rows
+ * Add search button in the sidebar
+ * Load csv in tables (beta)
+
 ## 1.2.0 - Mysql2
   * Replace mysql with mysql2
   * Update ssh2 to version 1.4
