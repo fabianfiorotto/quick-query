@@ -8,6 +8,8 @@ MysqlConnection = require './connections/mysql'
 PostgresConnection = require './connections/postgres'
 Autocomplete = require './autocomplete'
 CsvEditor = require './views/csv-editor'
+ModalView = require './views/modal'
+ViewSpinner = require './views/spinner'
 
 path = require 'path'
 fs = require 'fs'
@@ -75,7 +77,7 @@ module.exports = QuickQuery =
     @connectView = new ConnectView(protocols)
     @modalConnect = atom.workspace.addModalPanel(item: @connectView , visible: false)
 
-    @modalSpinner = atom.workspace.addModalPanel(item: @createSpinner() , visible: false)
+    @modalSpinner = atom.workspace.addModalPanel(item: new ViewSpinner() , visible: false)
 
     storage = state
     if atom.config.get('quick-query.storeGlobally')
@@ -328,43 +330,14 @@ module.exports = QuickQuery =
     atom.workspace.open(filepath, qqCsv: true, text: text)
 
   setModalPanel: (message)->
-    item = document.createElement('div')
-    item.classList.add('quick-query-modal-message')
-    content = document.createElement('span')
-    content.classList.add('message')
-    content.textContent = message.content
-    item.appendChild(content)
-    if message.type == 'error'
-      item.classList.add('text-error')
-      copy = document.createElement('span')
-      copy.classList.add('icon','icon-clippy')
-      copy.setAttribute('title',"Copy to clipboard")
-      copy.setAttribute('data-error',message.content)
-      item.onmouseover = (-> @classList.add('animated') )
-      copy.onclick = (->atom.clipboard.write(@getAttribute('data-error')))
-      item.appendChild(copy)
-    close = document.createElement('span')
-    close.classList.add('icon','icon-x')
-    close.onclick = (=> @modalPanel.destroy())
-    item.appendChild(close)
+    modal = new ModalView(message)
+    modal.onClose => @modalPanel.destroy()
     @modalPanel.destroy() if @modalPanel?
-    @modalPanel = atom.workspace.addModalPanel(item: item , visible: true)
-
-  createSpinner: ->
-    item = document.createElement('div')
-    item.classList.add('quick-query-modal-spinner')
-    spinner = document.createElement('span')
-    spinner.classList.add('loading','loading-spinner-tiny','inline-block')
-    item.appendChild spinner
-    content = document.createElement('span')
-    content.classList.add('message')
-    item.appendChild content
-    return item
+    @modalPanel = atom.workspace.addModalPanel(item: modal , visible: true)
+    @modalPanel.onDidDestroy => modal.destroy()
 
   showModalSpinner: (message)->
-    item = @modalSpinner.getItem()
-    content = item.getElementsByClassName('message').item(0)
-    content.textContent = message.content
+    @modalSpinner.getItem().setMessage(message)
     @modalSpinner.show()
 
   showResultInTab: ->
@@ -432,8 +405,7 @@ module.exports = QuickQuery =
 
   consumeStatusBar: (statusBar) ->
     element = document.createElement('a')
-    element.classList.add('quick-query-tile')
-    element.classList.add('hide')
+    element.classList.add('quick-query-tile', 'hide')
     element.onclick = (=> @toggleResults())
     @statusBarTile = statusBar.addLeftTile(item: element, priority: 10)
 
