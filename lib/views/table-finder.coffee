@@ -44,7 +44,7 @@ class TableFinderView extends SelectListView
         @setItems(databases)
         if defaultdatabase = @connection.getDefaultDatabase()
           unless @connection.hiddenDatabase(defaultdatabase)
-            @filterEditorView.getModel().setText(defaultdatabase)
+            @filterEditor.getModel().setText(defaultdatabase)
 
   step2: (database)->
     @step = 2
