@@ -1,8 +1,6 @@
 View = require './view'
 $ = require 'jquery'
 
-fuzzyFilter = null # defer until used
-
 atom.themes.requireStylesheet(require.resolve('./select-list.less'))
 
 module.exports =
@@ -163,8 +161,11 @@ class SelectListView extends View
 
     filterQuery = @getFilterQuery()
     if filterQuery.length
-      fuzzyFilter ?= require('fuzzaldrin').filter
-      filteredItems = fuzzyFilter(@items, filterQuery, key: @getFilterKey())
+      key = @getFilterKey()
+      candidates = @items.map (item)=> if key? then item[key] else item
+      matcher = atom.ui.fuzzyMatcher.setCandidates(candidates)
+      matches = matcher.match(filterQuery)
+      filteredItems = matches.map (m)=> @items[m.id]
     else
       filteredItems = @items
 
