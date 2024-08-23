@@ -1,3 +1,8 @@
+## 1.3.1 - Native fuzzy finder
+  * Replace fuzzaldrin with Pulsar's native fuzzy finder.
+  * Fix a small bug with the table finder.
+  * Bump mysql2 from 3.3.3 to 3.9.8
+
 ## 1.3.0 - Hello Pulsar!
 
  * Bump up mysql2 and pg and json2csv versions
