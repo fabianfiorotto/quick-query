@@ -1,4 +1,4 @@
-## 1.3.1 - Native fuzzy finder
+## 1.3.2 - Native fuzzy finder
   * Replace fuzzaldrin with Pulsar's native fuzzy finder.
   * Fix a small bug with the table finder.
   * Bump mysql2 from 3.3.3 to 3.9.8
