@@ -454,7 +454,7 @@ class GridView extends View
       else if tr.classList.contains('status-removed')
         row = @rows[i]
         changes = @fields.map (field,j)-> {field: field, value: row[j], apply}
-        rowChanges = {type: 'added', changes}
+        rowChanges = {type: 'delete', changes}
       allChanges.push(rowChanges) if rowChanges
     return allChanges
 
