@@ -51,7 +51,7 @@ class BrowserView extends View
     @div class: 'quick-query-browser tool-panel', =>
       @div class: 'btn-group', outlet: 'buttons', =>
         @button outlet: 'runButton', class: 'btn icon icon-playback-play' , title: 'Run'
-        @button outlet: 'searchButton', class: 'btn icon icon-search-save' , title: 'New connection'
+        @button outlet: 'searchButton', class: 'btn icon icon-search-save' , title: 'Search Table'
         @button outlet: 'newConnection', class: 'btn icon icon-plus' , title: 'New connection'
       @ol id:'quick-query-connections' , class: 'list-tree has-collapsable-children focusable-panel', tabindex: -1, outlet: 'list'
 
