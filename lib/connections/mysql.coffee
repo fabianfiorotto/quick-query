@@ -73,6 +73,7 @@ class MysqlConnection
     @connection.on 'error', (err) =>
       if err && err.code == 'PROTOCOL_CONNECTION_LOST'
         @fatal = true
+      callback(err.message) if err?
     @connection.connect(callback)
 
   serialize: ->
