@@ -17,8 +17,8 @@ After install go to View  »  Toggle Database Browser. [Read More ](https://gith
 - Autocomplete integration
 
 ## Other DBMSs
- - [SQL Server](https://atom.io/packages/quick-query-mssql)
- - [Sqlite](https://atom.io/packages/quick-query-sqlite)
+ - [SQL Server](https://web.pulsar-edit.dev/packages/quick-query-mssql)
+ - [Sqlite](https://web.pulsar-edit.dev/packages/quick-query-sqlite)
 
 ## Screenshot
 ![](https://raw.githubusercontent.com/fabianfiorotto/quick-query/master/resources/screenshot.png)
