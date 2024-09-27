@@ -1,3 +1,8 @@
+## 1.3.3 - Fix bugs and regressions
+  * Fix remove record
+  * Show connection fail error on mysql
+  * Fix connection view css
+
 ## 1.3.2 - Native fuzzy finder
   * Replace fuzzaldrin with Pulsar's native fuzzy finder.
   * Fix a small bug with the table finder.
