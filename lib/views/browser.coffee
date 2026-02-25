@@ -41,6 +41,10 @@ class BrowserView extends View
     @runButton.click (e) =>
       workspaceElement = atom.views.getView(atom.workspace)
       atom.commands.dispatch(workspaceElement, 'quick-query:run')
+    @newConnection.mousedown (e) =>
+      if e.button == 1
+        workspaceElement = atom.views.getView(atom.workspace)
+        atom.commands.dispatch(workspaceElement, 'quick-query:connection-string')
 
   # Returns an object that can be retrieved when package is activated
   getTitle: -> 'Databases'

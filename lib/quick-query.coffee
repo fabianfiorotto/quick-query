@@ -1,4 +1,5 @@
 ConnectView = require './views/connect'
+ConnectionStringView = require './views/connection-string'
 ResultView = require './views/result'
 BrowserView = require './views/browser'
 EditorView = require './views/editor'
@@ -75,8 +76,10 @@ module.exports = QuickQuery =
     @browser = new BrowserView()
 
     @connectView = new ConnectView(protocols)
-    @modalConnect = atom.workspace.addModalPanel(item: @connectView , visible: false)
+    @connectionStringView = new ConnectionStringView()
 
+    @modalConnect = atom.workspace.addModalPanel(item: @connectView , visible: false)
+    @modalConnectionString = atom.workspace.addModalPanel(item: @connectionStringView , visible: false)
     @modalSpinner = atom.workspace.addModalPanel(item: new ViewSpinner() , visible: false)
 
     storage = state
@@ -123,6 +126,14 @@ module.exports = QuickQuery =
         connectionsInfo = JSON.stringify(connections: @connections.map((c)-> c.serialize()),null,2)
         fs.writeFile gloalStoragePath, connectionsInfo , ((err)-> console.log(err) if err?)
 
+    @connectionStringView.onWillConnect (connectionsInfo) =>
+      connectionPromise = @connectView.buildConnection(connectionsInfo)
+      @browser.addConnection(connectionPromise)
+      connectionPromise.then(
+        (connection) => @modalConnectionString.hide()
+        (err) => @setModalPanel content: err, type: 'error'
+      )
+
     @connectView.onWillConnect (connectionPromise) =>
       @browser.addConnection(connectionPromise)
       connectionPromise.then(
@@ -141,6 +152,7 @@ module.exports = QuickQuery =
       'quick-query:toggle-results': => @toggleResults()
       'core:cancel': => @cancel()
       'quick-query:new-connection': => @newConnection()
+      'quick-query:connection-string': => @newConnectionString()
       'quick-query:find-table-to-select': => @findTable()
       'quick-query:open-dump-loader': => @openDumpLoader()
       'quick-query:open-csv': => @openCSV()
@@ -223,6 +235,9 @@ module.exports = QuickQuery =
   newConnection: ->
     @modalConnect.show()
     @connectView.focusFirst()
+
+  newConnectionString: ->
+    @modalConnectionString.show()
 
   run: ->
     @queryEditor = atom.workspace.getCenter().getActiveTextEditor()
@@ -432,6 +447,7 @@ module.exports = QuickQuery =
   cancel: ->
     @modalPanel.destroy() if @modalPanel
     @modalConnect.hide()
+    @modalConnectionString.hide()
     resultView = @activeResultView()
     if resultView?
       resultView.cancel()
