@@ -50,7 +50,7 @@
     "atom": ">=1.27.0 <2.0.0"
   },
   "dependencies": {
-    "csv-parse": "^5.3.8",
+    "csv-parse": "^7.0.2",
     "jquery": "^3.7.0",
     "json2csv": "^5.0.7",
     "mysql2": "^3.9.8",
